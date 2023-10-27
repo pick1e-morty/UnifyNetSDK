@@ -4,7 +4,7 @@
 
 
 现阶段整合海康和大华两个厂商的C语言SDK接口
-两家厂商的都是通过ctypesgen进行转换生成过的
+两家厂商的SDK都是通过ctypesgen进行转换生成过的
 https://github.com/ctypesgen/ctypesgen.git
 
 ctypesgen是一个纯python的ctypes包装生成器。它解析C头文件并根据找到的内容创建库的包装器。

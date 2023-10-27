@@ -19,11 +19,12 @@ def test_login():
     两分钟前 = datetime.now() - timedelta(seconds=120)
     一分钟前 = datetime.now() - timedelta(seconds=60)
 
-    # findArg = UnifyFindFileByTimeArg()
-    # findArg.channel = 1
-    # findArg.startTime = 两分钟前
-    # findArg.stopTime = 一分钟前
-    # findResult = hk_client.findFileByTime(userID, findArg)
+    findArg = UnifyFindFileByTimeArg()
+    findArg.channel = 1
+    findArg.startTime = 两分钟前
+    findArg.stopTime = 一分钟前
+    findResult = hk_client.syncFindFileByTime(userID, findArg)
+    print(f"查找结果{findResult}")
 
     downArg = UnifyDownLoadByTimeArg()
     downArg.channel = 1

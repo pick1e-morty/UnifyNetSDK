@@ -1,37 +1,14 @@
-import time
 from time import sleep
 from ctypes import *
-import os
 import sys
-
-from threading import Timer
-
-import schedule
-
 from UnifyNetSDK.define import *
-from UnifyNetSDK.haikang.HK_Exception import ErrorCode, HKException
+from UnifyNetSDK.haikang.hk_exception import ErrorCode, HKException
 import UnifyNetSDK.haikang.ctypegen.full_headfile as HK
-
-# 结构体初始化会被赋值
-# 默认应该都是0的形式，特别是bool
 from loguru import logger
-
 from glob_path import ProjectPath
 
 logger.remove()
 logger.add(sys.stdout, level="INFO")
-
-# cleanup
-# logout还有login都是有返回值的
-# 这些估计都要用assert
-
-
-# sdk函数要对变量本身数据进行修改时需要添加byref函数
-# 貌似需要传结构体时都要加byref函数
-
-
-# 海康sdk的login登录用户名再C语言那边定义为char数组
-# python这边用create_string_buffer创建了一个<class 'ctypes.c_char_Array_6'>   也是数组
 
 """
 from ctypes import *
@@ -110,28 +87,25 @@ class HaiKangSDK(AbsNetSDK):
         return userID
 
     @classmethod
-    def stopDownLoadTimer(cls, downLoadHandle: int):
-        downLoadPos = c_int()
-        cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), 1)
-        logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
-        if downLoadPos.value == 100:
-            logger.info(f"下载ID {downLoadHandle} 下载成功")
-            stopGetFileResult = cls.objDll.NET_DVR_StopGetFile(downLoadHandle)
-            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
-        elif downLoadPos.value == 200:
-            logger.info(f"下载ID {downLoadHandle} 下载异常")
-            stopGetFileResult = cls.objDll.NET_DVR_StopGetFile(downLoadHandle)
-            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
-        return downLoadPos.value
-
-    @classmethod
     def stopFindFileTimer(cls, findHandle):
 
         lpFindData = HK.NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
         findResult = cls.objDll.NET_DVR_FindNextFile_V50(findHandle, byref(lpFindData))
         cls.__getLastError("NET_DVR_FindNextFile_V50", findResult)
 
-        # if findResult ==
+        findStateList = [HK.NET_DVR_FILE_NOFIND, HK.NET_DVR_NOMOREFILE, HK.NET_DVR_FILE_EXCEPTION, HK.NET_DVR_FIND_TIMEOUT]
+
+        if findResult == HK.NET_DVR_ISFINDING:
+            logger.trace(f"查找ID {findHandle},查找状态 {findResult}")
+        if findResult == HK.NET_DVR_FILE_SUCCESS:
+            logger.success(f"查找ID {findHandle},查找成功")
+            stopFindResult = cls.objDll.NET_DVR_FindClose_V30(findHandle)
+            cls.__getLastError("NET_DVR_FindClose_V30", stopFindResult)
+        elif findResult in findStateList:
+            logger.error(f"查找ID {findHandle},查找状态异常代码 {findResult}")
+            stopFindResult = bool(cls.objDll.NET_DVR_FindClose_V30(findHandle))
+            cls.__getLastError("NET_DVR_FindClose_V30", stopFindResult)
+        return findResult
 
     @classmethod
     def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
@@ -141,6 +115,11 @@ class HaiKangSDK(AbsNetSDK):
             if findResult != HK.NET_DVR_ISFINDING:  #
                 return findResult
             sleep(0.5)
+
+    @classmethod
+    def asyncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+        findHandle = cls.__findFileByTime(userID, findFileArg)
+        return findHandle
 
     @classmethod
     def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
@@ -159,6 +138,23 @@ class HaiKangSDK(AbsNetSDK):
         cls.__getLastError("NET_DVR_FindFile_V50", findHandle)
 
         return findHandle
+
+    @classmethod
+    def stopDownLoadTimer(cls, downLoadHandle: int):
+        downLoadPos = c_int()
+        cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), 1)
+
+        if downLoadPos.value == 0:
+            logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
+        elif downLoadPos.value == 100:
+            logger.success(f"下载ID {downLoadHandle} 下载成功")
+            stopGetFileResult = cls.objDll.NET_DVR_StopGetFile(downLoadHandle)
+            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+        elif downLoadPos.value == 200:
+            logger.error(f"下载ID {downLoadHandle} 下载异常")
+            stopGetFileResult = cls.objDll.NET_DVR_StopGetFile(downLoadHandle)
+            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+        return downLoadPos.value
 
     @classmethod
     def syncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
@@ -205,15 +201,6 @@ class HaiKangSDK(AbsNetSDK):
             errorText = ErrorCode[errorIndex]
             logger.error(f"{errorIndex} {errorText}")
             raise HKException(errorIndex, errorText)
-
-    # def getLastError(cls):
-    #     errorIndex = cls.objDll.NET_DVR_GetLastError()
-    #     try:
-    #         errorText = ErrorCode[errorIndex]
-    #         raise HKException(errorIndex, errorText)
-    #     except KeyError:
-    #         errorText = "未知错误代码,查手册"
-    #         raise HKException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
