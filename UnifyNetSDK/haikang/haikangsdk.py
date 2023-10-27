@@ -10,7 +10,7 @@ import schedule
 
 from UnifyNetSDK.define import *
 from UnifyNetSDK.haikang.HK_Exception import ErrorCode, HKException
-from UnifyNetSDK.haikang.ctypegen.full_headfile import *
+import UnifyNetSDK.haikang.ctypegen.full_headfile as HK
 
 # 结构体初始化会被赋值
 # 默认应该都是0的形式，特别是bool
@@ -77,7 +77,7 @@ class HaiKangSDK(AbsNetSDK):
                 cls.objDll = CDLL(str(libPath / "HCNetSDK.dll"))  # 加载网络库
                 cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库
 
-                sdk_ComPath = NET_DVR_LOCAL_SDK_PATH()
+                sdk_ComPath = HK.NET_DVR_LOCAL_SDK_PATH()
                 sdk_ComPath.sPath = str(libPath).encode("gbk")
                 setResult = bool(cls.objDll.NET_DVR_SetSDKInitCfg(2, byref(sdk_ComPath)))
                 cls.__getLastError("NET_DVR_SetSDKInitCfg", setResult)
@@ -95,14 +95,14 @@ class HaiKangSDK(AbsNetSDK):
     @classmethod
     def login(cls, loginArg: UnifyLoginArg):
         # 登录参数，包括设备地址、登录用户、密码等
-        login_info = NET_DVR_USER_LOGIN_INFO()
+        login_info = HK.NET_DVR_USER_LOGIN_INFO()
         login_info.bUseAsynLogin = 0  # 同步通讯登录
         login_info.sDeviceAddress = loginArg.device_address.encode()
         login_info.wPort = loginArg.device_port
         login_info.sUserName = loginArg.user_name.encode()
         login_info.sPassword = loginArg.user_password.encode()
         # 设备信息, 输出参数
-        device_info = NET_DVR_DEVICEINFO_V40()
+        device_info = HK.NET_DVR_DEVICEINFO_V40()
         # 登录
         userID = cls.objDll.NET_DVR_Login_V40(login_info, byref(device_info))  # TODO 注意device_info是需要加byref才能正常显示的
         cls.__getLastError("NET_DVR_Login_V40", userID)
@@ -112,7 +112,7 @@ class HaiKangSDK(AbsNetSDK):
     @classmethod
     def stopDownLoadTimer(cls, downLoadHandle: int):
         downLoadPos = c_int()
-        cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), 1)
+        cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), 1)
         logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
         if downLoadPos.value == 100:
             logger.info(f"下载ID {downLoadHandle} 下载成功")
@@ -127,8 +127,8 @@ class HaiKangSDK(AbsNetSDK):
     @classmethod
     def stopFindFileTimer(cls, findHandle):
 
-        lpFindData = NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
-        findResult = cls.objDll.NET_DVR_FindNextFile_V50(userID, byref(lpFindData))
+        lpFindData = HK.NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
+        findResult = cls.objDll.NET_DVR_FindNextFile_V50(findHandle, byref(lpFindData))
         cls.__getLastError("NET_DVR_FindNextFile_V50", findResult)
 
         # if findResult ==
@@ -138,18 +138,18 @@ class HaiKangSDK(AbsNetSDK):
         findHandle = cls.__findFileByTime(userID, findFileArg)
         while True:
             findResult = cls.stopFindFileTimer(findHandle)
-            if findResult != NET_DVR_ISFINDING:  #
+            if findResult != HK.NET_DVR_ISFINDING:  #
                 return findResult
             sleep(0.5)
 
     @classmethod
     def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
         # 准备参数
-        struStreamID = NET_DVR_STREAM_INFO()
-        struStreamID.dwSize = sizeof(NET_DVR_STREAM_INFO)
+        struStreamID = HK.NET_DVR_STREAM_INFO()
+        struStreamID.dwSize = sizeof(HK.NET_DVR_STREAM_INFO)
         struStreamID.dwChannel = findFileArg.channel
 
-        pFindCond = NET_DVR_FILECOND_V50()
+        pFindCond = HK.NET_DVR_FILECOND_V50()
         pFindCond.struStreamID = struStreamID
         pFindCond.struStartTime = cls.datetime2NET_DVR_TIME_SEARCH_COND(findFileArg.startTime)
         pFindCond.struStopTime = cls.datetime2NET_DVR_TIME_SEARCH_COND(findFileArg.stopTime)
@@ -183,7 +183,7 @@ class HaiKangSDK(AbsNetSDK):
         # 准备参数
         logger.info(f"下载文件路径为{downLoadArg.saveFilePath}")
         sSavedFileName = create_string_buffer(str(downLoadArg.saveFilePath).encode("gbk"))
-        pDownloadCond = NET_DVR_PLAYCOND()
+        pDownloadCond = HK.NET_DVR_PLAYCOND()
         pDownloadCond.dwChannel = downLoadArg.channel
         pDownloadCond.struStartTime = cls.datetime2NET_DVR_TIME(downLoadArg.startTime)
         pDownloadCond.struStopTime = cls.datetime2NET_DVR_TIME(downLoadArg.stopTime)
@@ -192,7 +192,7 @@ class HaiKangSDK(AbsNetSDK):
         downLoadHandle = cls.objDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
         cls.__getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
 
-        controlResult = bool(cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), 0))
+        controlResult = bool(cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), 0))
         cls.__getLastError("NET_DVR_PlayBackControl_V40", controlResult)
 
         return downLoadHandle
@@ -230,7 +230,7 @@ class HaiKangSDK(AbsNetSDK):
     @staticmethod
     def datetime2NET_DVR_TIME(timeArg: datetime):
         # 省事的时间类型转换,下载录像用的时间类型
-        net_dvr_time = NET_DVR_TIME()
+        net_dvr_time = HK.NET_DVR_TIME()
         net_dvr_time.dwYear = timeArg.year
         net_dvr_time.dwMonth = timeArg.month
         net_dvr_time.dwDay = timeArg.day
@@ -242,7 +242,7 @@ class HaiKangSDK(AbsNetSDK):
     @staticmethod
     def datetime2NET_DVR_TIME_SEARCH_COND(timeArg: datetime):
         # 省事的时间类型转换,查询录像用的时间类型
-        net_dvr_time_search_cond = NET_DVR_TIME_SEARCH_COND()
+        net_dvr_time_search_cond = HK.NET_DVR_TIME_SEARCH_COND()
         net_dvr_time_search_cond.wYear = timeArg.year
         net_dvr_time_search_cond.byMonth = timeArg.month
         net_dvr_time_search_cond.byDay = timeArg.day
