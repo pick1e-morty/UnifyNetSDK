@@ -4,7 +4,12 @@ from ctypes import *
 import os
 import sys
 
+from threading import Timer
+
+import schedule
+
 from UnifyNetSDK.define import *
+from UnifyNetSDK.haikang.HK_Exception import ErrorCode, HKException
 from UnifyNetSDK.haikang.ctypegen.full_headfile import *
 
 # 结构体初始化会被赋值
@@ -13,7 +18,8 @@ from loguru import logger
 
 from glob_path import ProjectPath
 
-logger.add(sys.stdout, level="DEBUG")
+logger.remove()
+logger.add(sys.stdout, level="INFO")
 
 # cleanup
 # logout还有login都是有返回值的
@@ -58,10 +64,9 @@ class HaiKangSDK(AbsNetSDK):
         self._loadLibrary()
 
     def init(cls):
-        cls.objDll.NET_DVR_Init()
-
-    # 对着大华的python写初始化，注意，不是复制大华，而是python端的高层抽象
-    # 所以不要有那么大的功能要求和压力
+        initResult = bool(cls.objDll.NET_DVR_Init())
+        logger.info(f"SDK初始化已执行")
+        cls.__getLastError("NET_DVR_Init", initResult)
 
     @classmethod
     def _loadLibrary(cls):
@@ -74,11 +79,14 @@ class HaiKangSDK(AbsNetSDK):
 
                 sdk_ComPath = NET_DVR_LOCAL_SDK_PATH()
                 sdk_ComPath.sPath = str(libPath).encode("gbk")
-                cls.objDll.NET_DVR_SetSDKInitCfg(2, byref(sdk_ComPath))
+                setResult = bool(cls.objDll.NET_DVR_SetSDKInitCfg(2, byref(sdk_ComPath)))
+                cls.__getLastError("NET_DVR_SetSDKInitCfg", setResult)
                 libcryptoPath = str(libPath / "libcrypto-1_1-x64.dll").encode("gbk")
-                cls.objDll.NET_DVR_SetSDKInitCfg(3, create_string_buffer(libcryptoPath))
+                setResult = bool(cls.objDll.NET_DVR_SetSDKInitCfg(3, create_string_buffer(libcryptoPath)))
+                cls.__getLastError("NET_DVR_SetSDKInitCfg", setResult)
                 libsslPath = str(libPath / "libssl-1_1-x64.dll").encode("gbk")
-                cls.objDll.NET_DVR_SetSDKInitCfg(4, create_string_buffer(libsslPath))
+                setResult = bool(cls.objDll.NET_DVR_SetSDKInitCfg(4, create_string_buffer(libsslPath)))
+                cls.__getLastError("NET_DVR_SetSDKInitCfg", setResult)
 
         except OSError as e:
             logger.error(f"动态库加载失败,原错误信息:{e}")
@@ -93,77 +101,135 @@ class HaiKangSDK(AbsNetSDK):
         login_info.wPort = loginArg.device_port
         login_info.sUserName = loginArg.user_name.encode()
         login_info.sPassword = loginArg.user_password.encode()
-        print(login_info.bUseAsynLogin)
-
         # 设备信息, 输出参数
         device_info = NET_DVR_DEVICEINFO_V40()
-
-        # 登录，
+        # 登录
         userID = cls.objDll.NET_DVR_Login_V40(login_info, byref(device_info))  # TODO 注意device_info是需要加byref才能正常显示的
-        # TODO 注意检查设备信息是否被正确映射及正常打印
-        print("登录后错误代码为", cls.objDll.NET_DVR_GetLastError())
+        cls.__getLastError("NET_DVR_Login_V40", userID)
         print("硬盘数量", device_info.struDeviceV30.byDiskNum)
         return userID
 
     @classmethod
-    def realPlay(cls):
-        print(123)
-        pass
+    def stopDownLoadTimer(cls, downLoadHandle: int):
+        downLoadPos = c_int()
+        cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), 1)
+        logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
+        if downLoadPos.value == 100:
+            logger.info(f"下载ID {downLoadHandle} 下载成功")
+            stopGetFileResult = cls.objDll.NET_DVR_StopGetFile(downLoadHandle)
+            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+        elif downLoadPos.value == 200:
+            logger.info(f"下载ID {downLoadHandle} 下载异常")
+            stopGetFileResult = cls.objDll.NET_DVR_StopGetFile(downLoadHandle)
+            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+        return downLoadPos.value
 
     @classmethod
-    def downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    def stopFindFileTimer(cls, findHandle):
 
+        lpFindData = NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
+        findResult = cls.objDll.NET_DVR_FindNextFile_V50(userID, byref(lpFindData))
+        cls.__getLastError("NET_DVR_FindNextFile_V50", findResult)
+
+        # if findResult ==
+
+    @classmethod
+    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+        findHandle = cls.__findFileByTime(userID, findFileArg)
+        while True:
+            findResult = cls.stopFindFileTimer(findHandle)
+            if findResult != NET_DVR_ISFINDING:  #
+                return findResult
+            sleep(0.5)
+
+    @classmethod
+    def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
         # 准备参数
-        print("下载文件路径为", downLoadArg.saveFilePath)
+        struStreamID = NET_DVR_STREAM_INFO()
+        struStreamID.dwSize = sizeof(NET_DVR_STREAM_INFO)
+        struStreamID.dwChannel = findFileArg.channel
+
+        pFindCond = NET_DVR_FILECOND_V50()
+        pFindCond.struStreamID = struStreamID
+        pFindCond.struStartTime = cls.datetime2NET_DVR_TIME_SEARCH_COND(findFileArg.startTime)
+        pFindCond.struStopTime = cls.datetime2NET_DVR_TIME_SEARCH_COND(findFileArg.stopTime)
+
+        # 开始查询
+        findHandle = cls.objDll.NET_DVR_FindFile_V50(userID, pFindCond)
+        cls.__getLastError("NET_DVR_FindFile_V50", findHandle)
+
+        return findHandle
+
+    @classmethod
+    def syncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+        """
+        hk说按照时间下载就只会有三个数值，0：正在下载，100：下载完成，200：下载异常
+        其它报错都会直接被raise出来
+        """
+        downLoadHandle = cls.__downLoadByTime(userID, downLoadArg)
+        while True:
+            downLoadResult = cls.stopDownLoadTimer(downLoadHandle)  # 每0.5秒查一下有没有下载完成
+            if downLoadResult != 0:
+                return downLoadResult
+            sleep(0.5)
+
+    @classmethod
+    def asyncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+        downLoadHandle = cls.__downLoadByTime(userID, downLoadArg)
+        return downLoadHandle
+
+    @classmethod
+    def __downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+        # 准备参数
+        logger.info(f"下载文件路径为{downLoadArg.saveFilePath}")
         sSavedFileName = create_string_buffer(str(downLoadArg.saveFilePath).encode("gbk"))
-        # sSavedFileName = str(downLoadArg.saveFilePath).encode("gbk")  # 看看两种写法是不是都能用？
-        # sSavedFileName = bytes(bin(str(downLoadArg.saveFilePath)))  # 看看两种写法是不是都能用？
-
-        #
-
         pDownloadCond = NET_DVR_PLAYCOND()
         pDownloadCond.dwChannel = downLoadArg.channel
         pDownloadCond.struStartTime = cls.datetime2NET_DVR_TIME(downLoadArg.startTime)
         pDownloadCond.struStopTime = cls.datetime2NET_DVR_TIME(downLoadArg.stopTime)
-
-
         # 开始下载
-        # TODO 错误代码17，不知道参数哪里出错了 
         # TODO 如果成功了还要做一个先查找是否有录像的功能，因为如果没录象的话SDK并不会报错，而是直接下载文件大小为0kb
         downLoadHandle = cls.objDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
+        cls.__getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
 
-        print("下载句柄为", downLoadHandle)
-        print("获取下载句柄后错误代码为", cls.objDll.NET_DVR_GetLastError())  #
+        controlResult = bool(cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), 0))
+        cls.__getLastError("NET_DVR_PlayBackControl_V40", controlResult)
 
-        cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), 0)
-        print("开始下载状态为", downLoadHandle)
-        print("开始下载后错误代码为", cls.objDll.NET_DVR_GetLastError())
-        downLoadPos = c_int()
-        for i in range(5):
-            cls.objDll.NET_DVR_PlayBackControl_V40(downLoadHandle, NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos),1)
-            print("下载进度", downLoadPos)
-            sleep(1)
-        result = cls.objDll.NET_DVR_StopGetFile(userID)
-        print("关闭下载为", result)
-        print("关闭下载错误代码为", cls.objDll.NET_DVR_GetLastError())
+        return downLoadHandle
 
-    def customDownLoadFromPlayBackByTime(cls):
-        pass
+    @classmethod  # 目前认为海康把两种状态作为方法执行错位的标识，-1和False，其他的都是正常值，不过我怕它整个新花样，如果能在这个方法中指定错误值，哦。。。那就需要白名单和黑名单了。。。。。。。。。。
+    def __getLastError(cls, methodName, methodResult):  # todo 如果这种写法能用的话记得加到define里
+        logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
+        if methodResult == -1 or methodResult is False:
+            errorIndex = cls.objDll.NET_DVR_GetLastError()
+            errorText = ErrorCode[errorIndex]
+            logger.error(f"{errorIndex} {errorText}")
+            raise HKException(errorIndex, errorText)
 
-    def playBackByTime(cls):
-        pass
+    # def getLastError(cls):
+    #     errorIndex = cls.objDll.NET_DVR_GetLastError()
+    #     try:
+    #         errorText = ErrorCode[errorIndex]
+    #         raise HKException(errorIndex, errorText)
+    #     except KeyError:
+    #         errorText = "未知错误代码,查手册"
+    #         raise HKException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
-        cls.objDll.NET_DVR_Logout(userID)
+        logoutResult = bool(cls.objDll.NET_DVR_Logout(userID))
+        logger.info(f"用户ID：{userID} 已登出")
+        cls.__getLastError("NET_DVR_Logout", logoutResult)
 
     @classmethod
     def cleanup(cls):
-        cls.objDll.NET_DVR_Cleanup()
+        cleanupResult = bool(cls.objDll.NET_DVR_Cleanup())
+        logger.info("SDK资源已释放")
+        cls.__getLastError("NET_DVR_Cleanup", cleanupResult)
 
     @staticmethod
     def datetime2NET_DVR_TIME(timeArg: datetime):
-        # 省事的时间类型转换
+        # 省事的时间类型转换,下载录像用的时间类型
         net_dvr_time = NET_DVR_TIME()
         net_dvr_time.dwYear = timeArg.year
         net_dvr_time.dwMonth = timeArg.month
@@ -172,6 +238,18 @@ class HaiKangSDK(AbsNetSDK):
         net_dvr_time.dwMinute = timeArg.minute
         net_dvr_time.dwSecond = timeArg.second
         return net_dvr_time
+
+    @staticmethod
+    def datetime2NET_DVR_TIME_SEARCH_COND(timeArg: datetime):
+        # 省事的时间类型转换,查询录像用的时间类型
+        net_dvr_time_search_cond = NET_DVR_TIME_SEARCH_COND()
+        net_dvr_time_search_cond.wYear = timeArg.year
+        net_dvr_time_search_cond.byMonth = timeArg.month
+        net_dvr_time_search_cond.byDay = timeArg.day
+        net_dvr_time_search_cond.byHour = timeArg.hour
+        net_dvr_time_search_cond.byMinute = timeArg.minute
+        net_dvr_time_search_cond.bySecond = timeArg.second
+        return net_dvr_time_search_cond
 
 
 if __name__ == "__main__":

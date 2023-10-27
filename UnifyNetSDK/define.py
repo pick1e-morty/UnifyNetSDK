@@ -19,10 +19,16 @@ class UnifyLoginArg(object):
 
 class UnifyDownLoadByTimeArg(object):
     # 基础的按时间下载回放参数定义，注意大华的downloadbytime不支持选择码流
-    def __init__(self, channel: int = None, saveFilePath: Path = None, startTime: datetime = None,
-                 stopTime: datetime = None):
+    def __init__(self, channel: int = None, saveFilePath: Path = None, startTime: datetime = None, stopTime: datetime = None):
         self.channel = channel
         self.saveFilePath = saveFilePath  # Path(saveFilePath).absolute()
+        self.startTime = startTime
+        self.stopTime = stopTime
+
+
+class UnifyFindFileByTimeArg(object):
+    def __init__(self, channel: int = None, startTime: datetime = None, stopTime: datetime = None):
+        self.channel = channel
         self.startTime = startTime
         self.stopTime = stopTime
 
@@ -41,27 +47,28 @@ class AbsNetSDK(ABC):
     def login(cls, loginArg: UnifyLoginArg):
         pass
 
-    @abstractmethod
-    def realPlay(cls):
-        pass
+    # @abstractmethod
+    # def downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    #     pass
 
-    @abstractmethod
-    def playBackByTime(cls):
-        pass
-
-    @abstractmethod
-    def downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
-        pass
-
-    @abstractmethod
-    def customDownLoadFromPlayBackByTime(cls):
-        # 有时候会下载失败，sdk却没有显示报错
-        # 我怀疑是他们自己封装的download有问题
-        # 我想回放应该是不受他们内部干扰的
-        # 所以自己写一个回调用来保存录像
-        # 也就是，只要回放能成功，下载就一定也是成功的
-
-        pass
+    # @abstractmethod
+    # def realPlay(cls):
+    #     pass
+    #
+    # @abstractmethod
+    # def playBackByTime(cls):
+    #     pass
+    #
+    #
+    #
+    # @abstractmethod
+    # def customDownLoadFromPlayBackByTime(cls):
+    #     # 有时候会下载失败，sdk却没有显示报错
+    #     # 我怀疑是他们自己封装的download有问题
+    #     # 我想回放应该是不受他们内部干扰的
+    #     # 所以自己写一个回调用来保存录像
+    #     # 也就是，只要回放能成功，下载就一定也是成功的
+    #     pass
 
     @abstractmethod
     def logout(cls, userID):
