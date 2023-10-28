@@ -3,7 +3,7 @@ from ctypes import *
 import sys
 from UnifyNetSDK.define import *
 from UnifyNetSDK.haikang.hk_exception import ErrorCode, HKException
-import UnifyNetSDK.haikang.ctypegen.full_headfile as HK
+import UnifyNetSDK.haikang.ctypes_headfile as HK
 from loguru import logger
 from glob_path import ProjectPath
 
