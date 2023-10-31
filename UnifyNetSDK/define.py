@@ -9,12 +9,12 @@ from time import time, struct_time
 
 class UnifyLoginArg(object):
     # 基础的登录参数
-    def __init__(self, device_address: str = None, device_port: int = None, user_name: str = None,
-                 user_password: str = None):
-        self.device_address = device_address
-        self.device_port = device_port
-        self.user_name = user_name
-        self.user_password = user_password
+    def __init__(self, deviceAddress: str = None, devicePort: int = None, userName: str = None,
+                 userPassword: str = None):
+        self.deviceAddress = deviceAddress
+        self.devicePort = devicePort
+        self.userName = userName
+        self.userPassword = userPassword
 
 
 class UnifyDownLoadByTimeArg(object):
@@ -78,8 +78,8 @@ class AbsNetSDK(ABC):
     def cleanup(cls):
         pass
 
-    @staticmethod
-    @abstractmethod
-    def datetime2NET_DVR_TIME(timeArg: datetime):
-        net_dvr_time = None
-        return net_dvr_time
+    # @staticmethod
+    # @abstractmethod
+    # def datetime2NET_DVR_TIME(timeArg: datetime):
+    #     net_dvr_time = None
+    #     return net_dvr_time

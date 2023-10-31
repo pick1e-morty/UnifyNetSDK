@@ -12,9 +12,10 @@ def test_login():
     easy_login_info.device_port = 8000
     easy_login_info.device_address = "10.200.15.41"
 
-    hk_client = HaiKangSDK()
-    hk_client.init()
-    userID = hk_client.login(easy_login_info)
+    hkClient = HaiKangSDK()
+    hkClient.init()
+    userID, device_info = hkClient.login(easy_login_info)
+    print("硬盘数量", device_info.struDeviceV30.byDiskNum)
 
     两分钟前 = datetime.now() - timedelta(seconds=120)
     一分钟前 = datetime.now() - timedelta(seconds=60)
@@ -23,7 +24,7 @@ def test_login():
     findArg.channel = 1
     findArg.startTime = 两分钟前
     findArg.stopTime = 一分钟前
-    findResult = hk_client.syncFindFileByTime(userID, findArg)
+    findResult = hkClient.syncFindFileByTime(userID, findArg)
     print(f"查找结果{findResult}")
 
     downArg = UnifyDownLoadByTimeArg()
@@ -33,7 +34,7 @@ def test_login():
     downArg.startTime = 两分钟前
     downArg.stopTime = 一分钟前
 
-    downLoadResult = hk_client.syncDownLoadByTime(userID, downArg)
+    downLoadResult = hkClient.syncDownLoadByTime(userID, downArg)
     print(f"下载结果{downLoadResult}")
 
     # 下载函数 在同步阻塞状态下，download是通过while不断startPending来保活的
@@ -45,9 +46,9 @@ def test_login():
     # 下载函数只需要做一个微小的改变，把下载句柄交给我
     # 什么时候结束下载，由我来控制
 
-    hk_client.logout(userID)
+    hkClient.logout(userID)
 
-    hk_client.cleanup()
+    hkClient.cleanup()
 
 
 def test_loadLibrary():
