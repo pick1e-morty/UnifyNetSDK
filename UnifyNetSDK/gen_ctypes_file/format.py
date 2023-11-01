@@ -8,9 +8,13 @@ from glob_path import ProjectPath
 """
 在进行脚本操作前我修改了两个源头文件内容
 1.编码转换为UTF-8
-2.在HK——NetSDK.h文件中14272行的LPBEHAVIOR_PRISON_MODE_TYPE前面添加一个*符号，很明显这是一个枚举指针，不过原作者忘了加了
+2.在HK_NetSDK.h文件中14272行的LPBEHAVIOR_PRISON_MODE_TYPE前面添加一个*符号，很明显这是一个枚举指针，不过原作者忘了加了
+3.在DH_NetSDK.h文件第一行插入一句#include <stdbool.h>。解决跟bool有联系的结构体无法转换的问题
 """
 
+
+# TODO，海康那边还没加这个库
+# 但其实这是我用错了编译器的原因对吧，只要我换成g++，问题就不存在了，一定是这样的！
 
 def clang_format(input_file_path, output_file_path):
     r"""
@@ -24,6 +28,15 @@ def clang_format(input_file_path, output_file_path):
     AfterStruct:     true     # 结构体大括号统一格式
     AfterEnum:       true
     AfterUnion:      true      # 这三个都没法控制嵌套数据类型中的{}
+
+
+    # 宏对齐
+    AlignConsecutiveMacros:
+      Enabled:         true
+      AcrossEmptyLines: true
+      AcrossComments:  true
+      AlignCompound:   true
+      PadOperators:    true
 
     这个python文件就是用来执行这段代码的
     .\clang-format.exe -style=file .\IN_原HCNetSDK.h > .\OUT_HCNetSDK.h
@@ -118,10 +131,10 @@ if __name__ == "__main__":
     delete()
 
     # 生成头文件的ctypes中间层
-    input_dh_headfile_path = str(curPath / "formatted/DH_NetSDK.h")
-    output_dh_headfile_path = str(ProjectPath / "UnifyNetSDK/dahua/ctypes_headfile.py")
-    ctypesgen_fun(input_dh_headfile_path, output_dh_headfile_path)
+    # input_dh_headfile_path = str(curPath / "formatted/DH_NetSDK.h")
+    # output_dh_headfile_path = str(ProjectPath / "UnifyNetSDK/dahua/ctypes_headfile.py")
+    # ctypesgen_fun(input_dh_headfile_path, output_dh_headfile_path)
     #
-    input_hk_headfile_path = str(curPath / "formatted/HK_NetSDK.h")
-    output_hk_headfile_path = str(ProjectPath / "UnifyNetSDK/haikang/ctypes_headfile.py")
-    ctypesgen_fun(input_hk_headfile_path, output_hk_headfile_path)
+    # input_hk_headfile_path = str(curPath / "formatted/HK_NetSDK.h")
+    # output_hk_headfile_path = str(ProjectPath / "UnifyNetSDK/haikang/ctypes_headfile.py")
+    # ctypesgen_fun(input_hk_headfile_path, output_hk_headfile_path)

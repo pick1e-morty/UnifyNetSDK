@@ -4,7 +4,13 @@ from pathlib import Path
 from UnifyNetSDK.define import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from UnifyNetSDK.dahua.dahuasdk import DaHuaSDK
 
-# 登录之后就堵了
+# cypesgen转换有误
+# 暂不知和等原因导致CLIENT_DownloadByTimeEx没有被转换输出
+# 这导致我上层需要手动指定restype和argtypes
+
+# 注意 ctypesgen会自动指定restype和argtypes，那个init记得取消掉
+# 还有 ctypesgen也没有输出一些结构体，这很严重
+
 
 def test_login():
     easy_login_info = UnifyLoginArg()

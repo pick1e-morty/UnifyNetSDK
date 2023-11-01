@@ -18,6 +18,29 @@ ctypes.exe version: 1.1.2.dev7+gdeb059e.d20230825
 2. 因ctypesgen不支持中文（就算文件是UTF-8），所以我删除了掉所有注释及空行。
 3. 本机安装gcc后运行ctypesgen，就算完成了。
 
+## 大华独有的解决方式
+Q1:目前不知道什么原因，所有跟C原本的bool有关系的结构体都转不过来，说bool是未定义的
+例如ERROR: Typedef "DEVICE_NET_INFO_EX" depends on an unknown typedef "bool". Typedef "DEVICE_NET_INFO_EX" will not be output
+A:大模型告诉我：确保你包含了定义"bool"类型的库。在C++中，"bool"类型是标准库的一部分，所以你不需要额外定义。然而，如果你在使用C，你可能需要包含<stdbool.h>库。
+我就给第一行加了这个库，确实不报错了。
+另外顺着大模型说的这句话可知
+1. 我在使用C，
+2. 这个sdk是C代码
+3. gcc正在预处理的是C代码。
+这和我想的好像有点不太一样。超纲，头大。
+
+Q2:接口函数转换失败
+A:
+1. 把什么if，else的删除掉。直接指定我要使用dllimport，有时间可以研究一下，为什么gcc的预处理会得出错误的结果（指gcc选错if分支）。  #define CLIENT_NET_API __declspec(dllimport)
+2. 把#define CLIENT_NET_API __declspec(dllimport) 的CLIENT_NET_API全局替换为__declspec(dllimport)，不明白为什么ctypesgen对这个也会转换失败，仅仅是文本替换呀
+
+Q3: 等号要是语法错误
+a：把默认值删掉确实好了，
+注意，语法错误，整条语句就不会输出了。没了
+
+
+
+
 ## 试错过程
 原本找到了21世纪最顶级(github星星最多，等)的C/C++转python的工具，PyBind11，但是这个工具对类似于Char name[5]这种古老的C语言数组完全不理会，不处理。
 

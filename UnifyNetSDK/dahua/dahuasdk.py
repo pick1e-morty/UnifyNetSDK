@@ -11,6 +11,23 @@ logger.remove()
 logger.add(sys.stdout, level="TRACE")
 
 
+@DH.fTimeDownLoadPosCallBack
+def empty_fTimeDownLoadPosCallBack(lPlayHandle, dwTotalSize, dwDownLoadSize, index, recordfileinfo, dwUser):
+    pass
+
+
+# @DH.fDataCallBack
+@CFUNCTYPE(c_int, c_long, c_uint, POINTER(c_ubyte), c_uint, c_long)
+def empty_fDataCallBack(lPlayHandle, dwDataType, pBuffer, dwBufSize, dwUser):
+    pass
+
+
+# fDataCallBack = CB_FUNCTYPE(c_int, C_LLONG, C_DWORD, POINTER(c_ubyte), C_DWORD, C_LDWORD)
+# fDataCallBack = CFUNCTYPE(UNCHECKED(c_int), c_long, c_uint, POINTER(c_ubyte), c_uint, c_long)
+
+# CLIENT_PlayBackByTimeEx.argtypes = [c_long, c_int, LPNET_TIME, LPNET_TIME, POINTER(None), fDownLoadPosCallBack, c_long, fDataCallBack, c_long]
+# CLIENT_PlayBackByTimeEx.restype = c_long
+
 class DaHuaSDK(AbsNetSDK):
     sdkDll = None
     configDll = None
@@ -134,18 +151,9 @@ class DaHuaSDK(AbsNetSDK):
 
         # 开始下载。虽然是和抽象接口对齐了，但真正原因是海康没提供下载函数回调接口，顺势而为无伤大雅。
 
-        @DH.fTimeDownLoadPosCallBack
-        def empty_fTimeDownLoadPosCallBack():
-            pass
-
-        @DH.fDataCallBack
-        def empty_fDataCallBack():
-            pass
-
-        userID = c_longlong(userID)
-        cls.sdkDll.CLIENT_DownloadByTimeEx.restype = c_longlong  # 按时间下载
-        # downLoadHandle = cls.sdkDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName, empty_fTimeDownLoadPosCallBack, 0, empty_fDataCallBack, 0)
-        downLoadHandle = cls.sdkDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName, None, 0, None, 0)
+        # userID = c_longlong(userID)
+        downLoadHandle = cls.sdkDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName, empty_fTimeDownLoadPosCallBack, 0, empty_fDataCallBack,
+                                                            0)
         cls.__getLastError("CLIENT_DownloadByTimeEx", bool(downLoadHandle))
         return downLoadHandle
 
