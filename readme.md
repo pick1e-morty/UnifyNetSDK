@@ -12,25 +12,82 @@
 
 # ctypes中间层生成过程
 clang-format.exe version: 16.0.0
-ctypes.exe version: 1.1.2.dev7+gdeb059e.d20230825
+ctypesgen version: 1.1.2.dev7+gdeb059e.d20230825
+ctypesgen:https://github.com/ctypesgen/ctypesgen
+
 
 1. 我看了头文件的结构体写法各有特色，所以先由clang对头文件进行格式化。
 2. 因ctypesgen不支持中文（就算文件是UTF-8），所以我删除了掉所有注释及空行。
 3. 本机安装gcc后运行ctypesgen，就算完成了。
 
-## 大华独有的解决方式
-Q1:目前不知道什么原因，所有跟C原本的bool有关系的结构体都转不过来，说bool是未定义的
-例如ERROR: Typedef "DEVICE_NET_INFO_EX" depends on an unknown typedef "bool". Typedef "DEVICE_NET_INFO_EX" will not be output
-A:大模型告诉我：确保你包含了定义"bool"类型的库。在C++中，"bool"类型是标准库的一部分，所以你不需要额外定义。然而，如果你在使用C，你可能需要包含<stdbool.h>库。
-我就给第一行加了这个库，确实不报错了。
-另外顺着大模型说的这句话可知
-1. 我在使用C，
-2. 这个sdk是C代码
-3. gcc正在预处理的是C代码。
-这和我想的好像有点不太一样。超纲，头大。
 
-Q2:接口函数转换失败
-A:
+# 已知问题
+## 无奈采用Gcc做预处理器所存在的问题
+#### 大华SDK
+
+
+##### 已解决
+###### bool未定义
+Q:Ctypesgen输出错误代码样例
+
+    ERROR: Typedef "DEVICE_NET_INFO_EX" depends on an unknown typedef "bool". Typedef "DEVICE_NET_INFO_EX" will not be output
+
+A:大模型说：确保你包含了定义"bool"类型的库。在C++中，"bool"类型是标准库的一部分，所以你不需要额外定义。然而，如果你在使用C，你可能需要包含<stdbool.h>库。
+在第一行加了<stdbool.h>库后无相关报错。
+
+
+###### 接口函数转换失败
+Q:Ctypesgen输出错误代码样例
+
+    ERROR: C:\\Users\\Administrator\\Documents\\CodeProject\\ctypesgen\\DH_NetSDK.h:87941: Syntax error at 'C'
+    WARNING: Could not parse macro "#define CLIENT_NET_API __declspec(dllimport)"
+
+源代码
+
+    CLIENT_NET_API LLONG CALL_METHOD CLIENT_PlayBackByTimeEx(
+        LLONG lLoginID, int nChannelID, LPNET_TIME lpStartTime, LPNET_TIME lpStopTime, HWND hWnd,
+        fDownLoadPosCallBack cbDownLoadPos, LDWORD dwPosUser,
+        fDataCallBack fDownLoadDataCallBack, LDWORD dwDataUser);
+
+
+A:在大华SDK头文件中有这样一个判断。(代码已简化)
+
+    #if (defined(_MSC_VER))
+        #include <windows.h>
+    #else    //non-windows
+        #define CLIENT_NET_API  extern "C"
+
+所以很明显上面的ERROR来源于下面这个WARNIG。
+大模型说：在 Windows 平台上，使用 Microsoft Visual C++ 编译器时，_MSC_VER 这个宏会被自动定义。
+gcc没有定义这个宏，故无法进入正确的分支。Syntax error at 'C'的字符C就是指的extern "C"的字符C。
+手动替换CLIENT_NET_API为extern "C"后问题解决
+
+# TODO 手动处理头文件的def走向为Windows平台
+
+##### 未解决
+
+#### 海康SDK
+##### 已解决
+##### 未解决
+
+## 基于cl做预处理器所存在的问题
+#### 大华SDK
+##### 已解决
+##### 未解决
+
+#### 海康SDK
+##### 已解决
+##### 未解决
+
+
+
+
+## ctypesgen执行过程的报错
+
+## 大华DSK独有的解决方式
+### 不完善的gcc预处理方式
+
+
 1. 把什么if，else的删除掉。直接指定我要使用dllimport，有时间可以研究一下，为什么gcc的预处理会得出错误的结果（指gcc选错if分支）。  #define CLIENT_NET_API __declspec(dllimport)
 2. 把#define CLIENT_NET_API __declspec(dllimport) 的CLIENT_NET_API全局替换为__declspec(dllimport)，不明白为什么ctypesgen对这个也会转换失败，仅仅是文本替换呀
 
@@ -38,6 +95,7 @@ Q3: 等号要是语法错误
 a：把默认值删掉确实好了，
 注意，语法错误，整条语句就不会输出了。没了
 
+### 如何使用cl编译器进行预处理？
 
 
 
