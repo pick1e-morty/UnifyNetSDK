@@ -1,0 +1,4 @@
+[submodule "UnifyNetSDK/gen_ctypes_file/tools/sub_ctypesgen"]
+	url  = https://github.com/ctypesgen/ctypesgen
+	path = UnifyNetSDK/gen_ctypes_file/tools/sub_ctypesgen
+
