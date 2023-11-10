@@ -90,6 +90,12 @@ def generateCtypesWrapper_haikang():
     ctypesgenscript([haikang_readyToGenCtypesWrapperFile, "-o", haikang_generatedCtypesWrapperFile])
     print("generateCtypesWrapper_haikang结束")
 
+# TODO　那个stderr的指向失败了，现去试试它本文件运行是否正常
+# TODO 这个ctypesgen的子模块推送失败，我需要先fork到我自己的名下，放到gitee中吧
+# 那这样的话会影响commit的同步吗？
+# 目前没有对我的子模块进行什么程度级的修改，丢失也无所谓
+
+
 
 if __name__ == "__main__":
     # clangformat_dahua()
