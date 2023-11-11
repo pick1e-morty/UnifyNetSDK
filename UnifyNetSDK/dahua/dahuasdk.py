@@ -43,7 +43,7 @@ class DaHuaSDK(AbsNetSDK):
         try:
             libPath = ProjectPath / "UnifyNetSDK/dahua/Libs/win64"
             cls.sdkDll = windll.LoadLibrary(str(libPath / "dhnetsdk.dll"))
-            # cls.configDll = windll.LoadLibrary(str(libPath / "dhconfigsdk.dll"))
+            # cls.configDll = windll.LoadLibrary(str(libPath / "dhconfigsdk.dll"))      # 目前还没用到这些动态链接库
             # cls.playDll = windll.LoadLibrary(str(libPath / "dhplay.dll"))
             # cls.renderDll = windll.LoadLibrary(str(libPath / "RenderEngine.dll"))
             # cls.infraDll = windll.LoadLibrary(str(libPath / "Infra.dll"))

@@ -6,7 +6,7 @@ clangformatExecuteFilePath = str(clangFormatDirPath / "clang-format.exe")
 clangformatStyleFilePath = str((clangFormatDirPath / ".clang-format").resolve())
 
 
-def clangformat(input_file_path, output_file_path):
+def clangformat(input_file_path, output_file_path, notes):
     r"""
     首先生成基于llvm的格式化配置文件
     clang-format -style=llvm -dump-config > .clang-format
@@ -24,6 +24,7 @@ def clangformat(input_file_path, output_file_path):
     这个python文件就是用来执行这段代码的
     .\clang-format.exe -style=file .\IN_原HCNetSDK.h > .\OUT_HCNetSDK.h
     """
+    print(notes)
     if not Path(input_file_path).exists():
         print(f"{input_file_path} 输入文件不存在")
         raise Exception(f"{input_file_path} 输入文件不存在")
