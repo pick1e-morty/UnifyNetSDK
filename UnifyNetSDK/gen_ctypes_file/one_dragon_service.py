@@ -32,9 +32,6 @@ def delete_comment_and_emptyline(orgText):
     return processedText2
 
 
-
-
-
 # clang格式化
 def clangformat_dahua():
     print("clangformat_dahua开始")
@@ -90,6 +87,7 @@ def generateCtypesWrapper_dahua(log2file: bool):
     print("generateCtypesWrapper_dahua开始")
     dahua_readyToGenCtypesWrapperFile = str((curPyPath / "_3_replace/DH_NetSDK.h").resolve())
     dahua_generatedCtypesWrapperFile = str((curPyPath / "_4_completed/DH_NetSDK.py").resolve())
+    dahua_NetSdkDllFile = "Libs/win64/dhnetsdk.dll"
     print("指令列表为", [dahua_readyToGenCtypesWrapperFile, "-o", dahua_generatedCtypesWrapperFile])
     global Log2FileTag
     if Log2FileTag is True and log2file is True:  # 希望将错误报告输出到文件中，但是已经有一个头文件占用了Log2FileTag标识
@@ -99,14 +97,14 @@ def generateCtypesWrapper_dahua(log2file: bool):
         error_file = open('dahua_ctypesgen_log.txt', 'w')  # 解除注释就会使ctypesgen的错误报告输出到文件中，而不是stderr
         sys.stderr = error_file
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-o", dahua_generatedCtypesWrapperFile])
+        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
         error_file.close()
     elif Log2FileTag is False and log2file is False:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-o", dahua_generatedCtypesWrapperFile])
+        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
     elif Log2FileTag is True and log2file is False:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-o", dahua_generatedCtypesWrapperFile])
+        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
     print("generateCtypesWrapper_dahua结束")
 
 
@@ -137,17 +135,17 @@ def generateCtypesWrapper_haikang(log2file: bool):
 if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放在第二步文件夹中，但是删除注释是修改第二步的源文件的，第三步就是需要我手动修改头文件的地方，第四步就是完成品
     # clangformat_dahua()
     # clangformat_haikang()  # 格式化
-    #
+
     # sanitizeText_dahua(copy2replaceDir=True)
     # sanitizeText_haikang(copy2replaceDir=True)  # 删注释
 
     generateCtypesWrapper_dahua(log2file=True)  # 生成包装器，一定注意同时只能有一个方法的log2file可以为True
     # generateCtypesWrapper_haikang(log2file=True)
 
-# TODO 我想删除头文件中宏对平台的判断，我要直接指定这个是windows平台
-# 但是有一个重要的宏NETSDK_EXPORTS是否被定义，暂无从得知
-# 所以我要先搭建一个大华的vs运行环境，完成之后可以使用cl -E指令来检测宏展的最终结果
-
-# 说不定这是一个正确的走向，
-
-# 宏的格式化缩进对齐就显得不是那么着急了，如果上面成功了，宏或许就不用存在了
+"""
+replace脚本
+#include <stdbool.h>
+#define CLIENT_NET_API __declspec(dllimport)
+#define LPDWORD DWORD *替换为unsigned int*
+#define LPDWORD unsigned int*
+"""

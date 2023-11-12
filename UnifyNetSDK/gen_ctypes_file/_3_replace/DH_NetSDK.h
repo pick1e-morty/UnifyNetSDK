@@ -1,37 +1,89 @@
 #include <stdbool.h>
 #ifndef DHNETSDK_H
 #define DHNETSDK_H
-
-
-#include <windows.h>
-#ifdef NETSDK_EXPORTS
-    #if (defined(_WIN64) || defined(WIN64))
-        #define CLIENT_NET_API
+#if (defined(_MSC_VER))
+    #include <windows.h>
+    #ifdef NETSDK_EXPORTS
+        #if (defined(_WIN64) || defined(WIN64))
+            #define CLIENT_NET_API
+        #else
+            #define CLIENT_NET_API __declspec(dllexport)
+        #endif
     #else
-        #define CLIENT_NET_API __declspec(dllexport)
+        #define CLIENT_NET_API __declspec(dllimport)
     #endif
-#else
+    #define CALLBACK __stdcall
+    #define CALL_METHOD __stdcall 
+    #define INT64 __int64
+    #define TP_U64 unsigned __int64
+    #ifndef LLONG
+        #ifdef _WIN64
+            #define LLONG INT64
+        #else
+            #define LLONG LONG
+        #endif
+    #endif
+    #ifndef LDWORD
+        #ifdef _WIN64
+            #define LDWORD INT64
+        #else
+            #define LDWORD DWORD
+        #endif
+    #endif
+#else 
     #define CLIENT_NET_API __declspec(dllimport)
-#endif
-#define CALLBACK __stdcall
-#define CALL_METHOD __stdcall
-#define INT64 __int64
-#define TP_U64 unsigned __int64
-#ifndef LLONG
-    #ifdef _WIN64
-        #define LLONG INT64
-    #else
-        #define LLONG LONG
+    #define CALL_METHOD
+    #define CALLBACK
+    #ifndef INTERNAL_COMPILE
+        #define RELEASE_HEADER
     #endif
-#endif
-#ifndef LDWORD
-    #ifdef _WIN64
-        #define LDWORD INT64
-    #else
-        #define LDWORD DWORD
-    #endif
-#endif
-
+    #ifdef RELEASE_HEADER
+        #define WORD unsigned short
+        #define DWORD unsigned int
+        #define LONG int
+        #define LPDWORD unsigned int*
+        #ifdef __OBJC__
+            #include "objc/objc.h"
+        #else
+            #define BOOL int
+        #endif
+        #ifndef TRUE
+            #define TRUE 1
+        #endif
+        #ifndef FALSE
+            #define FALSE 0
+        #endif
+        #define BYTE unsigned char
+        #define UINT unsigned int
+        #define HDC void*
+        #define HWND void*
+        #define LPVOID void*
+        #ifndef NULL
+            #define NULL 0
+        #endif
+        #define LLONG long long
+        #define INT64 long long
+        #define TP_U64 unsigned long long
+        #define LDWORD long
+        #ifndef MAX_PATH
+            #define MAX_PATH 260
+        #endif
+        #ifndef DEF_RECT
+typedef struct tagRECT
+{
+    LONG left;
+    LONG top;
+    LONG right;
+    LONG bottom;
+} RECT;
+            #define DEF_RECT
+        #endif
+    #else 
+        #include "../../SRC/Platform/osIndependent.h"
+        #define INT64 int64
+        #define TP_U64 uint64
+    #endif 
+#endif     
 #ifndef LDWORD
     #if (defined(WIN32) || defined(_WIN32) || defined(_WIN64))
         #ifdef _WIN64
@@ -56678,7 +56730,7 @@ CLIENT_NET_API LLONG CALL_METHOD CLIENT_PlayBackByRecordFileEx2(LLONG lLoginID, 
 CLIENT_NET_API LLONG CALL_METHOD CLIENT_StartPlayBackByRecordFile(LLONG lLoginID, LPNET_RECORDFILE_INFO lpRecordFile, HWND hWnd,
                                                                   fDownLoadPosCallBack cbDownLoadPos, LDWORD dwPosUser,
                                                                   fDataCallBack fDownLoadDataCallBack, LDWORD dwDataUser,
-                                                                  fRealPlayDisConnect fDisConnectCallBack, LDWORD dwDisUser, DWORD dwWaitTime = 10000);
+                                                                  fRealPlayDisConnect fDisConnectCallBack, LDWORD dwDisUser, DWORD dwWaitTime);
 CLIENT_NET_API LLONG CALL_METHOD CLIENT_FramCotrolPlayBackByRecordFile(LLONG lLoginID, LPNET_RECORDFILE_INFO lpRecordFile, HWND hWnd,
                                                                        fDownLoadPosCallBack cbDownLoadPos, LDWORD dwPosUser,
                                                                        fDataCallBack fDownLoadDataCallBack, LDWORD dwDataUser, unsigned int nCutFrameRate);
@@ -56695,7 +56747,7 @@ CLIENT_NET_API LLONG CALL_METHOD CLIENT_StartPlayBackByTime(LLONG lLoginID, int 
                                                             LPNET_TIME lpStartTime, LPNET_TIME lpStopTime, HWND hWnd,
                                                             fDownLoadPosCallBack cbDownLoadPos, LDWORD dwPosUser,
                                                             fDataCallBack fDownLoadDataCallBack, LDWORD dwDataUser,
-                                                            fRealPlayDisConnect fDisConnectCallBack, LDWORD dwDisUser, DWORD dwWaitTime = 10000);
+                                                            fRealPlayDisConnect fDisConnectCallBack, LDWORD dwDisUser, DWORD dwWaitTime);
 CLIENT_NET_API LLONG CALL_METHOD CLIENT_FramCotrolPlayBackByTime(LLONG lLoginID, int nChannelID, LPNET_TIME lpStartTime, LPNET_TIME lpStopTime, HWND hWnd,
                                                                  fDownLoadPosCallBack cbDownLoadPos, LDWORD dwPosUser,
                                                                  fDataCallBack fDownLoadDataCallBack, LDWORD dwDataUser, unsigned int nCutFrameRate);
@@ -57797,7 +57849,7 @@ CLIENT_NET_API BOOL CALL_METHOD CLIENT_StopFind(LLONG lLoginID, NET_FIND emType,
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_SetupRecordState(LLONG lLoginID, char* pRSBuffer, int nRSBufferlen);
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_SetupExtraRecordState(LLONG lLoginID, char* pRSBuffer, int nRSBufferlen, void* pReserved);
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_QueryIOControlState(LLONG lLoginID, DH_IOTYPE emType,
-                                                           void* pState, int maxlen, int* nIOCount, int waittime = 1000);
+                                                           void* pState, int maxlen, int* nIOCount, int waittime);
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_IOControl(LLONG lLoginID, DH_IOTYPE emType, void* pState, int maxlen);
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_MakeKeyFrame(LLONG lLoginID, int nChannelID, int nSubChannel);
 typedef void(CALLBACK* fConnectMessCallBack)(LLONG lConnectHandle, NET_CLOUDSERVICE_CONNECT_RESULT* pConnectResult, void* pReserved, LDWORD dwUser);
@@ -65046,9 +65098,9 @@ CLIENT_NET_API LLONG CALL_METHOD CLIENT_StartUploadAIOFile(LLONG lLoginID, const
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_StopUploadAIOFile(LLONG lUploadFileID);
 CLIENT_NET_API LLONG CALL_METHOD CLIENT_ControlAndroidAdb(LLONG lLoginID, const NET_IN_CONTROL_ANDROID_ADB* pstInParam, NET_OUT_CONTROL_ANDROID_ADB* pstOutParam, int nWaitTime);
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_GetConfig(LLONG lLoginID, NET_EM_CFG_OPERATE_TYPE emCfgOpType, int nChannelID,
-                                                 void* szOutBuffer, DWORD dwOutBufferSize, int waittime = NET_INTERFACE_DEFAULT_TIMEOUT, void* reserve = NULL);
+                                                 void* szOutBuffer, DWORD dwOutBufferSize, int waittime, void* reserve);
 CLIENT_NET_API BOOL CALL_METHOD CLIENT_SetConfig(LLONG lLoginID, NET_EM_CFG_OPERATE_TYPE emCfgOpType, int nChannelID,
-                                                 void* szInBuffer, DWORD dwInBufferSize, int waittime = NET_INTERFACE_DEFAULT_TIMEOUT, int* restart = NULL, void* reserve = NULL);
+                                                 void* szInBuffer, DWORD dwInBufferSize, int waittime, int* restart, void* reserve);
 typedef struct tagNET_IN_BUFFER_POLICY
 {
     DWORD dwSize;

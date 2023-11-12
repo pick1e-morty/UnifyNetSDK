@@ -11,76 +11,21 @@ logger.remove()
 logger.add(sys.stdout, level="TRACE")
 
 
-@DH.fTimeDownLoadPosCallBack
-def empty_fTimeDownLoadPosCallBack(lPlayHandle, dwTotalSize, dwDownLoadSize, index, recordfileinfo, dwUser):
-    pass
-
-
-# @DH.fDataCallBack
-@CFUNCTYPE(c_int, c_long, c_uint, POINTER(c_ubyte), c_uint, c_long)
-def empty_fDataCallBack(lPlayHandle, dwDataType, pBuffer, dwBufSize, dwUser):
-    pass
-
-
-# fDataCallBack = CB_FUNCTYPE(c_int, C_LLONG, C_DWORD, POINTER(c_ubyte), C_DWORD, C_LDWORD)
-# fDataCallBack = CFUNCTYPE(UNCHECKED(c_int), c_long, c_uint, POINTER(c_ubyte), c_uint, c_long)
-
-# CLIENT_PlayBackByTimeEx.argtypes = [c_long, c_int, LPNET_TIME, LPNET_TIME, POINTER(None), fDownLoadPosCallBack, c_long, fDataCallBack, c_long]
-# CLIENT_PlayBackByTimeEx.restype = c_long
-
 class DaHuaSDK(AbsNetSDK):
-    sdkDll = None
+    sdkDll = DH  # 目前只加载了UnifyNetSDK/dahua/Libs/win64/dhnetsdk.dll，并且是由！！！DH！！！那边加载的
     configDll = None
     playDll = None
     renderDll = None
     infraDll = None
 
     def __init__(self):
-        self._loadLibrary()
-
-    @classmethod
-    def _loadLibrary(cls):
-        try:
-            libPath = ProjectPath / "UnifyNetSDK/dahua/Libs/win64"
-            cls.sdkDll = windll.LoadLibrary(str(libPath / "dhnetsdk.dll"))
-            # cls.configDll = windll.LoadLibrary(str(libPath / "dhconfigsdk.dll"))      # 目前还没用到这些动态链接库
-            # cls.playDll = windll.LoadLibrary(str(libPath / "dhplay.dll"))
-            # cls.renderDll = windll.LoadLibrary(str(libPath / "RenderEngine.dll"))
-            # cls.infraDll = windll.LoadLibrary(str(libPath / "Infra.dll"))
-        except OSError as e:
-            logger.error(f"动态库加载失败,原错误信息:{e}")
-            # logger.exception(e)
+        pass
 
     @classmethod
     def init(cls):
-        initResult = cls.sdkDll.CLIENT_InitEx(None, 0)
+        initResult = cls.sdkDll.CLIENT_InitEx(DH.fDisConnect(0), 0, DH.NETSDK_INIT_PARAM())
         logger.info(f"SDK初始化已执行")
         cls.__getLastError("CLIENT_InitEx", bool(initResult))
-
-        # 设置接口函数参数类型和函数返回值类型
-        """
-        cls.sdkDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong  # 登录设备
-        # cls.sdkDll.CLIENT_LoginWithHighLevelSecurity.argtypes = [DH.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY, DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY]
-
-        cls.sdkDll.CLIENT_GetDownloadPos.restype = c_bool  # 获取下载进度
-        # cls.sdkDll.CLIENT_GetDownloadPos.argtypes = [c_longlong, POINTER(c_int), POINTER(c_int)]
-
-
-        cls.sdkDll.CLIENT_DownloadByTimeEx.restype = c_longlong  # 按时间下载
-        cls.sdkDll.CLIENT_DownloadByTimeEx.argtypes = [c_longlong, c_int, c_int, DH.NET_TIME, DH.NET_TIME, POINTER(c_char), DH.fTimeDownLoadPosCallBack, c_longlong, DH.fDataCallBack, c_longlong]
-
-        cls.sdkDll.CLIENT_StopDownload.restype = c_bool  # 停止下载
-        cls.sdkDll.CLIENT_StopDownload.argtypes = [c_longlong]
-
-        # cls.sdkDll.CLIENT_GetLastError.restype = c_ulong  # 获取最新错误代码
-        # cls.sdkDll.CLIENT_GetLastError.argtypes = []
-
-        cls.sdkDll.CLIENT_Logout.restype = c_bool  # 登出设备
-        cls.sdkDll.CLIENT_Logout.argtypes = [c_longlong]
-
-        cls.sdkDll.CLIENT_Cleanup.restype = c_void_p  # 释放SDK资源
-        cls.sdkDll.CLIENT_Cleanup.argtypes = []
-        """
 
     @classmethod
     def login(cls, loginArg: UnifyLoginArg):
@@ -92,25 +37,49 @@ class DaHuaSDK(AbsNetSDK):
         loginInfo.szUserName = loginArg.userName.encode()
         loginInfo.szPassword = loginArg.userPassword.encode()
         # loginInfo.emSpecCap = DH.EM_LOGIN_SPAC_CAP_TYPE.TCP
-        # loginInfo.pCapParam = None
 
         # 设备信息, 输出参数
         deviceInfo = DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
         deviceInfo.dwSize = sizeof(DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY)
 
-        cls.sdkDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong  # 登录设备
         login_id = cls.sdkDll.CLIENT_LoginWithHighLevelSecurity(byref(loginInfo), byref(deviceInfo))
-        cls.__getLastError("CLIENT_LoginWithHighLevelSecurity", login_id)
+        cls.__getLastError("CLIENT_LoginWithHighLevelSecurity", bool(login_id))
         return login_id, deviceInfo
+
+    @classmethod
+    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):       # 大华的sdk，能通过时间查询的就这一个方法，且没有返回给我查找句柄，所以大华这边只能有sync了
+        return cls.__findFileByTime(userID, findFileArg)                            # CLIENT_FindFileEx能返回句柄，但不能按照时间查询
+
+    @classmethod
+    def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+        # 准备参数
+        nChannelId = findFileArg.channel
+        nRecordFileType = DH.EM_RECORD_TYPE_ALL
+        tmStart = cls.datetime2NET_TIME(findFileArg.startTime)
+        tmEnd = cls.datetime2NET_TIME(findFileArg.stopTime)
+
+        structArray = DH.NET_RECORDFILE_INFO * 100
+        nriFileinfo = structArray()
+
+        nriFileinfo_ptr = cast(pointer(nriFileinfo[0]), DH.LPNET_RECORDFILE_INFO)
+
+        maxlen = sizeof(structArray)
+        filecount = c_int(0)
+
+        pchCardid = None  # char * 空指针  char *pchCardid
+        waittime = 2000
+        byTime = True
+        findFileResult = cls.sdkDll.CLIENT_QueryRecordFile(userID, nChannelId, nRecordFileType, byref(tmStart), byref(tmEnd),
+                                                           pchCardid, nriFileinfo_ptr, maxlen, byref(filecount), waittime, byTime)
+        cls.__getLastError("CLIENT_QueryRecordFile", bool(findFileResult))
+        return nriFileinfo, filecount.value
 
     @classmethod
     def stopDownLoadTimer(cls, downLoadHandle: int):
         nTotalSize = c_int(0)  # 下载的总长度，单位:KB
         nDownLoadSize = c_int(0)  # 已下载的长度，单位:KB
 
-        downLoadHandle = c_longlong(downLoadHandle)
         getDownLoadPosResult = cls.sdkDll.CLIENT_GetDownloadPos(downLoadHandle, byref(nTotalSize), byref(nDownLoadSize))
-
         cls.__getLastError("CLIENT_GetDownloadPos", bool(getDownLoadPosResult))
         logger.trace(f"下载ID {downLoadHandle} ,下载总长度 {nTotalSize.value}KB ,已下载长度 {nDownLoadSize.value}KB ")
         if nTotalSize.value == nDownLoadSize.value:
@@ -150,10 +119,10 @@ class DaHuaSDK(AbsNetSDK):
         endDateTime = cls.datetime2NET_TIME(downLoadArg.stopTime)
 
         # 开始下载。虽然是和抽象接口对齐了，但真正原因是海康没提供下载函数回调接口，顺势而为无伤大雅。
+        pReserved = pointer(c_int(0))
+        downLoadHandle = cls.sdkDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName,
+                                                            DH.fTimeDownLoadPosCallBack(0), 0, DH.fDataCallBack(0), 0, pReserved)
 
-        # userID = c_longlong(userID)
-        downLoadHandle = cls.sdkDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName, empty_fTimeDownLoadPosCallBack, 0, empty_fDataCallBack,
-                                                            0)
         cls.__getLastError("CLIENT_DownloadByTimeEx", bool(downLoadHandle))
         return downLoadHandle
 
@@ -168,7 +137,6 @@ class DaHuaSDK(AbsNetSDK):
 
     @classmethod
     def logout(cls, userID):
-        userID = c_longlong(userID)
         logoutResult = cls.sdkDll.CLIENT_Logout(userID)
         logger.info(f"用户ID：{userID} 已登出")
         cls.__getLastError("CLIENT_Logout", bool(logoutResult))

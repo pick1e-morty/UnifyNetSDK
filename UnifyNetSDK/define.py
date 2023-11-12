@@ -39,9 +39,9 @@ class AbsNetSDK(ABC):
     def init(cls):
         pass
 
-    @abstractmethod
-    def _loadLibrary(cls):
-        pass
+    # @abstractmethod
+    # def _loadLibrary(cls):
+    #     pass
 
     @abstractmethod
     def login(cls, loginArg: UnifyLoginArg):
