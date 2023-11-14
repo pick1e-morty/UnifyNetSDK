@@ -2,7 +2,9 @@
 import re
 import sys
 from pathlib import Path
-from UnifyNetSDK.gen_ctypes_file.tools.clang_format.format import clangformat
+
+from UnifyNetSDK.gen_ctypes_file._3_replace.replace import delete_default_arguments_dahua, delete_default_arguments_haikang
+from UnifyNetSDK.gen_ctypes_file.tools.clang_format.format import clangformat as _clangformat
 
 curPyPath = Path(__file__).parent
 
@@ -13,10 +15,13 @@ notes = """
 """
 
 
-# 现在还没有验证这个做法是正确的3.在DH_NetSDK.h文件第一行插入一句#include <stdbool.h>。解决跟bool有联系的结构体无法转换的问题
-
-# TODO，海康那边还没加这个库
-# 但其实这是我用错了编译器的原因对吧，只要我换成g++，问题就不存在了，一定是这样的！
+# clang格式化
+def clangformat(fileName):
+    print(f"clangformat {fileName} 开始")
+    dh_org_headfile_path = str(curPyPath / "_1_original" / fileName)
+    dh_fod_headfile_path = str(curPyPath / "_2_formatted" / fileName)
+    _clangformat(dh_org_headfile_path, dh_fod_headfile_path, notes)
+    print(f"clangformat结束 {fileName} ")
 
 
 # 正则删除注释和空行
@@ -32,50 +37,24 @@ def delete_comment_and_emptyline(orgText):
     return processedText2
 
 
-# clang格式化
-def clangformat_dahua():
-    print("clangformat_dahua开始")
-    dh_org_headfile_path = str(curPyPath / "_1_original/DH_NetSDK.h")
-    dh_fod_headfile_path = str(curPyPath / "_2_formatted/DH_NetSDK.h")
-    clangformat(dh_org_headfile_path, dh_fod_headfile_path, notes)
-    print("clangformat_dahua结束")
-
-
-def clangformat_haikang():
-    print("clangformat_haikang开始")
-    hk_org_headfile_path = str(curPyPath / "_1_original/HK_NetSDK.h")
-    hk_fod_headfile_path = str(curPyPath / "_2_formatted/HK_NetSDK.h")
-    clangformat(hk_org_headfile_path, hk_fod_headfile_path, notes)
-    print("clangformat_haikang结束")
-
-
 # 删除注释和空行
-def sanitizeText_dahua(copy2replaceDir: bool):
-    print("sanitizeText_dahua开始")
-    input_dh_headfile_path = str(curPyPath / "_2_formatted/DH_NetSDK.h")
-    with open(input_dh_headfile_path, "r", encoding="utf8") as dh:
-        dh_text = delete_comment_and_emptyline(dh.read())
-    with open(input_dh_headfile_path, "w", encoding="utf8") as dh:
-        dh.write(dh_text)
+def sanitizeText(fileName, copy2replaceDir: bool):
+    """
+    本函数是修改源文件的，如果copy2replaceDir为True还会将结果复制到_3_replace下
+    """
+    print(f"sanitizeText {fileName} 开始")
+    input_headfile_path = str(curPyPath / "_2_formatted" / fileName)
+    with open(input_headfile_path, "r", encoding="utf8") as fp:
+        text = delete_comment_and_emptyline(fp.read())
+    output_headfile_path = input_headfile_path
+    with open(output_headfile_path, "w", encoding="utf8") as fp:
+        fp.write(text)
     if copy2replaceDir is True:
-        with open("_3_replace/DH_NetSDK.h", "w", encoding="utf8") as dh:
-            dh.write(dh_text)
+        output_headfile_path = str(curPyPath / "_3_replace" / fileName)
+        with open(output_headfile_path, "w", encoding="utf8") as fp:
+            fp.write(text)
         print("相同内容已同时复制到在第三步文件夹中")  # 其实是又开了一个文件指针而不是shutil.copyfile()
-    print("sanitizeText_dahua结束，注释已删除")
-
-
-def sanitizeText_haikang(copy2replaceDir: bool):
-    print("sanitizeText_haikang开始")
-    input_hk_headfile_path = str(curPyPath / "_2_formatted/HK_NetSDK.h")
-    with open(input_hk_headfile_path, "r", encoding="utf8") as hk:
-        hk_text = delete_comment_and_emptyline(hk.read())
-    with open(input_hk_headfile_path, "w", encoding="utf8") as hk:
-        hk.write(hk_text)
-    if copy2replaceDir is True:
-        with open("_3_replace/HK_NetSDK.h", "w", encoding="utf8") as hk:
-            hk.write(hk_text)
-        print("相同内容已同时复制到在第三步文件夹中")  # 其实是又开了一个文件指针而不是shutil.copyfile()
-    print("sanitizeText_haikang结束，注释已删除")
+        print(f"sanitizeText {fileName} 结束，注释已删除")
 
 
 # 生成头文件的ctypes中间层
@@ -88,7 +67,7 @@ def generateCtypesWrapper_dahua(log2file: bool):
     dahua_readyToGenCtypesWrapperFile = str((curPyPath / "_3_replace/DH_NetSDK.h").resolve())
     dahua_generatedCtypesWrapperFile = str((curPyPath / "_4_completed/DH_NetSDK.py").resolve())
     dahua_NetSdkDllFile = "Libs/win64/dhnetsdk.dll"
-    print("指令列表为", [dahua_readyToGenCtypesWrapperFile, "-o", dahua_generatedCtypesWrapperFile])
+    print("指令列表为", [dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
     global Log2FileTag
     if Log2FileTag is True and log2file is True:  # 希望将错误报告输出到文件中，但是已经有一个头文件占用了Log2FileTag标识
         raise Exception("用log2file时，只能跑一个头文件，同时只能有一个错误报告能输出到文件中")
@@ -132,15 +111,70 @@ def generateCtypesWrapper_haikang(log2file: bool):
     print("generateCtypesWrapper_haikang结束")
 
 
+def _remove_default_parameters(text):
+    """
+    删除函数声明中的默认参数部分
+    """
+    info_log = open("replace_log.txt", "w")
+
+    def fun(matchs):  # 子函数，这个正则需要二次处理
+        # 删除可能多次存在的=后面的内容
+        # 像这种void * pExtendInfo = NULL, int waittime = 1000);
+        # 变成void * pExtendInfo, int waittime);
+        matchtext = matchs[0]
+        print("matchtext", matchtext)
+        info_log.write(f"matchtext,{matchtext}\n")
+
+        sub_pattern = r"(\s*=\s*[\d\w]+)+"
+        new_text = re.sub(sub_pattern, "", matchtext)
+
+        print("new_text", {new_text})
+
+        info_log.write(f"new_text,{new_text}\n")
+        return new_text
+
+    main_pattern = r"^CLIENT_NET_API[^;]*=[^;]*;"  # 先拿到含有CLIENT_NET_API和=的整条语句
+    # ^CLIENT_NET_API[^;]*=[^;]*;
+    # ^CLIENT_NET_API               [^;]*                          =          [^;]*                  ;
+    #                  只要=左边不是;就说明函数声明还没在(这行)结束                       匹配等号后及分号前的所有内容
+    processedText = re.sub(main_pattern, fun, text, flags=re.M)
+    info_log.close()
+    return processedText
+
+    # 未完善的处理方案
+    # (?<=CLIENT_NET_API).*(\s*=\s*[\d\w]*)+
+    # 没做到一步到位，只需要把中间那唯一一个.*匹配到的内容给丢掉就能做到一个re.sub完事
+
+
+def remove_default_parameters(fileName):
+    print(f"remove_default_parameters {fileName} 开始")
+    input_headfile_path = str(curPyPath / "_3_replace" / fileName)
+    with open(input_headfile_path, "r", encoding="utf8") as fp:
+        text = _remove_default_parameters(fp.read())
+    output_headfile_path = input_headfile_path
+    with open(output_headfile_path, "w", encoding="utf8") as fp:
+        fp.write(text)
+    print(f"remove_default_parameters {fileName} 结束")
+
+
 if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放在第二步文件夹中，但是删除注释是修改第二步的源文件的，第三步就是需要我手动修改头文件的地方，第四步就是完成品
-    # clangformat_dahua()
-    # clangformat_haikang()  # 格式化
 
-    # sanitizeText_dahua(copy2replaceDir=True)
-    # sanitizeText_haikang(copy2replaceDir=True)  # 删注释
+    dahua = "DH_NetSDK.h"
+    haikang = "HK_NetSDK.h"
 
-    generateCtypesWrapper_dahua(log2file=True)  # 生成包装器，一定注意同时只能有一个方法的log2file可以为True
-    # generateCtypesWrapper_haikang(log2file=True)
+    # clangformat(dahua)
+    # clangformat(haikang)  # 1格式化，从_1_original读取，写入到_2_formatted
+
+    # sanitizeText(dahua, copy2replaceDir=True)     # 2删注释，从_2_formatted读取，写入到_2_formatted，
+    # sanitizeText(haikang, copy2replaceDir=True)  # 如果copy2replaceDir为True，还会同时写入到_3_replace
+
+    # delete_default_arguments(dahua)  # 3删除默认参数 =，从_3_replace读取，写入到_3_replace
+    remove_default_parameters(haikang)
+
+    # generateCtypesWrapper_dahua(log2file=True)  # 生成包装器，一定注意同时只能有一个方法的log2file可以为True
+    # generateCtypesWrapper_haikang(log2file=True)  # 从_3_replace读取，写入到_4_completed
+
+    # 测试每一步是否成功，然后尝试让海康的dll由ctypes中间层加载
 
 """
 replace脚本

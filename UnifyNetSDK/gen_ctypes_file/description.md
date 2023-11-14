@@ -160,3 +160,18 @@ ERROR: C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\
 ERROR: C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_NetSDK.h:57183: Syntax error at 'pLogDataCB'
 上面那个回调函数的定义转换失败，直接导致使用该回调函数作为参数类型的函数声明也报错了。
 ```
+
+
+## 海康头文件特有的ctypesgen修复方式
+
+
+#### Q: 语法错误 =
+
+```C
+   // ctypesgen错误代码
+   ERROR: C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_NetSDK.h:42860: Syntax error at '='
+   // HK_NetSDK.h:42860上下行源代码
+   NET_DVR_API char* __stdcall NET_DVR_GetErrorMsg(LONG* pErrorNo = NULL);
+```
+
+A: 依旧是默认参数的问题，删除默认参数的脚本路径在UnifyNetSDK/gen_ctypes_file/_3_replace/replace.py

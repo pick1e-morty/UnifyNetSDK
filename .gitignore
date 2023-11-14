@@ -1,5 +1,8 @@
 UnifyNetSDK/haikang/lib/win/*
+!UnifyNetSDK/haikang/lib/win/
 UnifyNetSDK/dahua/Libs/win64/*
+!UnifyNetSDK/dahua/Libs/win64/
+
 *.mp4
 *.pyc
 *ctypesgen_error_log.txt
