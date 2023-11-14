@@ -1,7 +1,7 @@
 UnifyNetSDK/haikang/lib/win/*
-!UnifyNetSDK/haikang/lib/win/
 UnifyNetSDK/dahua/Libs/win64/*
-!UnifyNetSDK/dahua/Libs/win64/
+!UnifyNetSDK/haikang/lib/win/.keep
+!UnifyNetSDK/dahua/Libs/win64/.keep
 
 *.mp4
 *.pyc
