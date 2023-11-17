@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import List
-from time import time, struct_time
 
 
 # TODO 这几个统一参数都要用单例
@@ -27,6 +26,7 @@ class UnifyDownLoadByTimeArg(object):
 
 
 class UnifyFindFileByTimeArg(object):
+    # 基础的按时间搜索回放参数定义，做这个数据保存类是由于海康的搜索回放函数中的时间参数是不同于下载回放函数中的时间参数的，这很奇怪。
     def __init__(self, channel: int = None, startTime: datetime = None, stopTime: datetime = None):
         self.channel = channel
         self.startTime = startTime

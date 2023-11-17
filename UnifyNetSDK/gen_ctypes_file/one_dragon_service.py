@@ -3,7 +3,6 @@ import re
 import sys
 from pathlib import Path
 
-from UnifyNetSDK.gen_ctypes_file._3_replace.replace import delete_default_arguments_dahua, delete_default_arguments_haikang
 from UnifyNetSDK.gen_ctypes_file.tools.clang_format.format import clangformat as _clangformat
 
 curPyPath = Path(__file__).parent
@@ -67,23 +66,24 @@ def generateCtypesWrapper_dahua(log2file: bool):
     dahua_readyToGenCtypesWrapperFile = str((curPyPath / "_3_replace/DH_NetSDK.h").resolve())
     dahua_generatedCtypesWrapperFile = str((curPyPath / "_4_completed/DH_NetSDK.py").resolve())
     dahua_NetSdkDllFile = "Libs/win64/dhnetsdk.dll"
-    print("指令列表为", [dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
+    arg_list = [dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile]
+    print("指令列表为", arg_list)
     global Log2FileTag
     if Log2FileTag is True and log2file is True:  # 希望将错误报告输出到文件中，但是已经有一个头文件占用了Log2FileTag标识
         raise Exception("用log2file时，只能跑一个头文件，同时只能有一个错误报告能输出到文件中")
     elif Log2FileTag is False and log2file is True:  # 希望将错误报告输出到文件中，且Log2FileTag标识没有被占用
         Log2FileTag = True
-        error_file = open('dahua_ctypesgen_log.txt', 'w')  # 解除注释就会使ctypesgen的错误报告输出到文件中，而不是stderr
+        error_file = open('dahua_ctypesgen.log', 'w')  # 解除注释就会使ctypesgen的错误报告输出到文件中，而不是stderr
         sys.stderr = error_file
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
+        ctypesgenscript(arg_list)
         error_file.close()
     elif Log2FileTag is False and log2file is False:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
+        ctypesgenscript(arg_list)
     elif Log2FileTag is True and log2file is False:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile])
+        ctypesgenscript(arg_list)
     print("generateCtypesWrapper_dahua结束")
 
 
@@ -91,31 +91,33 @@ def generateCtypesWrapper_haikang(log2file: bool):
     print("generateCtypesWrapper_haikang开始")
     haikang_readyToGenCtypesWrapperFile = str((curPyPath / "_3_replace/HK_NetSDK.h").resolve())
     haikang_generatedCtypesWrapperFile = str((curPyPath / "_4_completed/HK_NetSDK.py").resolve())
-    print("指令列表为", [haikang_readyToGenCtypesWrapperFile, "-o", haikang_generatedCtypesWrapperFile])
+    haikang_NetSdkDllFile = "lib/win/HCNetSDK.dll"
+    arg_list = [haikang_readyToGenCtypesWrapperFile, "-l", haikang_NetSdkDllFile, "-o", haikang_generatedCtypesWrapperFile]
+    print("指令列表为", arg_list)
     global Log2FileTag
     if Log2FileTag is True and log2file is True:  # 希望将错误报告输出到文件中，但是已经有一个头文件占用了Log2FileTag标识
         raise Exception("用log2file时，只能跑一个头文件")
     elif Log2FileTag is False and log2file is True:  # 希望将错误报告输出到文件中，且Log2FileTag标识没有被占用
         Log2FileTag = True
-        error_file = open('haikang_ctypesgen_log.txt', 'w')
+        error_file = open('haikang_ctypesgen.log', 'w')
         sys.stderr = error_file
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([haikang_readyToGenCtypesWrapperFile, "-o", haikang_generatedCtypesWrapperFile])
+        ctypesgenscript(arg_list)
         error_file.close()
     elif Log2FileTag is False and log2file is False:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([haikang_readyToGenCtypesWrapperFile, "-o", haikang_generatedCtypesWrapperFile])
+        ctypesgenscript(arg_list)
     elif Log2FileTag is True and log2file is False:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
         from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
-        ctypesgenscript([haikang_readyToGenCtypesWrapperFile, "-o", haikang_generatedCtypesWrapperFile])
+        ctypesgenscript(arg_list)
     print("generateCtypesWrapper_haikang结束")
 
 
-def _remove_default_parameters(text):
+def _remove_default_parameters(pattern, text):
     """
     删除函数声明中的默认参数部分
     """
-    info_log = open("replace_log.txt", "w")
+    info_log = open("replace.log", "w")
 
     def fun(matchs):  # 子函数，这个正则需要二次处理
         # 删除可能多次存在的=后面的内容
@@ -133,11 +135,12 @@ def _remove_default_parameters(text):
         info_log.write(f"new_text,{new_text}\n")
         return new_text
 
-    main_pattern = r"^CLIENT_NET_API[^;]*=[^;]*;"  # 先拿到含有CLIENT_NET_API和=的整条语句
     # ^CLIENT_NET_API[^;]*=[^;]*;
     # ^CLIENT_NET_API               [^;]*                          =          [^;]*                  ;
     #                  只要=左边不是;就说明函数声明还没在(这行)结束                       匹配等号后及分号前的所有内容
-    processedText = re.sub(main_pattern, fun, text, flags=re.M)
+    # ^NET_DVR_API[^;]*=[^;]*;   与上同理
+
+    processedText = re.sub(pattern, fun, text, flags=re.M)
     info_log.close()
     return processedText
 
@@ -148,9 +151,17 @@ def _remove_default_parameters(text):
 
 def remove_default_parameters(fileName):
     print(f"remove_default_parameters {fileName} 开始")
+
+    if fileName == "DH_NetSDK.h":
+        pattern = dahua_pattern = r"^CLIENT_NET_API[^;]*=[^;]*;"  # 先拿到含有CLIENT_NET_API和=的整条语句,大华函数声明开头
+    elif fileName == "HK_NetSDK.h":
+        pattern = haikang_pattern = r"^NET_DVR_API[^;]*=[^;]*;"  # 先拿到含有NET_DVR_API和=的整条语句,海康函数声明开头
+    else:
+        raise Exception("参数有误")
+
     input_headfile_path = str(curPyPath / "_3_replace" / fileName)
     with open(input_headfile_path, "r", encoding="utf8") as fp:
-        text = _remove_default_parameters(fp.read())
+        text = _remove_default_parameters(pattern, fp.read())
     output_headfile_path = input_headfile_path
     with open(output_headfile_path, "w", encoding="utf8") as fp:
         fp.write(text)
@@ -168,18 +179,23 @@ if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放
     # sanitizeText(dahua, copy2replaceDir=True)     # 2删注释，从_2_formatted读取，写入到_2_formatted，
     # sanitizeText(haikang, copy2replaceDir=True)  # 如果copy2replaceDir为True，还会同时写入到_3_replace
 
-    # delete_default_arguments(dahua)  # 3删除默认参数 =，从_3_replace读取，写入到_3_replace
-    remove_default_parameters(haikang)
+    # remove_default_parameters(dahua)  # 3删除默认参数 =，从_3_replace读取，写入到_3_replace
+    # remove_default_parameters(haikang)
 
-    # generateCtypesWrapper_dahua(log2file=True)  # 生成包装器，一定注意同时只能有一个方法的log2file可以为True
-    # generateCtypesWrapper_haikang(log2file=True)  # 从_3_replace读取，写入到_4_completed
+    # generateCtypesWrapper_dahua(log2file=True)  # 4生成包装器，一定注意同时只能有一个方法的log2file可以为True
+    generateCtypesWrapper_haikang(log2file=True)  # 从_3_replace读取，写入到_4_completed
 
-    # 测试每一步是否成功，然后尝试让海康的dll由ctypes中间层加载
+    # 尝试让海康的dll由ctypes中间层加载
+    # 再测一下大华
+    # 成功的话，这个库就能暂时封档了，后续可以开始开发ato了
 
 """
-replace脚本
+大华头文件
+添加
 #include <stdbool.h>
-#define CLIENT_NET_API __declspec(dllimport)
-#define LPDWORD DWORD *替换为unsigned int*
-#define LPDWORD unsigned int*
+替换
+# non windows分支下的语句替换
+    #define CLIENT_NET_API extern "C"  替换为  #define CLIENT_NET_API __declspec(dllimport)  # 这步跟海康对比一下，我应该是做错了的
+    #define LPDWORD DWORD*  替换为  #define LPDWORD unsigned int*
+    #define LLONG long  替换为  #define LLONG long long
 """

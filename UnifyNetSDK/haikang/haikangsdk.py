@@ -50,8 +50,9 @@ class HaiKangSDK(AbsNetSDK):
     def _loadLibrary(cls):
         try:
             libPath = ProjectPath / "UnifyNetSDK/haikang/lib/win"
-            cls.sdkDll = CDLL(str(libPath / "HCNetSDK.dll"))  # 加载网络库
-            cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库
+            # cls.sdkDll = CDLL(str(libPath / "HCNetSDK.dll"))  # 加载网络库
+            cls.sdkDll = HK
+            # cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库
 
             sdk_ComPath = HK.NET_DVR_LOCAL_SDK_PATH()
             sdk_ComPath.sPath = str(libPath).encode("gbk")
@@ -140,7 +141,8 @@ class HaiKangSDK(AbsNetSDK):
     @classmethod
     def stopDownLoadTimer(cls, downLoadHandle: int):
         downLoadPos = c_int()
-        cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), 1)
+        lpOutLen = c_ulong(0)
+        cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), byref(lpOutLen))
         logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
         if downLoadPos.value == 100:
             logger.success(f"下载ID {downLoadHandle} 下载成功")
@@ -183,7 +185,7 @@ class HaiKangSDK(AbsNetSDK):
         downLoadHandle = cls.sdkDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
         cls.__getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
 
-        controlResult = cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), 0)
+        controlResult = cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), byref(c_ulong(0)))
         cls.__getLastError("NET_DVR_PlayBackControl_V40", bool(controlResult))
 
         return downLoadHandle

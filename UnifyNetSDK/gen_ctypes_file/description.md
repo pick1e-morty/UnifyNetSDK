@@ -23,8 +23,6 @@
 
 #### 解决方式整合（这是让我自己看的）
 
-      运行
-         replace脚本
       添加
       #include <stdbool.h>
       替换
@@ -69,7 +67,7 @@ A: 在C++中，"bool"类型是标准库的一部分，所以不需要额外定�
 ```
 
 A: 我发现不带默认参数的CLIENT_DownloadByTime(没有EX)
-转换成功了，而两者在语法上的差异也很明显就是被标注出的=，也就是指默认参数。我写了脚本用正则删除所有函数声明中的默认参数。路径为UnifyNetSDK/gen_ctypes_file/_3_replace/replace.py
+转换成功了，而两者在语法上的差异也很明显就是被标注出的=，也就是指默认参数。我写了remove_default_parameters脚本用正则删除所有函数声明中的默认参数。
 
 #### Q:语法错误 ”C“
 
@@ -174,4 +172,4 @@ ERROR: C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\
    NET_DVR_API char* __stdcall NET_DVR_GetErrorMsg(LONG* pErrorNo = NULL);
 ```
 
-A: 依旧是默认参数的问题，删除默认参数的脚本路径在UnifyNetSDK/gen_ctypes_file/_3_replace/replace.py
+A: 依旧是默认参数的问题，删除默认参数的函数名是remove_default_parameters
