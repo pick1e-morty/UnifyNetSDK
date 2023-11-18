@@ -1,36 +1,19 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
-from pathlib import Path
-from typing import List
+from threading import RLock
+
+single_lock = RLock()
 
 
-# TODO 这几个统一参数都要用单例
+def Singleton(cls):
+    instance = {}
 
-class UnifyLoginArg(object):
-    # 基础的登录参数
-    def __init__(self, deviceAddress: str = None, devicePort: int = None, userName: str = None,
-                 userPassword: str = None):
-        self.deviceAddress = deviceAddress
-        self.devicePort = devicePort
-        self.userName = userName
-        self.userPassword = userPassword
+    def _singleton_wrapper(*args, **kargs):
+        with single_lock:
+            if cls not in instance:
+                instance[cls] = cls(*args, **kargs)
+        return instance[cls]
 
-
-class UnifyDownLoadByTimeArg(object):
-    # 基础的按时间下载回放参数定义，注意大华的downloadbytime不支持选择码流
-    def __init__(self, channel: int = None, saveFilePath: Path = None, startTime: datetime = None, stopTime: datetime = None):
-        self.channel = channel
-        self.saveFilePath = saveFilePath  # Path(saveFilePath).absolute()
-        self.startTime = startTime
-        self.stopTime = stopTime
-
-
-class UnifyFindFileByTimeArg(object):
-    # 基础的按时间搜索回放参数定义，做这个数据保存类是由于海康的搜索回放函数中的时间参数是不同于下载回放函数中的时间参数的，这很奇怪。
-    def __init__(self, channel: int = None, startTime: datetime = None, stopTime: datetime = None):
-        self.channel = channel
-        self.startTime = startTime
-        self.stopTime = stopTime
+    return _singleton_wrapper
 
 
 class AbsNetSDK(ABC):
@@ -44,7 +27,7 @@ class AbsNetSDK(ABC):
     #     pass
 
     @abstractmethod
-    def login(cls, loginArg: UnifyLoginArg):
+    def login(cls, loginArg):
         pass
 
     # @abstractmethod

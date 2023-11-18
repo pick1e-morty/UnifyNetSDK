@@ -109,9 +109,11 @@ ERROR: C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\
 ```
 
 用了LPDWORD的就两行
-58100源代码：CLIENT_GetPlatFormInfo：CLIENT_NET_API BOOL CALL_METHOD CLIENT_GetPlatFormInfo(LLONG lLoginID, DWORD dwCommand, int nSubCommand, int nParam, LPVOID lpOutBuffer, DWORD dwOutBufferSize,
-LPDWORD lpBytesReturned, int waittime);
-58038源代码：CLIENT_NET_API BOOL CALL_METHOD CLIENT_GetDevConfig(LLONG lLoginID, DWORD dwCommand, LONG lChannel, LPVOID lpOutBuffer, DWORD dwOutBufferSize, LPDWORD lpBytesReturned, int waittime);
+
+      58100源代码：CLIENT_GetPlatFormInfo：CLIENT_NET_API BOOL CALL_METHOD CLIENT_GetPlatFormInfo(LLONG lLoginID, DWORD dwCommand, int nSubCommand, int nParam, LPVOID lpOutBuffer, DWORD dwOutBufferSize,
+      LPDWORD lpBytesReturned, int waittime);
+      58038源代码：CLIENT_NET_API BOOL CALL_METHOD CLIENT_GetDevConfig(LLONG lLoginID, DWORD dwCommand, LONG lChannel, LPVOID lpOutBuffer, DWORD dwOutBufferSize, LPDWORD lpBytesReturned, int waittime);
+
 “简单”的文本替换ctypesgen作者说过:做不到。
 #define LPDWORD DWORD *
 DWORD是unsigned int，最终改为#define LPDWORD unsigned int *

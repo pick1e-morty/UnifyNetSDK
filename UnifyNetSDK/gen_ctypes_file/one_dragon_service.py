@@ -17,8 +17,8 @@ notes = """
 # clang格式化
 def clangformat(fileName):
     print(f"clangformat {fileName} 开始")
-    dh_org_headfile_path = str(curPyPath / "_1_original" / fileName)
-    dh_fod_headfile_path = str(curPyPath / "_2_formatted" / fileName)
+    dh_org_headfile_path = str(curPyPath / Step_1_DirName / fileName)
+    dh_fod_headfile_path = str(curPyPath / Step_2_DirName / fileName)
     _clangformat(dh_org_headfile_path, dh_fod_headfile_path, notes)
     print(f"clangformat结束 {fileName} ")
 
@@ -42,14 +42,14 @@ def sanitizeText(fileName, copy2replaceDir: bool):
     本函数是修改源文件的，如果copy2replaceDir为True还会将结果复制到_3_replace下
     """
     print(f"sanitizeText {fileName} 开始")
-    input_headfile_path = str(curPyPath / "_2_formatted" / fileName)
+    input_headfile_path = str(curPyPath / Step_2_DirName / fileName)
     with open(input_headfile_path, "r", encoding="utf8") as fp:
         text = delete_comment_and_emptyline(fp.read())
     output_headfile_path = input_headfile_path
     with open(output_headfile_path, "w", encoding="utf8") as fp:
         fp.write(text)
     if copy2replaceDir is True:
-        output_headfile_path = str(curPyPath / "_3_replace" / fileName)
+        output_headfile_path = str(curPyPath / Step_3_DirName / fileName)
         with open(output_headfile_path, "w", encoding="utf8") as fp:
             fp.write(text)
         print("相同内容已同时复制到在第三步文件夹中")  # 其实是又开了一个文件指针而不是shutil.copyfile()
@@ -63,8 +63,8 @@ Log2FileTag = False
 
 def generateCtypesWrapper_dahua(log2file: bool):
     print("generateCtypesWrapper_dahua开始")
-    dahua_readyToGenCtypesWrapperFile = str((curPyPath / "_3_replace/DH_NetSDK.h").resolve())
-    dahua_generatedCtypesWrapperFile = str((curPyPath / "_4_completed/DH_NetSDK.py").resolve())
+    dahua_readyToGenCtypesWrapperFile = str((curPyPath / Step_3_DirName / dahua).resolve())
+    dahua_generatedCtypesWrapperFile = str((curPyPath / Step_4_DirName / dahua).resolve())
     dahua_NetSdkDllFile = "Libs/win64/dhnetsdk.dll"
     arg_list = [dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile]
     print("指令列表为", arg_list)
@@ -89,8 +89,8 @@ def generateCtypesWrapper_dahua(log2file: bool):
 
 def generateCtypesWrapper_haikang(log2file: bool):
     print("generateCtypesWrapper_haikang开始")
-    haikang_readyToGenCtypesWrapperFile = str((curPyPath / "_3_replace/HK_NetSDK.h").resolve())
-    haikang_generatedCtypesWrapperFile = str((curPyPath / "_4_completed/HK_NetSDK.py").resolve())
+    haikang_readyToGenCtypesWrapperFile = str((curPyPath / Step_3_DirName / haikang).resolve())
+    haikang_generatedCtypesWrapperFile = str((curPyPath / Step_4_DirName / haikang).resolve())
     haikang_NetSdkDllFile = "lib/win/HCNetSDK.dll"
     arg_list = [haikang_readyToGenCtypesWrapperFile, "-l", haikang_NetSdkDllFile, "-o", haikang_generatedCtypesWrapperFile]
     print("指令列表为", arg_list)
@@ -159,7 +159,7 @@ def remove_default_parameters(fileName):
     else:
         raise Exception("参数有误")
 
-    input_headfile_path = str(curPyPath / "_3_replace" / fileName)
+    input_headfile_path = str(curPyPath / Step_3_DirName / fileName)
     with open(input_headfile_path, "r", encoding="utf8") as fp:
         text = _remove_default_parameters(pattern, fp.read())
     output_headfile_path = input_headfile_path
@@ -170,7 +170,16 @@ def remove_default_parameters(fileName):
 
 if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放在第二步文件夹中，但是删除注释是修改第二步的源文件的，第三步就是需要我手动修改头文件的地方，第四步就是完成品
 
-    dahua = "DH_NetSDK.h"
+    Step_1_DirName = Path("_1_original")  # 每一步的文件夹名称
+    Step_2_DirName = Path("_2_formatted")
+    Step_3_DirName = Path("_3_replace")
+    Step_4_DirName = Path("_4_completed")
+    Step_1_DirName.mkdir(exist_ok=True)
+    Step_2_DirName.mkdir(exist_ok=True)
+    Step_3_DirName.mkdir(exist_ok=True)
+    Step_4_DirName.mkdir(exist_ok=True)
+
+    dahua = "DH_NetSDK.h"  # 头文件名称
     haikang = "HK_NetSDK.h"
 
     # clangformat(dahua)
@@ -183,11 +192,7 @@ if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放
     # remove_default_parameters(haikang)
 
     # generateCtypesWrapper_dahua(log2file=True)  # 4生成包装器，一定注意同时只能有一个方法的log2file可以为True
-    generateCtypesWrapper_haikang(log2file=True)  # 从_3_replace读取，写入到_4_completed
-
-    # 尝试让海康的dll由ctypes中间层加载
-    # 再测一下大华
-    # 成功的话，这个库就能暂时封档了，后续可以开始开发ato了
+    # generateCtypesWrapper_haikang(log2file=True)  # 从_3_replace读取，写入到_4_completed
 
 """
 大华头文件

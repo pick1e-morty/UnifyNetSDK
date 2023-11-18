@@ -1,9 +1,3 @@
-# 排除SDK的动态链接库
-UnifyNetSDK/haikang/lib/win/*
-UnifyNetSDK/dahua/Libs/win64/*
-# 但保留动态链接库的存放路径，git不支持保留空文件夹，需要.keep空文件以表占位
-!UnifyNetSDK/haikang/lib/win/.keep
-!UnifyNetSDK/dahua/Libs/win64/.keep
 # 排除ctypes包装生成过程的日志
 UnifyNetSDK/gen_ctypes_file/*.log
 # 除了源文件存放文件夹，另外三步生成的头文件都不保留
@@ -11,6 +5,10 @@ UnifyNetSDK/gen_ctypes_file/_2_formatted/*
 UnifyNetSDK/gen_ctypes_file/_3_replace/*
 UnifyNetSDK/gen_ctypes_file/_4_completed/*
 
-
+# 排除SDK的动态链接库
+UnifyNetSDK/haikang/lib/win/*
+UnifyNetSDK/dahua/Libs/win64/*
+# 但保留动态链接库的存放路径，git不支持保留空文件夹，需要.keep空文件以表占位
+!.keep
 *.mp4
 *.pyc

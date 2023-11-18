@@ -1,16 +1,18 @@
+import os
 from time import sleep
 from ctypes import *
 import sys
 from UnifyNetSDK.define import *
 from UnifyNetSDK.dahua.dh_exception import ErrorCode, DHException
 import UnifyNetSDK.dahua.ctypes_headfile as DH
+from UnifyNetSDK.parameter import *
 from loguru import logger
-from glob_path import ProjectPath
 
 logger.remove()
 logger.add(sys.stdout, level="TRACE")
 
 
+@Singleton
 class DaHuaSDK(AbsNetSDK):
     sdkDll = DH  # 目前只加载了UnifyNetSDK/dahua/Libs/win64/dhnetsdk.dll，并且是由！！！DH！！！那边加载的
     configDll = None
@@ -47,8 +49,8 @@ class DaHuaSDK(AbsNetSDK):
         return login_id, deviceInfo
 
     @classmethod
-    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):       # 大华的sdk，能通过时间查询的就这一个方法，且没有返回给我查找句柄，所以大华这边只能有sync了
-        return cls.__findFileByTime(userID, findFileArg)                            # CLIENT_FindFileEx能返回句柄，但不能按照时间查询
+    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):  # 大华的sdk，能通过时间查询的就这一个方法，且没有返回给我查找句柄，所以大华这边只能有sync了
+        return cls.__findFileByTime(userID, findFileArg)  # CLIENT_FindFileEx能返回句柄，但不能按照时间查询
 
     @classmethod
     def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
@@ -127,7 +129,7 @@ class DaHuaSDK(AbsNetSDK):
         return downLoadHandle
 
     @classmethod
-    def __getLastError(cls, methodName, methodResult):  # todo 如果这种写法能用的话记得加到define里
+    def __getLastError(cls, methodName: str, methodResult):  # todo 如果这种写法能用的话记得加到define里
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
             errorIndex = cls.sdkDll.CLIENT_GetLastError() & 0x7fffffff
