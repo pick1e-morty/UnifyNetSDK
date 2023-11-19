@@ -8,9 +8,9 @@ from UnifyNetSDK.haikang.haikangsdk import HaiKangSDK
 def test_login():
     easy_login_info = UnifyLoginArg()
     easy_login_info.userName = "admin"
-    easy_login_info.userPassword = "zzfb450000"
+    easy_login_info.userPassword = "admin"
     easy_login_info.devicePort = 8000
-    easy_login_info.deviceAddress = "10.200.15.41"
+    easy_login_info.deviceAddress = "127.0.0.1"
 
     hkClient = HaiKangSDK()
     hkClient.init()

@@ -8,9 +8,9 @@ from UnifyNetSDK.dahua.dahuasdk import DaHuaSDK
 def test_login():
     easy_login_info = UnifyLoginArg()
     easy_login_info.userName = "admin"
-    easy_login_info.userPassword = "ydfb450000"
-    easy_login_info.devicePort = 80
-    easy_login_info.deviceAddress = "10.30.15.216"
+    easy_login_info.userPassword = "admin"
+    easy_login_info.devicePort = 37777
+    easy_login_info.deviceAddress = "127.0.0.1"
 
     dahuaClient = DaHuaSDK()
     dahuaClient.init()

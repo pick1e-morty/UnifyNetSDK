@@ -5,18 +5,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 
-# 两个sdk的log设置要同步，所有log都放在一个文件中
 
-# whl打包
-
-# test
 
 def test_dahua_download():
     easy_login_info = UnifyLoginArg()
     easy_login_info.userName = "admin"
-    easy_login_info.userPassword = "ydfb450000"
-    easy_login_info.devicePort = 80
-    easy_login_info.deviceAddress = "10.30.15.216"
+    easy_login_info.userPassword = "admin"
+    easy_login_info.devicePort = 37777
+    easy_login_info.deviceAddress = "127.0.0.1"
 
     dahuaClient = DaHuaSDK()
     dahuaClient.init()
@@ -52,9 +48,9 @@ def test_dahua_download():
 def test_haikang_download():
     easy_login_info = UnifyLoginArg()
     easy_login_info.userName = "admin"
-    easy_login_info.userPassword = "zzfb450000"
+    easy_login_info.userPassword = "admin"
     easy_login_info.devicePort = 8000
-    easy_login_info.deviceAddress = "10.200.15.41"
+    easy_login_info.deviceAddress = "127.0.0.1"
 
     hkClient = HaiKangSDK()
     hkClient.init()
