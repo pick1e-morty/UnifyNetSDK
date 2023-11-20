@@ -8,26 +8,41 @@ import UnifyNetSDK.dahua.ctypes_headfile as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
 
+from glob_path import ProjectPath
+
 logger.remove()
 logger.add(sys.stdout, level="TRACE")
 
 
 @Singleton
 class DaHuaSDK(AbsNetSDK):
-    sdkDll = DH  # 目前只加载了UnifyNetSDK/dahua/Libs/win64/dhnetsdk.dll，并且是由！！！DH！！！那边加载的
+    sdkDll = None
     configDll = None
     playDll = None
     renderDll = None
     infraDll = None
 
     def __init__(self):
-        pass
+        self._loadLibrary()
 
     @classmethod
     def init(cls):
         initResult = cls.sdkDll.CLIENT_InitEx(DH.fDisConnect(0), 0, DH.NETSDK_INIT_PARAM())
         logger.info(f"SDK初始化已执行")
         cls.__getLastError("CLIENT_InitEx", bool(initResult))
+
+    @classmethod
+    def _loadLibrary(cls):
+        try:
+            libPath = ProjectPath / "UnifyNetSDK/dahua/Libs/win64"
+            cls.sdkDll = windll.LoadLibrary(str(libPath / "dhnetsdk.dll"))
+            # cls.configDll = windll.LoadLibrary(str(libPath / "dhconfigsdk.dll"))
+            # cls.playDll = windll.LoadLibrary(str(libPath / "dhplay.dll"))
+            # cls.renderDll = windll.LoadLibrary(str(libPath / "RenderEngine.dll"))
+            # cls.infraDll = windll.LoadLibrary(str(libPath / "Infra.dll"))
+        except OSError as e:
+            logger.error(f"动态库加载失败,原错误信息:{e}")
+            # logger.exception(e)
 
     @classmethod
     def login(cls, loginArg: UnifyLoginArg):
@@ -44,7 +59,9 @@ class DaHuaSDK(AbsNetSDK):
         deviceInfo = DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
         deviceInfo.dwSize = sizeof(DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY)
 
+        cls.sdkDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong
         login_id = cls.sdkDll.CLIENT_LoginWithHighLevelSecurity(byref(loginInfo), byref(deviceInfo))
+        print(login_id, type(login_id))
         cls.__getLastError("CLIENT_LoginWithHighLevelSecurity", bool(login_id))
         return login_id, deviceInfo
 

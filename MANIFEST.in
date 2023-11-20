@@ -1,0 +1,7 @@
+graft UnifyNetSDK/dahua/Libs
+graft UnifyNetSDK/haikang/lib
+prune UnifyNetSDK/gen_ctypes_file
+prune UnifyNetSDK/dahua/Exception
+prune UnifyNetSDK/dahua/tests
+prune UnifyNetSDK/haikang/Exception
+prune UnifyNetSDK/haikang/tests

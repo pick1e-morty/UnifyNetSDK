@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from UnifyNetSDK.define import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
+from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from UnifyNetSDK.haikang.haikangsdk import HaiKangSDK
 
 
@@ -10,7 +10,7 @@ def test_login():
     easy_login_info.userName = "admin"
     easy_login_info.userPassword = "admin"
     easy_login_info.devicePort = 8000
-    easy_login_info.deviceAddress = "127.0.0.1"
+    easy_login_info.deviceAddress = "10.10.10.10"
 
     hkClient = HaiKangSDK()
     hkClient.init()

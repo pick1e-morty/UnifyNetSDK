@@ -12,7 +12,7 @@ def test_dahua_download():
     easy_login_info.userName = "admin"
     easy_login_info.userPassword = "admin"
     easy_login_info.devicePort = 37777
-    easy_login_info.deviceAddress = "127.0.0.1"
+    easy_login_info.deviceAddress = "10.10.10.10"
 
     dahuaClient = DaHuaSDK()
     dahuaClient.init()
@@ -50,7 +50,7 @@ def test_haikang_download():
     easy_login_info.userName = "admin"
     easy_login_info.userPassword = "admin"
     easy_login_info.devicePort = 8000
-    easy_login_info.deviceAddress = "127.0.0.1"
+    easy_login_info.deviceAddress = "10.10.10.10"
 
     hkClient = HaiKangSDK()
     hkClient.init()

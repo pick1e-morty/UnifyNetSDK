@@ -1,9 +1,9 @@
 # 排除ctypes包装生成过程的日志
 UnifyNetSDK/gen_ctypes_file/*.log
 # 除了源文件存放文件夹，另外三步生成的头文件都不保留
-UnifyNetSDK/gen_ctypes_file/_2_formatted/*
-UnifyNetSDK/gen_ctypes_file/_3_replace/*
-UnifyNetSDK/gen_ctypes_file/_4_completed/*
+UnifyNetSDK/gen_ctypes_file/*/*.h
+# 格式化用的二进制文件
+/UnifyNetSDK/gen_ctypes_file/tools/clang_format/clang-format.exe
 
 # 排除SDK的动态链接库
 UnifyNetSDK/haikang/lib/win/*
@@ -12,3 +12,10 @@ UnifyNetSDK/dahua/Libs/win64/*
 !.keep
 *.mp4
 *.pyc
+
+# setuptools
+build/
+dist/
+UnifyNetSDK.egg-info/
+.eggs/
+
