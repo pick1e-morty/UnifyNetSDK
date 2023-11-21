@@ -14,6 +14,8 @@
 clang-format.exe version: 16.0.0
 ctypesgen version: 1.1.2.dev7+gdeb059e.d20230825
 ctypesgen:https://github.com/ctypesgen/ctypesgen
+详细见[点击跳转到description](gen_ctypes_file/description.md)
+UnifyNetSDK/gen_ctypes_file/description.md
 
 
 

@@ -19,7 +19,7 @@ ErrorCode = {
     8: "NET_SDK_INIT_ERROR",
     9: "NET_SDK_UNINIT_ERROR",
     10: "NET_RENDER_OPEN_ERROR",
-    11: "NET_DEC_OPEN_ERROR",
+    11: "NET_DEC_OPEN_ERROR;如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这是当前错误的原因之一",
     12: "NET_DEC_CLOSE_ERROR",
     13: "NET_MULTIPLAY_NOCHANNEL",
     14: "NET_TALK_INIT_ERROR",

@@ -1,4 +1,3 @@
-import os
 from time import sleep
 from ctypes import *
 import sys
@@ -8,7 +7,6 @@ import UnifyNetSDK.dahua.ctypes_headfile as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
 
-from glob_path import ProjectPath
 
 logger.remove()
 logger.add(sys.stdout, level="TRACE")
@@ -16,14 +14,15 @@ logger.add(sys.stdout, level="TRACE")
 
 @Singleton
 class DaHuaSDK(AbsNetSDK):
-    sdkDll = None
+    sdkDll = DH  # netsdk.dll由ctypesgen中间层加载
     configDll = None
     playDll = None
     renderDll = None
     infraDll = None
 
     def __init__(self):
-        self._loadLibrary()
+        # self._loadLibrary()
+        pass
 
     @classmethod
     def init(cls):
@@ -32,9 +31,10 @@ class DaHuaSDK(AbsNetSDK):
         cls.__getLastError("CLIENT_InitEx", bool(initResult))
 
     @classmethod
-    def _loadLibrary(cls):
+    def _loadLibrary(cls):  # 未启用
         try:
-            libPath = ProjectPath / "UnifyNetSDK/dahua/Libs/win64"
+            curPyPath = Path(__file__).parent
+            libPath = curPyPath / "Libs/win64"
             cls.sdkDll = windll.LoadLibrary(str(libPath / "dhnetsdk.dll"))
             # cls.configDll = windll.LoadLibrary(str(libPath / "dhconfigsdk.dll"))
             # cls.playDll = windll.LoadLibrary(str(libPath / "dhplay.dll"))
@@ -61,7 +61,6 @@ class DaHuaSDK(AbsNetSDK):
 
         cls.sdkDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong
         login_id = cls.sdkDll.CLIENT_LoginWithHighLevelSecurity(byref(loginInfo), byref(deviceInfo))
-        print(login_id, type(login_id))
         cls.__getLastError("CLIENT_LoginWithHighLevelSecurity", bool(login_id))
         return login_id, deviceInfo
 

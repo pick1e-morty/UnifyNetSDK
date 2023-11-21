@@ -6,7 +6,6 @@ from UnifyNetSDK.haikang.hk_exception import ErrorCode, HKException
 from UnifyNetSDK.parameter import *
 import UnifyNetSDK.haikang.ctypes_headfile as HK
 from loguru import logger
-from glob_path import ProjectPath
 
 logger.remove()
 logger.add(sys.stdout, level="INFO")
@@ -51,9 +50,10 @@ class HaiKangSDK(AbsNetSDK):
     @classmethod
     def _loadLibrary(cls):
         try:
-            libPath = ProjectPath / "UnifyNetSDK/haikang/lib/win"
+            curPyPath = Path(__file__).parent
+            libPath = curPyPath / "lib/win"
             # cls.sdkDll = CDLL(str(libPath / "HCNetSDK.dll"))  # 加载网络库
-            cls.sdkDll = HK
+            cls.sdkDll = HK  # hcnetsdk.dll由ctypesgen中间层加载
             # cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库
 
             sdk_ComPath = HK.NET_DVR_LOCAL_SDK_PATH()
