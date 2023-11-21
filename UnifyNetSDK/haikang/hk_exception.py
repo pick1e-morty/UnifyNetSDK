@@ -3,9 +3,7 @@ class HKException(Exception):
     def __init__(self, code, value):
         self.code = code
         self.value = value
-
-    def __str__(self):
-        return repr(self.code + ' ' + self.value)
+        super().__init__(self.code, self.value)
 
 
 ErrorCode = {
@@ -20,7 +18,7 @@ ErrorCode = {
     8: "NET_DVR_NETWORK_SEND_ERROR",
     9: "NET_DVR_NETWORK_RECV_ERROR",
     10: "NET_DVR_NETWORK_RECV_TIMEOUT",
-    11: "NET_DVR_NETWORK_ERRORDATA",
+    11: "NET_DVR_NETWORK_ERRORDATA;如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这是当前错误的原因之一",
     12: "NET_DVR_ORDER_ERROR",
     13: "NET_DVR_OPERNOPERMIT",
     14: "NET_DVR_COMMANDTIMEOUT",

@@ -6,7 +6,6 @@ from UnifyNetSDK.haikang.hk_exception import ErrorCode, HKException
 from UnifyNetSDK.parameter import *
 import UnifyNetSDK.haikang.ctypes_headfile as HK
 from loguru import logger
-from glob_path import ProjectPath
 
 logger.remove()
 logger.add(sys.stdout, level="INFO")
@@ -51,9 +50,10 @@ class HaiKangSDK(AbsNetSDK):
     @classmethod
     def _loadLibrary(cls):
         try:
-            libPath = ProjectPath / "UnifyNetSDK/haikang/lib/win"
+            curPyPath = Path(__file__).parent
+            libPath = curPyPath / "lib/win"
             # cls.sdkDll = CDLL(str(libPath / "HCNetSDK.dll"))  # 加载网络库
-            cls.sdkDll = HK
+            cls.sdkDll = HK  # hcnetsdk.dll由ctypesgen中间层加载
             # cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库
 
             sdk_ComPath = HK.NET_DVR_LOCAL_SDK_PATH()
@@ -181,8 +181,8 @@ class HaiKangSDK(AbsNetSDK):
         sSavedFileName = create_string_buffer(str(downLoadArg.saveFilePath).encode("gbk"))
         pDownloadCond = HK.NET_DVR_PLAYCOND()
         pDownloadCond.dwChannel = downLoadArg.channel
-        pDownloadCond.struStartTime = cls.datetime2NET_DVR_TIME(downLoadArg.startTime)
-        pDownloadCond.struStopTime = cls.datetime2NET_DVR_TIME(downLoadArg.stopTime)
+        pDownloadCond.struStartTime = cls.datetime2DVR_Struct_TIME(downLoadArg.startTime)
+        pDownloadCond.struStopTime = cls.datetime2DVR_Struct_TIME(downLoadArg.stopTime)
         # 开始下载
         downLoadHandle = cls.sdkDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
         cls.__getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
@@ -214,7 +214,7 @@ class HaiKangSDK(AbsNetSDK):
         cls.__getLastError("NET_DVR_Cleanup", bool(cleanupResult))
 
     @staticmethod
-    def datetime2NET_DVR_TIME(timeArg: datetime):
+    def datetime2DVR_Struct_TIME(timeArg: datetime):
         # 省事的时间类型转换,下载录像用的时间类型
         net_dvr_time = HK.NET_DVR_TIME()
         net_dvr_time.dwYear = timeArg.year
