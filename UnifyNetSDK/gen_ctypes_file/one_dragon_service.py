@@ -65,8 +65,15 @@ def generateCtypesWrapper_dahua(log2file: bool):
     print("generateCtypesWrapper_dahua开始")
     dahua_readyToGenCtypesWrapperFile = str((curPyPath / Step_3_DirName / dahua).resolve())
     dahua_generatedCtypesWrapperFile = str((curPyPath / Step_4_DirName / dahua).resolve())
-    dahua_NetSdkDllFile = "Libs/win64/dhnetsdk.dll"
-    arg_list = [dahua_readyToGenCtypesWrapperFile, "-l", dahua_NetSdkDllFile, "-o", dahua_generatedCtypesWrapperFile]
+    dahua_DllFile1 = "Libs/win64/dhnetsdk.dll"
+    dahua_DllFile2 = "Libs/win64/dhplay.dll"
+    dahua_DllFile3 = "Libs/win64/Infra.dll"
+    dahua_DllFile4 = "Libs/win64/RenderEngine.dll"
+    dahua_DllFile5 = "Libs/win64/dhconfigsdk.dll"
+    # dahua_NetSdkDllFile = r"C:\Users\Administrator\Documents\CodeProject\headfile\UnifyNetSDK\dahua\Libs\win64"
+    # arg_list = [dahua_readyToGenCtypesWrapperFile, "-l", dahua_DllFile1, "-l", dahua_DllFile2, "-l", dahua_DllFile3, "-l", dahua_DllFile4, "-l", dahua_DllFile5, "-o", dahua_generatedCtypesWrapperFile]
+    arg_list = [dahua_readyToGenCtypesWrapperFile, "-l", dahua_DllFile1, "-o", dahua_generatedCtypesWrapperFile]
+    # arg_list = [dahua_readyToGenCtypesWrapperFile, "-o", dahua_generatedCtypesWrapperFile]
     print("指令列表为", arg_list)
     global Log2FileTag
     if Log2FileTag is True and log2file is True:  # 希望将错误报告输出到文件中，但是已经有一个头文件占用了Log2FileTag标识
@@ -191,7 +198,7 @@ if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放
     # remove_default_parameters(dahua)  # 3删除默认参数 =，从_3_replace读取，写入到_3_replace
     # remove_default_parameters(haikang)
 
-    # generateCtypesWrapper_dahua(log2file=True)  # 4生成包装器，一定注意同时只能有一个方法的log2file可以为True
+    generateCtypesWrapper_dahua(log2file=True)  # 4生成包装器，一定注意同时只能有一个方法的log2file可以为True
     # generateCtypesWrapper_haikang(log2file=True)  # 从_3_replace读取，写入到_4_completed
 
 """

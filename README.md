@@ -17,6 +17,9 @@ ctypesgen:https://github.com/ctypesgen/ctypesgen
 详细见[点击跳转到description](gen_ctypes_file/description.md)
 UnifyNetSDK/gen_ctypes_file/description.md
 
+详细见[点击跳转到description](UnifyNetSDK/gen_ctypes_file/description.md)
+
+
 
 
 ## 将SDK原有的GetLastError改造成python可以跨层向上传递的Exception

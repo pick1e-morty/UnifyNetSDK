@@ -1,5 +1,3 @@
-# 排除ctypes包装生成过程的日志
-UnifyNetSDK/gen_ctypes_file/*.log
 # 除了源文件存放文件夹，另外三步生成的头文件都不保留
 UnifyNetSDK/gen_ctypes_file/*/*.h
 # 格式化用的二进制文件
@@ -19,3 +17,13 @@ dist/
 UnifyNetSDK.egg-info/
 .eggs/
 
+
+#
+*bmp
+*jpeg
+*mp4
+*log
+
+
+# 功能测试账号配置文件
+/UnifyNetSDK/dahua/tests/_testLoginConfig.py

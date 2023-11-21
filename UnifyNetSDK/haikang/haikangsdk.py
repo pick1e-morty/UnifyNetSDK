@@ -181,8 +181,8 @@ class HaiKangSDK(AbsNetSDK):
         sSavedFileName = create_string_buffer(str(downLoadArg.saveFilePath).encode("gbk"))
         pDownloadCond = HK.NET_DVR_PLAYCOND()
         pDownloadCond.dwChannel = downLoadArg.channel
-        pDownloadCond.struStartTime = cls.datetime2NET_DVR_TIME(downLoadArg.startTime)
-        pDownloadCond.struStopTime = cls.datetime2NET_DVR_TIME(downLoadArg.stopTime)
+        pDownloadCond.struStartTime = cls.datetime2DVR_Struct_TIME(downLoadArg.startTime)
+        pDownloadCond.struStopTime = cls.datetime2DVR_Struct_TIME(downLoadArg.stopTime)
         # 开始下载
         downLoadHandle = cls.sdkDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
         cls.__getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
@@ -214,7 +214,7 @@ class HaiKangSDK(AbsNetSDK):
         cls.__getLastError("NET_DVR_Cleanup", bool(cleanupResult))
 
     @staticmethod
-    def datetime2NET_DVR_TIME(timeArg: datetime):
+    def datetime2DVR_Struct_TIME(timeArg: datetime):
         # 省事的时间类型转换,下载录像用的时间类型
         net_dvr_time = HK.NET_DVR_TIME()
         net_dvr_time.dwYear = timeArg.year

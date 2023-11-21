@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from threading import RLock
+
+from UnifyNetSDK.parameter import UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 
 single_lock = RLock()
 
@@ -18,34 +21,29 @@ def Singleton(cls):
 
 class AbsNetSDK(ABC):
 
+    @classmethod
     @abstractmethod
     def init(cls):
         pass
 
-    # @abstractmethod
-    # def _loadLibrary(cls):
-    #     pass
-
+    @classmethod
     @abstractmethod
     def login(cls, loginArg):
         pass
 
+    @classmethod
+    @abstractmethod
+    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+        pass
+
+    # @classmethod
     # @abstractmethod
-    # def downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    # def syncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
     #     pass
 
+    # @classmethod
     # @abstractmethod
-    # def realPlay(cls):
-    #     pass
-    #
-    # @abstractmethod
-    # def playBackByTime(cls):
-    #     pass
-    #
-    #
-    #
-    # @abstractmethod
-    # def customDownLoadFromPlayBackByTime(cls):
+    # def catchPictureFromPlayBackByTimeCallBack(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
     #     # 有时候会下载失败，sdk却没有显示报错
     #     # 我怀疑是他们自己封装的download有问题
     #     # 我想回放应该是不受他们内部干扰的
@@ -53,16 +51,18 @@ class AbsNetSDK(ABC):
     #     # 也就是，只要回放能成功，下载就一定也是成功的
     #     pass
 
+    @classmethod
     @abstractmethod
     def logout(cls, userID):
         pass
 
+    @classmethod
     @abstractmethod
     def cleanup(cls):
         pass
 
-    # @staticmethod
-    # @abstractmethod
-    # def datetime2NET_DVR_TIME(timeArg: datetime):
-    #     net_dvr_time = None
-    #     return net_dvr_time
+    @staticmethod
+    @abstractmethod
+    def datetime2DVR_Struct_TIME(timeArg: datetime):
+        net_dvr_time = None
+        return net_dvr_time

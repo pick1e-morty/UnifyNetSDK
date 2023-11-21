@@ -15,3 +15,8 @@ DH.fTimeDownLoadPosCallBack(0)就是空的回调函数
 ctyepsgen转换后:CLIENT_DownloadByTimeEx.argtypes = [c_longlong, c_int, c_int, LPNET_TIME, LPNET_TIME, String, fTimeDownLoadPosCallBack, c_long, fDataCallBack, c_long, POINTER(None)]
 最后一个形参要求传入POINTER(None)
 pReserved = pointer(c_int(0))
+
+
+# 使用本框架时正确的大华hwnd参数传递方式
+self.label = PyQt5.QtWidgets.QLabel()
+hwnd = cast(c_void_p(int(self.label.winId())), c_void_p)
