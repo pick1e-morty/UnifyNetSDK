@@ -26,8 +26,8 @@ def DownLoadPosCallBack(lPlayHandle, dwTotalSize, dwDownLoadSize, dwUser):
         formObject.catchPicFun()        # 外部变量控制示例
         print("我截屏了")
 
-    pass
-    # print(type(lPlayHandle), type(dwTotalSize), type(dwDownLoadSize), type(dwUser))
+
+
 
 
 class testForm(QWidget):

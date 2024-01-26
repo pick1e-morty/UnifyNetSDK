@@ -1,3 +1,4 @@
+import os
 from time import sleep
 from ctypes import *
 import sys
@@ -8,7 +9,7 @@ import UnifyNetSDK.haikang.ctypes_headfile as HK
 from loguru import logger
 
 logger.remove()
-logger.add(sys.stdout, level="INFO")
+logger.add(sys.stdout, level="DEBUG")
 
 """
 from ctypes import *
@@ -45,7 +46,7 @@ class HaiKangSDK(AbsNetSDK):
     def init(cls):
         initResult = bool(cls.sdkDll.NET_DVR_Init())
         logger.info(f"SDK初始化已执行")
-        cls.__getLastError("NET_DVR_Init", initResult)
+        cls.getLastError("NET_DVR_Init", initResult)
 
     @classmethod
     def _loadLibrary(cls):
@@ -59,13 +60,13 @@ class HaiKangSDK(AbsNetSDK):
             sdk_ComPath = HK.NET_DVR_LOCAL_SDK_PATH()
             sdk_ComPath.sPath = str(libPath).encode("gbk")
             setResult = cls.sdkDll.NET_DVR_SetSDKInitCfg(2, byref(sdk_ComPath))
-            cls.__getLastError("NET_DVR_SetSDKInitCfg", bool(setResult))
+            cls.getLastError("NET_DVR_SetSDKInitCfg", bool(setResult))
             libcryptoPath = str(libPath / "libcrypto-1_1-x64.dll").encode("gbk")
             setResult = cls.sdkDll.NET_DVR_SetSDKInitCfg(3, create_string_buffer(libcryptoPath))
-            cls.__getLastError("NET_DVR_SetSDKInitCfg", bool(setResult))
+            cls.getLastError("NET_DVR_SetSDKInitCfg", bool(setResult))
             libsslPath = str(libPath / "libssl-1_1-x64.dll").encode("gbk")
             setResult = cls.sdkDll.NET_DVR_SetSDKInitCfg(4, create_string_buffer(libsslPath))
-            cls.__getLastError("NET_DVR_SetSDKInitCfg", bool(setResult))
+            cls.getLastError("NET_DVR_SetSDKInitCfg", bool(setResult))
 
         except OSError as e:
             logger.error(f"动态库加载失败,原错误信息:{e}")
@@ -84,7 +85,7 @@ class HaiKangSDK(AbsNetSDK):
         deviceInfo = HK.NET_DVR_DEVICEINFO_V40()
         # 登录
         userID = cls.sdkDll.NET_DVR_Login_V40(loginInfo, byref(deviceInfo))
-        cls.__getLastError("NET_DVR_Login_V40", userID)
+        cls.getLastError("NET_DVR_Login_V40", userID)
         return userID, deviceInfo
 
     @classmethod
@@ -92,29 +93,44 @@ class HaiKangSDK(AbsNetSDK):
 
         lpFindData = HK.NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
         findResult = cls.sdkDll.NET_DVR_FindNextFile_V50(findHandle, byref(lpFindData))
-        cls.__getLastError("NET_DVR_FindNextFile_V50", findResult)
+        cls.getLastError("NET_DVR_FindNextFile_V50", findResult)
 
-        findStateList = [HK.NET_DVR_FILE_NOFIND, HK.NET_DVR_NOMOREFILE, HK.NET_DVR_FILE_EXCEPTION, HK.NET_DVR_FIND_TIMEOUT]
+        # findStateList = {1001: HK.NET_DVR_FILE_NOFIND,
+        #                  1003: HK.NET_DVR_NOMOREFILE,
+        #                  1004: HK.NET_DVR_FILE_EXCEPTION,
+        #                  1005: HK.NET_DVR_FIND_TIMEOUT}
 
+        findStateList = {1001: "未查找到文件",
+                         1003: "没有更多的文件，查找结束",
+                         1004: "查找文件时异常",
+                         1005: "查找文件超时"}
         if findResult == HK.NET_DVR_ISFINDING:
-            logger.trace(f"查找ID {findHandle},查找状态 {findResult}")
-        if findResult == HK.NET_DVR_FILE_SUCCESS:
+            logger.trace(f"查找ID {findHandle},正在查找 {findResult}")
+        elif findResult == HK.NET_DVR_FILE_SUCCESS:
             logger.success(f"查找ID {findHandle},查找成功")
             stopFindResult = cls.sdkDll.NET_DVR_FindClose_V30(findHandle)
-            cls.__getLastError("NET_DVR_FindClose_V30", stopFindResult)
+            cls.getLastError("NET_DVR_FindClose_V30", stopFindResult)
+            return True
         elif findResult in findStateList:
-            logger.error(f"查找ID {findHandle},查找状态异常代码 {findResult}")
+            logger.error(f"查找ID {findHandle},查找状态异常代码 {findResult},{findStateList[findResult]}")
             stopFindResult = cls.sdkDll.NET_DVR_FindClose_V30(findHandle)
-            cls.__getLastError("NET_DVR_FindClose_V30", bool(stopFindResult))
+            cls.getLastError("NET_DVR_FindClose_V30", bool(stopFindResult))
         return findResult
 
     @classmethod
     def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+        """
+        成功返回True
+        失败返回False
+        """
         findHandle = cls.__findFileByTime(userID, findFileArg)
         while True:
             findResult = cls.stopFindFileTimer(findHandle)
             if findResult != HK.NET_DVR_ISFINDING:  #
-                return findResult
+                if findResult is True:      # 大华和海康这部分功能的实现真是花开一表各表自枝啊
+                    return True             # 我统一了一下
+                else:                       # 找到了就True，没找到我底层这边打印个错误代码就行
+                    return False
             sleep(0.5)
 
     @classmethod
@@ -136,7 +152,7 @@ class HaiKangSDK(AbsNetSDK):
 
         # 开始查询
         findHandle = cls.sdkDll.NET_DVR_FindFile_V50(userID, pFindCond)
-        cls.__getLastError("NET_DVR_FindFile_V50", findHandle)
+        cls.getLastError("NET_DVR_FindFile_V50", findHandle)
 
         return findHandle
 
@@ -149,11 +165,11 @@ class HaiKangSDK(AbsNetSDK):
         if downLoadPos.value == 100:
             logger.success(f"下载ID {downLoadHandle} 下载成功")
             stopGetFileResult = cls.sdkDll.NET_DVR_StopGetFile(downLoadHandle)
-            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+            cls.getLastError("NET_DVR_StopGetFile", stopGetFileResult)
         elif downLoadPos.value == 200:
             logger.error(f"下载ID {downLoadHandle} 下载异常")
             stopGetFileResult = cls.sdkDll.NET_DVR_StopGetFile(downLoadHandle)
-            cls.__getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+            cls.getLastError("NET_DVR_StopGetFile", stopGetFileResult)
         return downLoadPos.value
 
     @classmethod
@@ -185,33 +201,56 @@ class HaiKangSDK(AbsNetSDK):
         pDownloadCond.struStopTime = cls.datetime2DVR_Struct_TIME(downLoadArg.stopTime)
         # 开始下载
         downLoadHandle = cls.sdkDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
-        cls.__getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
+        cls.getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
 
         controlResult = cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), byref(c_ulong(0)))
-        cls.__getLastError("NET_DVR_PlayBackControl_V40", bool(controlResult))
+        cls.getLastError("NET_DVR_PlayBackControl_V40", bool(controlResult))
 
         return downLoadHandle
 
     @classmethod  # 目前认为海康把两种状态作为方法执行错位的标识，-1和False，其他的都是正常值，不过我怕它整个新花样，如果能在这个方法中指定错误值，哦。。。那就需要白名单和黑名单了。。。。。。。。。。
-    def __getLastError(cls, methodName, methodResult):  # todo 如果这种写法能用的话记得加到define里
+    def getLastError(cls, methodName, methodResult):  # todo 如果这种写法能用的话记得加到define里
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
-            errorIndex = cls.sdkDll.NET_DVR_GetLastError()
-            errorText = ErrorCode[errorIndex]
-            logger.error(f"{errorIndex} {errorText}")
-            raise HKException(errorIndex, errorText)
+            cls.__getLastError()
+
+    @classmethod
+    def __getLastError(cls):
+        errorIndex = cls.sdkDll.NET_DVR_GetLastError()
+        errorText = ErrorCode[errorIndex]
+        logger.error(f"{errorIndex} {errorText}")
+        raise HKException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
         logoutResult = cls.sdkDll.NET_DVR_Logout(userID)
         logger.info(f"用户ID：{userID} 已登出")
-        cls.__getLastError("NET_DVR_Logout", bool(logoutResult))
+        cls.getLastError("NET_DVR_Logout", bool(logoutResult))
 
     @classmethod
     def cleanup(cls):
         cleanupResult = cls.sdkDll.NET_DVR_Cleanup()
         logger.info("SDK资源已释放")
-        cls.__getLastError("NET_DVR_Cleanup", bool(cleanupResult))
+        cls.getLastError("NET_DVR_Cleanup", bool(cleanupResult))
+
+    @classmethod
+    def logopen(cls):
+        """
+        打开日志功能
+        """
+        logFilePath = os.path.join(os.getcwd(), 'haikang_sdk.log').encode('gbk')
+        setResult = cls.sdkDll.NET_DVR_SetLogToFile(3, logFilePath, True)
+        # 日志的等级 日志文件的路径 是否删除超出的文件数
+        cls.getLastError("NET_DVR_SetLogToFile", bool(setResult))
+        return setResult
+
+    @classmethod
+    def logclose(cls):
+        """
+        关闭日志功能
+        """
+        pass
+        # 海康不需要关闭日志，这是为了用户层调用对齐
 
     @staticmethod
     def datetime2DVR_Struct_TIME(timeArg: datetime):

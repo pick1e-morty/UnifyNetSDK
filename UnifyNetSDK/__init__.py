@@ -9,3 +9,17 @@ def DaHuaSDK():
 def HaiKangSDK():
     from .haikang import HaiKangSDK
     return HaiKangSDK()
+
+
+
+# 海康
+## 海康没有下载视频时的回调函数功能
+## 查询录像是否存在还必须用另一个时间结构体NET_DVR_TIME_SEARCH_COND
+
+
+# 大华
+## 能通过时间查询的就这一个CLIENT_QueryRecordFile，且没有返回给我查找句柄，所以大华这边只能有sync了
+
+
+
+# 海康还是大华来着，如果login时ip参数是127.0.0.1他居然不报错
