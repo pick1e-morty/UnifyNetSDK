@@ -136,6 +136,10 @@ class DaHuaSDK(AbsNetSDK):
 
     @classmethod
     def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+        """
+        成功返回True
+        失败返回False
+        """
         # 准备参数
         nChannelId = findFileArg.channel
         nRecordFileType = DH.EM_RECORD_TYPE_ALL
@@ -156,7 +160,7 @@ class DaHuaSDK(AbsNetSDK):
         findFileResult = cls.sdkDll.CLIENT_QueryRecordFile(userID, nChannelId, nRecordFileType, byref(tmStart), byref(tmEnd),
                                                            pchCardid, nriFileinfo_ptr, maxlen, byref(filecount), waittime, byTime)
         cls.getLastError("CLIENT_QueryRecordFile", bool(findFileResult))
-        return nriFileinfo, filecount.value
+        return bool(filecount.value)
 
     @classmethod
     def stopDownLoadTimer(cls, downLoadHandle):
@@ -214,10 +218,14 @@ class DaHuaSDK(AbsNetSDK):
     def getLastError(cls, methodName: str, methodResult):
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
-            errorIndex = cls.sdkDll.CLIENT_GetLastError() & 0x7fffffff
-            errorText = ErrorCode[errorIndex]
-            logger.error(f"{errorIndex} {errorText}")
-            raise DHException(errorIndex, errorText)
+            cls.__getLastError()
+
+    @classmethod
+    def __getLastError(cls):
+        errorIndex = cls.sdkDll.CLIENT_GetLastError() & 0x7fffffff
+        errorText = ErrorCode[errorIndex]
+        logger.error(f"{errorIndex} {errorText}")
+        raise DHException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
@@ -231,7 +239,7 @@ class DaHuaSDK(AbsNetSDK):
         logger.info("SDK资源已释放")
 
     @classmethod
-    def LogOpen(cls):
+    def logopen(cls):
         """
         打开日志功能
         """
@@ -247,7 +255,7 @@ class DaHuaSDK(AbsNetSDK):
         return logOpenResult
 
     @classmethod
-    def LogClose(cls):
+    def logclose(cls):
         """
         关闭日志功能
         """
