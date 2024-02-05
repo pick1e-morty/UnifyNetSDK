@@ -1,19 +1,22 @@
 import os
+from datetime import datetime
 from time import sleep
 from ctypes import *
 import sys
 
-from UnifyNetSDK.define import *
+from UnifyNetSDK.define import AbsNetSDK, Singleton
 from UnifyNetSDK.dahua.dh_exception import ErrorCode, DHException
 import UnifyNetSDK.dahua.ctypes_headfile as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
 
-logger.remove()
-logger.add(sys.stdout, level="TRACE")
+
+# logger.remove()
+# logger.add(sys.stdout, level="TRACE")
 
 
-@Singleton
+# @Singleton
+# 我去，这种形式的单例会导致我的类方法失效,然后类就变成了function
 class DaHuaSDK(AbsNetSDK):
     sdkDll = DH  # netsdk.dll由ctypesgen中间层加载
     configDll = None

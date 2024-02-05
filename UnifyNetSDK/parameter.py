@@ -1,6 +1,6 @@
-from datetime import datetime
-from pathlib import Path
-from threading import RLock
+# from datetime import datetime
+# from pathlib import Path
+# from threading import RLock
 
 
 class UnifyLoginArg:
@@ -20,6 +20,10 @@ class UnifyDownLoadByTimeArg:
         self.startTime = None
         self.stopTime = None
 
+    def getSimpleReadMsg(self):
+        text = f"通道 {self.channel}, 开始查询时间 {self.startTime}, 结束查询时间 {self.stopTime}\n 下载路径 {self.saveFilePath}"
+        return text
+
 
 class UnifyFindFileByTimeArg:
     # 基础的按时间搜索回放参数定义，做这个数据保存类是由于海康的搜索回放函数中的时间参数是不同于下载回放函数中的时间参数的，这很奇怪。
@@ -27,6 +31,11 @@ class UnifyFindFileByTimeArg:
         self.channel = None
         self.startTime = None
         self.stopTime = None
+
+    def getSimpleReadMsg(self):
+        text = f"通道 {self.channel}, 开始查询时间 {self.startTime}, 结束查询时间 {self.stopTime}"
+        return text
+
 
 
 class UnifyPlayBackByTimeArg:
