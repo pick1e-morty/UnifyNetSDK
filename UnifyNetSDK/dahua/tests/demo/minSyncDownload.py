@@ -39,23 +39,17 @@ easy_login_info.deviceAddress = "10.10.10.10"
 userID, device_info = dahuaClient.login(easy_login_info)
 print("硬盘数量", device_info.stuDeviceInfo.nDiskNum)
 
-十月二十六号 = datetime(2023, 10, 26, 6, 0, 0)
-十月二十六号2 = datetime(2023, 10, 26, 6, 0, 1)
-
-两分钟前 = 十月二十六号
-一分钟前 = 十月二十六号2
-
-# 两分钟前 = datetime.now() - timedelta(seconds=360)
-# 一分钟前 = datetime.now() - timedelta(seconds=359)
+两分钟前 = datetime.now() - timedelta(seconds=360)
+一分钟前 = datetime.now() - timedelta(seconds=359)
 
 findArg = UnifyFindFileByTimeArg()
 findArg.channel = 31
 findArg.startTime = 两分钟前
 findArg.stopTime = 一分钟前
 findResult = dahuaClient.syncFindFileByTime(userID, findArg)
-print(f"查找到的文件数量为{findResult}")  # 0说明没找到
+print(f"查找结果{findResult}")
 
-if findResult >= 1:
+if findResult is True:
     downloadArg = UnifyDownLoadByTimeArg()
     downloadArg.channel = 31
     downloadArg.saveFilePath = Path.cwd() / "test.mp4"

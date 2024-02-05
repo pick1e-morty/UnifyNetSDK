@@ -8,7 +8,6 @@ UnifyNetSDK/haikang/lib/win/*
 UnifyNetSDK/dahua/Libs/win64/*
 # 但保留动态链接库的存放路径，git不支持保留空文件夹，需要.keep空文件以表占位
 !.keep
-*.mp4
 *.pyc
 
 # setuptools
@@ -19,11 +18,15 @@ UnifyNetSDK.egg-info/
 
 
 #
-*bmp
-*jpeg
-*mp4
-*log
+*.bmp
+*.jpeg
+*.jpg
+*.mp4
+*.log
 
 
 # 功能测试账号配置文件
 /UnifyNetSDK/dahua/tests/_testLoginConfig.py
+
+# vizviewer测试结果文件
+/result.json

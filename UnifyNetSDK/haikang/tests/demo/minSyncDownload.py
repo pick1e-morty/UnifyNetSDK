@@ -17,15 +17,8 @@ easy_login_info.deviceAddress = "10.10.10.10"
 userID, device_info = hkClient.login(easy_login_info)
 print("硬盘数量", device_info.struDeviceV30.byDiskNum)
 
-# 创建一个九月二十九号的日期时间对象
-九月二十九号 = datetime(2023, 9, 29, 1, 0, 0)
-九月二十九号2 = datetime(2023, 9, 29, 1, 0, 1)
-
-两分钟前 = 九月二十九号
-一分钟前 = 九月二十九号2
-
-# 两分钟前 = datetime.now() - timedelta(seconds=360)
-# 一分钟前 = datetime.now() - timedelta(seconds=359)
+两分钟前 = datetime.now() - timedelta(seconds=360)
+一分钟前 = datetime.now() - timedelta(seconds=359)
 
 findArg = UnifyFindFileByTimeArg()
 findArg.channel = 31
@@ -34,18 +27,15 @@ findArg.stopTime = 一分钟前
 findResult = hkClient.syncFindFileByTime(userID, findArg)
 print(f"查找结果{findResult}")
 
-
-if findResult >= 1:
+if findResult is True:
     downloadArg = UnifyDownLoadByTimeArg()
     downloadArg.channel = 31
     downloadArg.saveFilePath = Path.cwd() / "test.mp4"
     downloadArg.startTime = 两分钟前
     downloadArg.stopTime = 一分钟前
-
     downLoadResult = hkClient.syncDownLoadByTime(userID, downloadArg)
     print(f"下载结果{downLoadResult}")
 
 hkClient.logout(userID)
 hkClient.logclose()
 hkClient.cleanup()
-
