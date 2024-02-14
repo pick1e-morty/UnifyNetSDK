@@ -6,12 +6,12 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent.parent)
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-from datetime import timedelta, datetime
+from datetime import timedelta
 from time import sleep
 
 import UnifyNetSDK.dahua.dh_exception
 from UnifyNetSDK.dahua.dahuasdk import DaHuaSDK
-from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg, UnifyFindFileByTimeArg
+from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from UnifyNetSDK.dahua.tests._testLoginConfig import testUserConfig
 # 下载进度可以传给窗体，大华用回调，海康用多线程重复主动查。一秒不到，在这里不用实现
 # 取一帧有两种方式
@@ -29,7 +29,7 @@ from UnifyNetSDK.dahua.tests._testLoginConfig import testUserConfig
 # 还有状态显示，查询的状态更新，下载的状态更新，关闭下载的状态，都要发出来。我预留的有位置，改造还算方便。完成海康后，到合并窗体时再进行这一步
 
 # TODO 那个下载的接口应该是可以多线程的，就是不知道dvr能不能扛得住（支持多线程？那是必然的。）
-
+# TODO sdk的log还没写清除规则呢
 
 from loguru import logger
 
@@ -106,7 +106,7 @@ def main():
             downloadbytimeArg.channel = channel
             downloadbytimeArg.saveFilePath = downloadArg.savePath
             downloadbytimeArg.startTime = downloadArg.downloadTime
-            downloadbytimeArg.stopTime = downloadArg.downloadTime + timedelta(seconds=10)
+            downloadbytimeArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
             downLoadHandle = dahuaClient.asyncDownLoadByTime(userID, downloadbytimeArg)
             print(f"下载句柄{downLoadHandle}")
             if downLoadHandle != 0:

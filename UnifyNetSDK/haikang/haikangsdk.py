@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from time import sleep
 from ctypes import *
 import sys
@@ -34,7 +35,8 @@ print(var6,type(var6))
 """
 
 
-@Singleton
+# @Singleton
+# 上面这个单例有问题，会影响类的类方法，python最终会认为这个类一个function
 class HaiKangSDK(AbsNetSDK):
     sdkDll = None
     playctrlDll = None
