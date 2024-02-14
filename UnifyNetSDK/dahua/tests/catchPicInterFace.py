@@ -2,13 +2,12 @@ import sys
 from pathlib import Path
 # sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 from ctypes import *
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QApplication, QGridLayout
+from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QGridLayout
 from UnifyNetSDK import DaHuaSDK
-from UnifyNetSDK.dahua.dh_exception import DHException
-from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg
+from UnifyNetSDK.parameter import UnifyLoginArg, UnifyPlayBackByTimeArg
 import UnifyNetSDK.dahua.ctypes_headfile as DH
 from UnifyNetSDK.dahua.tests._testLoginConfig import testUserConfig
 
