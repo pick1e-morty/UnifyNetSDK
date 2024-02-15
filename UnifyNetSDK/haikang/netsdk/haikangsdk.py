@@ -129,7 +129,7 @@ class HaiKangSDK(AbsNetSDK):
         while True:
             findResult = cls.stopFindFileTimer(findHandle)
             if findResult != HK.NET_DVR_ISFINDING:  #
-                if findResult is True:      # 大华和海康这部分功能的实现真是花开一表各表自枝啊
+                if findResult is True:      # 大华和海康这部分功能的实现真是花开两朵各表一枝啊
                     return True             # 我统一了一下
                 else:                       # 找到了就True，没找到我底层这边打印个错误代码就行
                     return False
