@@ -29,6 +29,16 @@ from UnifyNetSDK.haikang.tests._testLoginConfig import testUserConfig
 # 还有状态显示，查询的状态更新，下载的状态更新，关闭下载的状态，都要发出来。我预留的有位置，改造还算方便。完成海康后，到合并窗体时再进行这一步
 
 
+# 海康多线程
+#    # 两个小线程，一个用来关查询，一个用来关下载
+#    # 异步查询，异步下载
+#    # 异步查询，异步下载
+
+# 大华多线程
+#    # 一个小线程，用来关下载
+#    # 同步查询，异步下载
+#    # 同步查询，异步下载
+
 
 from loguru import logger
 
@@ -108,7 +118,7 @@ def main():
             downloadbytimeArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
             downLoadHandle = haikangClient.asyncDownLoadByTime(userID, downloadbytimeArg)
             print(f"下载句柄{downLoadHandle}")
-            if downLoadHandle != -1:            # 海康规定下载函数返回的不是-1，就是成功了
+            if downLoadHandle != -1:  # 海康规定下载函数返回的不是-1，就是成功了
                 with haikangCondition:
                     downloadHandleList.append(downLoadHandle)
                     haikangCondition.notify()
