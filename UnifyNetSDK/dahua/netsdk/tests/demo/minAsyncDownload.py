@@ -10,7 +10,7 @@ from datetime import timedelta
 from time import sleep
 
 import UnifyNetSDK.dahua.netsdk.dh_exception
-from UnifyNetSDK.dahua.netsdk.dh_netsdk import DaHuaSDK
+from UnifyNetSDK.dahua.netsdk.dh_netsdk import DaHuaNetSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from UnifyNetSDK.dahua.netsdk.tests._testLoginConfig import testUserConfig
 # 下载进度可以传给窗体，大华用回调，海康用多线程重复主动查。一秒不到，在这里不用实现
@@ -37,7 +37,7 @@ logger.remove()
 logger.add(sys.stdout, level="TRACE")
 
 
-class stopDownloadConsumer(threading.Thread):
+class StopDownloadConsumer(threading.Thread):
     def __init__(self, condition: threading.Condition, downloadHandleList: list):
         threading.Thread.__init__(self)
         self.done = False
@@ -55,7 +55,7 @@ class stopDownloadConsumer(threading.Thread):
                 with self.condition:  # 注意，我用了两个with condition，由于查询是个非常耗时的操作，查询的期间是不影响生产者继续添加句柄的。
                     self.condition.wait()  # 如果下载句柄列表为空，但生产者没有发出完毕信号，则线程阻塞等待。
             for downloadHandle in self.downloadHandleList:
-                stopRestlt = DaHuaSDK.stopDownLoadTimer(downloadHandle)
+                stopRestlt = DaHuaNetSDK.stopDownLoadTimer(downloadHandle)
                 if stopRestlt is True:
                     with self.condition:  # 下载成功后就可以删掉这个句柄了
                         self.downloadHandleList.pop(self.downloadHandleList.index(downloadHandle))
@@ -66,7 +66,9 @@ class stopDownloadConsumer(threading.Thread):
 
 
 def main():
-    dahuaClient = DaHuaSDK()
+    # 从这里开一个FileWatchDog就可以了
+
+    dahuaClient = DaHuaNetSDK()
     dahuaClient.init()
     dahuaClient.logopen()
 
@@ -81,7 +83,7 @@ def main():
 
     dahuaCondition = threading.Condition()
     downloadHandleList = []
-    stopDownInstance = stopDownloadConsumer(dahuaCondition, downloadHandleList)
+    stopDownInstance = StopDownloadConsumer(dahuaCondition, downloadHandleList)
     stopDownInstance.start()
 
     for channel, downloadArgList in testUserConfig.downloadArgDict.items():

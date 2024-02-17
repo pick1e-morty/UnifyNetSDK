@@ -1,49 +1,70 @@
-import time
 from pathlib import Path
 
-from UnifyNetSDK.dahua.playsdk.dh_playsdk_wrapper import *
-import UnifyNetSDK.dahua.playsdk.dh_playsdk_wrapper as playDll
+from loguru import logger
 
-# 先在这个文件中测试一下，目标功能的实现
-# 如果成功的话，那就恢复原来的项目结构
-# playsdk直接在netsdk文件中一并导入。
+from UnifyNetSDK.dahua.playsdk.dh_playsdk_exception import ErrorCode, DH_PlaySDK_Exception
+from UnifyNetSDK.define import AbsPlaySDK
+import UnifyNetSDK.dahua.playsdk.dh_playsdk_wrapper as playsdk_wrapper
+from ctypes import *
 
 
-nPort = c_long(0)
-bFlag = bool(playDll.PLAY_GetFreePort(byref(nPort)))
-if bFlag is False:
-    print("PLAY_GetFreePort", playDll.PLAY_GetLastErrorEx())
-    exit(1)
+class DaHuaPlaySDK(AbsPlaySDK):
+    playDll = playsdk_wrapper
 
-videoName = create_string_buffer("4002972.mp4".encode("gbk"))
-bFlag = bool(playDll.PLAY_OpenFile(nPort, videoName))
-if bFlag is False:
-    print("PLAY_OpenFile", playDll.PLAY_GetLastErrorEx())
-    exit(1)
+    def __init__(self):
+        pass
 
-# 开始播放文件
-bFlag = bool(playDll.PLAY_Play(nPort, None))
-if bFlag is False:
-    print("PLAY_Play", playDll.PLAY_GetLastErrorEx())
-    exit(1)
-time.sleep(0.5)
+    @classmethod
+    def getFreePort(cls):
+        nPort = c_long(0)
+        result = cls.playDll.PLAY_GetFreePort(byref(nPort))
+        cls.getLastError("PLAY_GetFreePort", bool(result))
+        return nPort
 
-absPath = Path(__file__).absolute()
-picName = absPath.with_name("123.jpg")
-abspicName = create_string_buffer(str(picName).encode("gbk"))
+    @classmethod
+    def openFile(cls, nPort, videoFilePath: [str, Path]):
+        filePath = create_string_buffer(str(videoFilePath).encode("gbk"))
+        openResult = cls.playDll.PLAY_OpenFile(nPort, filePath)
+        cls.getLastError("PLAY_OpenFile", bool(openResult))
+        return openResult
 
-bFlag = bool(playDll.PLAY_CatchPicEx(nPort, abspicName, playDll.PicFormat_JPEG_70))
-if bFlag is False:
-    print("PLAY_CatchPic", playDll.PLAY_GetLastErrorEx())
-    exit(1)
+    @classmethod
+    def play(cls, nPort, hwnd=None):
+        playResult = cls.playDll.PLAY_Play(nPort, hwnd)
+        cls.getLastError("PLAY_Play", bool(playResult))
+        return playResult
 
-# 停止播放
-bFlag = bool(playDll.PLAY_Stop(nPort))
-if bFlag is False:
-    print("PLAY_Stop", playDll.PLAY_GetLastErrorEx())
-    exit(1)
-# 关闭文件
-bFlag = bool(playDll.PLAY_CloseFile(nPort))
-if bFlag is False:
-    print("PLAY_CloseFile", playDll.PLAY_GetLastErrorEx())
-    exit(1)
+    @classmethod
+    def catchPic(cls, nPort, absPicName, quality=None):
+        """
+        如果quality参数是None，则抓图质量为，jpg格式，压缩70%
+        """
+        quality = cls.playDll.PicFormat_JPEG_70 if quality is None else quality
+        catchResult = cls.playDll.PLAY_CatchPicEx(nPort, absPicName, quality)
+        cls.getLastError("PLAY_CatchPicEx", bool(catchResult))
+        return catchResult
+
+    @classmethod
+    def stop(cls, nPort):
+        stopResult = cls.playDll.PLAY_Stop(nPort)
+        cls.getLastError("PLAY_Stop", bool(stopResult))
+        return stopResult
+
+    @classmethod
+    def close(cls, nPort):
+        closeResult = cls.playDll.PLAY_CloseFile(nPort)
+        cls.getLastError("PLAY_CloseFile", bool(closeResult))
+        return closeResult
+
+    @classmethod
+    def getLastError(cls, methodName: str, methodResult):
+        logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
+        if methodResult == -1 or methodResult is False:
+            cls._getLastError()
+
+    @classmethod
+    def _getLastError(cls):
+        errorIndex = cls.playDll.PLAY_GetLastErrorEx()
+        errorText = ErrorCode[errorIndex]
+        logger.error(f"{errorIndex} {errorText}")
+        raise DH_PlaySDK_Exception(errorIndex, errorText)
