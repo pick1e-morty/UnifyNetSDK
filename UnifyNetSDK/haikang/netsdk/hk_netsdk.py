@@ -4,9 +4,9 @@ from time import sleep
 from ctypes import *
 import sys
 from UnifyNetSDK.define import *
-from UnifyNetSDK.haikang.hk_exception import ErrorCode, HKException
+from UnifyNetSDK.haikang.netsdk.hk_exception import ErrorCode, HKException
 from UnifyNetSDK.parameter import *
-import UnifyNetSDK.haikang.ctypes_headfile as HK
+import UnifyNetSDK.haikang.netsdk.hk_netsdk_wrapper as HK
 from loguru import logger
 
 logger.remove()

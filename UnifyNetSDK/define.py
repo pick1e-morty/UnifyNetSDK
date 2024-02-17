@@ -66,3 +66,11 @@ class AbsNetSDK(ABC):
     def datetime2DVR_Struct_TIME(timeArg: datetime):
         net_dvr_time = None
         return net_dvr_time
+
+
+class AbsPlaySDK(ABC):
+
+    @classmethod
+    @abstractmethod
+    def getFreePort(cls):
+        pass

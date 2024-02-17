@@ -38,7 +38,7 @@ def randomTime():
 
 # 生成下载参数
 genDownloadArg = {}
-for i in range(10):
+for i in range(3):
     filePath = Path(__file__).with_name(random7() + ".mp4")
     tempDownloadArg = DownloadArg(str(filePath), randomTime())
     genDownloadArg[29] = genDownloadArg.get(29, []) + [tempDownloadArg]

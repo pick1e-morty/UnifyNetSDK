@@ -1,1 +1,1 @@
-from .haikangsdk import HaiKangSDK
+from .hk_netsdk import HaiKangSDK

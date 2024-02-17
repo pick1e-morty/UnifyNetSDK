@@ -1,1 +1,1 @@
-from .dh_netsdk import DaHuaSDK
+from .dh_netsdk import DaHuaNetSDK

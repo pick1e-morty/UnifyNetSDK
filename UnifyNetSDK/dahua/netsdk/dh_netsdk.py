@@ -17,7 +17,7 @@ from loguru import logger
 
 # @Singleton
 # 我去，这种形式的单例会导致我的类方法失效,然后类就变成了function
-class DaHuaSDK(AbsNetSDK):
+class DaHuaNetSDK(AbsNetSDK):
     netDll = DH  # netsdk.dll由ctypesgen中间层加载
     configDll = None
     playDll = None
@@ -221,10 +221,10 @@ class DaHuaSDK(AbsNetSDK):
     def getLastError(cls, methodName: str, methodResult):
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
-            cls.__getLastError()
+            cls._getLastError()
 
     @classmethod
-    def __getLastError(cls):
+    def _getLastError(cls):
         errorIndex = cls.netDll.CLIENT_GetLastError() & 0x7fffffff
         errorText = ErrorCode[errorIndex]
         logger.error(f"{errorIndex} {errorText}")
