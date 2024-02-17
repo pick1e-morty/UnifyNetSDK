@@ -5,8 +5,8 @@ from ctypes import *
 import sys
 
 from UnifyNetSDK.define import AbsNetSDK, Singleton
-from UnifyNetSDK.dahua.dh_exception import ErrorCode, DHException
-import UnifyNetSDK.dahua.ctypes_headfile as DH
+from UnifyNetSDK.dahua.netsdk.dh_exception import ErrorCode, DHException
+import UnifyNetSDK.dahua.netsdk.dh_netsdk_wrapper as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
 
@@ -18,7 +18,7 @@ from loguru import logger
 # @Singleton
 # 我去，这种形式的单例会导致我的类方法失效,然后类就变成了function
 class DaHuaSDK(AbsNetSDK):
-    sdkDll = DH  # netsdk.dll由ctypesgen中间层加载
+    netDll = DH  # netsdk.dll由ctypesgen中间层加载
     configDll = None
     playDll = None
     renderDll = None
@@ -31,26 +31,26 @@ class DaHuaSDK(AbsNetSDK):
 
     def setArgTypes_ResType(self):
         # 有时候ctypesgen把握不住，就需要手动设置函数的形参类型和返回值类型，目前是弃用的
-        self.sdkDll.CLIENT_LoginWithHighLevelSecurity.argtypes = [POINTER(DH.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY), POINTER(DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY)]
-        self.sdkDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong
-        self.sdkDll.CLIENT_QueryRecordFile.argtypes = [c_longlong, c_int, c_int, DH.LPNET_TIME, DH.LPNET_TIME, DH.String, DH.LPNET_RECORDFILE_INFO, c_int, POINTER(c_int), c_int, c_int]
-        self.sdkDll.CLIENT_QueryRecordFile.restype = c_int
-        self.sdkDll.CLIENT_DownloadByTimeEx.argtypes = [c_longlong, c_int, c_int, DH.LPNET_TIME, DH.LPNET_TIME, DH.String, DH.fTimeDownLoadPosCallBack, c_long, DH.fDataCallBack, c_long, POINTER(None)]
-        self.sdkDll.CLIENT_DownloadByTimeEx.restype = c_longlong
-        self.sdkDll.CLIENT_Logout.argtypes = [c_longlong]
-        self.sdkDll.CLIENT_Logout.restype = c_int
-        self.sdkDll.CLIENT_GetDownloadPos.argtypes = [c_longlong, POINTER(c_int), POINTER(c_int)]
-        self.sdkDll.CLIENT_GetDownloadPos.restype = c_int
-        self.sdkDll.CLIENT_StopDownload.argtypes = [c_longlong]
-        self.sdkDll.CLIENT_StopDownload.restype = c_int
-        self.sdkDll.CLIENT_RealPlayEx.argtypes = [c_longlong, c_int, POINTER(None), DH.DH_RealPlayType]
-        self.sdkDll.CLIENT_RealPlayEx.restype = c_longlong
-        self.sdkDll.CLIENT_PlayBackByTimeEx.argtypes = [c_longlong, c_int, DH.LPNET_TIME, DH.LPNET_TIME, POINTER(None), DH.fDownLoadPosCallBack, c_long, DH.fDataCallBack, c_long]
-        self.sdkDll.CLIENT_PlayBackByTimeEx.restype = c_longlong
+        self.netDll.CLIENT_LoginWithHighLevelSecurity.argtypes = [POINTER(DH.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY), POINTER(DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY)]
+        self.netDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong
+        self.netDll.CLIENT_QueryRecordFile.argtypes = [c_longlong, c_int, c_int, DH.LPNET_TIME, DH.LPNET_TIME, DH.String, DH.LPNET_RECORDFILE_INFO, c_int, POINTER(c_int), c_int, c_int]
+        self.netDll.CLIENT_QueryRecordFile.restype = c_int
+        self.netDll.CLIENT_DownloadByTimeEx.argtypes = [c_longlong, c_int, c_int, DH.LPNET_TIME, DH.LPNET_TIME, DH.String, DH.fTimeDownLoadPosCallBack, c_long, DH.fDataCallBack, c_long, POINTER(None)]
+        self.netDll.CLIENT_DownloadByTimeEx.restype = c_longlong
+        self.netDll.CLIENT_Logout.argtypes = [c_longlong]
+        self.netDll.CLIENT_Logout.restype = c_int
+        self.netDll.CLIENT_GetDownloadPos.argtypes = [c_longlong, POINTER(c_int), POINTER(c_int)]
+        self.netDll.CLIENT_GetDownloadPos.restype = c_int
+        self.netDll.CLIENT_StopDownload.argtypes = [c_longlong]
+        self.netDll.CLIENT_StopDownload.restype = c_int
+        self.netDll.CLIENT_RealPlayEx.argtypes = [c_longlong, c_int, POINTER(None), DH.DH_RealPlayType]
+        self.netDll.CLIENT_RealPlayEx.restype = c_longlong
+        self.netDll.CLIENT_PlayBackByTimeEx.argtypes = [c_longlong, c_int, DH.LPNET_TIME, DH.LPNET_TIME, POINTER(None), DH.fDownLoadPosCallBack, c_long, DH.fDataCallBack, c_long]
+        self.netDll.CLIENT_PlayBackByTimeEx.restype = c_longlong
 
     @classmethod
     def init(cls):
-        initResult = cls.sdkDll.CLIENT_InitEx(DH.fDisConnect(0), 0, DH.NETSDK_INIT_PARAM())
+        initResult = cls.netDll.CLIENT_InitEx(DH.fDisConnect(0), 0, DH.NETSDK_INIT_PARAM())
         logger.info(f"SDK初始化已执行")
         cls.getLastError("CLIENT_InitEx", bool(initResult))
 
@@ -59,7 +59,7 @@ class DaHuaSDK(AbsNetSDK):
         try:
             curPyPath = Path(__file__).parent
             libPath = curPyPath / "Libs/win64"
-            cls.sdkDll = windll.LoadLibrary(str(libPath / "dhnetsdk.dll"))
+            cls.netDll = windll.LoadLibrary(str(libPath / "dhnetsdk.dll"))
             cls.configDll = windll.LoadLibrary(str(libPath / "dhconfigsdk.dll"))
             cls.renderDll = windll.LoadLibrary(str(libPath / "RenderEngine.dll"))
             cls.infraDll = windll.LoadLibrary(str(libPath / "Infra.dll"))
@@ -75,13 +75,13 @@ class DaHuaSDK(AbsNetSDK):
         """
         valid_hwnd = cast(c_void_p(int(hwnd)), c_void_p)
         # realPlayHandle = cls.sdkDll.CLIENT_RealPlayEx(userID, channel, valid_hwnd, DH.DH_RType_Realplay)
-        realPlayHandle = cls.sdkDll.CLIENT_RealPlayEx(userID, channel, valid_hwnd, DH.DH_RType_Multiplay_4)
+        realPlayHandle = cls.netDll.CLIENT_RealPlayEx(userID, channel, valid_hwnd, DH.DH_RType_Multiplay_4)
         cls.getLastError("CLIENT_RealPlayEx", bool(realPlayHandle))
         return realPlayHandle
 
     @classmethod
     def stopRealPlay(cls, realPlayHandle):
-        stopRealPlayResult = cls.sdkDll.CLIENT_StopRealPlay(realPlayHandle)
+        stopRealPlayResult = cls.netDll.CLIENT_StopRealPlay(realPlayHandle)
         cls.getLastError("CLIENT_StopRealPlayEx", bool(stopRealPlayResult))
         return stopRealPlayResult
 
@@ -95,13 +95,13 @@ class DaHuaSDK(AbsNetSDK):
         dwPosUser = 0 if playBackArg.dwPosUser is None else playBackArg.dwPosUser
         dataCallBack = DH.fDataCallBack(0) if playBackArg.dataCallBack is None else playBackArg.dataCallBack
         dwDataUser = 0 if playBackArg.dwDataUser is None else playBackArg.dwDataUser
-        playBackHandle = cls.sdkDll.CLIENT_PlayBackByTimeEx(userID, channel, byref(startDateTime), byref(endDateTime), valid_hwnd, downloadPosCallBack, dwPosUser, dataCallBack, dwDataUser)
+        playBackHandle = cls.netDll.CLIENT_PlayBackByTimeEx(userID, channel, byref(startDateTime), byref(endDateTime), valid_hwnd, downloadPosCallBack, dwPosUser, dataCallBack, dwDataUser)
         cls.getLastError("CLIENT_PlayBackByTimeEx", bool(playBackHandle))
         return playBackHandle
 
     @classmethod
     def stopPlayBack(cls, playBackHandle):
-        stopPlayBackResult = cls.sdkDll.CLIENT_StopPlayBack(playBackHandle)
+        stopPlayBackResult = cls.netDll.CLIENT_StopPlayBack(playBackHandle)
         cls.getLastError("CLIENT_StopPlayBack", bool(stopPlayBackResult))
         return stopPlayBackResult
 
@@ -109,7 +109,7 @@ class DaHuaSDK(AbsNetSDK):
     def catchPicture(cls, lPlayHandle, savedFileName):
         # 抓图，可以是实时预览或是回放函数的返回的句柄，
         # 重中之重的是这两个函数的hwnd必须是有效的
-        catchResult = cls.sdkDll.CLIENT_CapturePictureEx(lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70)
+        catchResult = cls.netDll.CLIENT_CapturePictureEx(lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70)
         cls.getLastError("CLIENT_CapturePictureEx", bool(catchResult))
         return catchResult
 
@@ -128,8 +128,8 @@ class DaHuaSDK(AbsNetSDK):
         deviceInfo = DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
         deviceInfo.dwSize = sizeof(DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY)
 
-        cls.sdkDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong
-        login_id = cls.sdkDll.CLIENT_LoginWithHighLevelSecurity(byref(loginInfo), byref(deviceInfo))
+        cls.netDll.CLIENT_LoginWithHighLevelSecurity.restype = c_longlong
+        login_id = cls.netDll.CLIENT_LoginWithHighLevelSecurity(byref(loginInfo), byref(deviceInfo))
         cls.getLastError("CLIENT_LoginWithHighLevelSecurity", bool(login_id))
         return login_id, deviceInfo
 
@@ -160,7 +160,7 @@ class DaHuaSDK(AbsNetSDK):
         pchCardid = None  # char * 空指针  char *pchCardid
         waittime = 2000
         byTime = True
-        findFileResult = cls.sdkDll.CLIENT_QueryRecordFile(userID, nChannelId, nRecordFileType, byref(tmStart), byref(tmEnd),
+        findFileResult = cls.netDll.CLIENT_QueryRecordFile(userID, nChannelId, nRecordFileType, byref(tmStart), byref(tmEnd),
                                                            pchCardid, nriFileinfo_ptr, maxlen, byref(filecount), waittime, byTime)
         cls.getLastError("CLIENT_QueryRecordFile", bool(findFileResult))
         return bool(filecount.value)
@@ -170,12 +170,12 @@ class DaHuaSDK(AbsNetSDK):
         nTotalSize = c_int(0)  # 下载的总长度，单位:KB
         nDownLoadSize = c_int(0)  # 已下载的长度，单位:KB
 
-        getDownLoadPosResult = cls.sdkDll.CLIENT_GetDownloadPos(downLoadHandle, byref(nTotalSize), byref(nDownLoadSize))
+        getDownLoadPosResult = cls.netDll.CLIENT_GetDownloadPos(downLoadHandle, byref(nTotalSize), byref(nDownLoadSize))
         cls.getLastError("CLIENT_GetDownloadPos", bool(getDownLoadPosResult))
         logger.trace(f"下载ID {downLoadHandle} ,下载总长度 {nTotalSize.value}KB ,已下载长度 {nDownLoadSize.value}KB ")
         if nTotalSize.value == nDownLoadSize.value:
             logger.success(f"下载ID {downLoadHandle} 下载完成")
-            stopGetFileResult = cls.sdkDll.CLIENT_StopDownload(downLoadHandle)
+            stopGetFileResult = cls.netDll.CLIENT_StopDownload(downLoadHandle)
             cls.getLastError("CLIENT_StopDownload", stopGetFileResult)
             return True
         else:
@@ -211,7 +211,7 @@ class DaHuaSDK(AbsNetSDK):
 
         # 开始下载。虽然是和抽象接口对齐了，但真正原因是海康没提供下载函数回调接口，顺势而为无伤大雅。
         pReserved = pointer(c_int(0))
-        downLoadHandle = cls.sdkDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName,
+        downLoadHandle = cls.netDll.CLIENT_DownloadByTimeEx(userID, channel, DH.EM_RECORD_TYPE_ALL, startDateTime, endDateTime, savedFileName,
                                                             DH.fTimeDownLoadPosCallBack(0), 0, DH.fDataCallBack(0), 0, pReserved)
 
         cls.getLastError("CLIENT_DownloadByTimeEx", bool(downLoadHandle))
@@ -225,20 +225,20 @@ class DaHuaSDK(AbsNetSDK):
 
     @classmethod
     def __getLastError(cls):
-        errorIndex = cls.sdkDll.CLIENT_GetLastError() & 0x7fffffff
+        errorIndex = cls.netDll.CLIENT_GetLastError() & 0x7fffffff
         errorText = ErrorCode[errorIndex]
         logger.error(f"{errorIndex} {errorText}")
         raise DHException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
-        logoutResult = cls.sdkDll.CLIENT_Logout(userID)
+        logoutResult = cls.netDll.CLIENT_Logout(userID)
         logger.info(f"用户ID：{userID} 已登出")
         cls.getLastError("CLIENT_Logout", bool(logoutResult))
 
     @classmethod
     def cleanup(cls):
-        cls.sdkDll.CLIENT_Cleanup()
+        cls.netDll.CLIENT_Cleanup()
         logger.info("SDK资源已释放")
 
     @classmethod
@@ -253,7 +253,7 @@ class DaHuaSDK(AbsNetSDK):
         # log_info.cbSDKLogCallBack = SDKLogCallBack
 
         log_info = pointer(log_info)
-        logOpenResult = cls.sdkDll.CLIENT_LogOpen(log_info)
+        logOpenResult = cls.netDll.CLIENT_LogOpen(log_info)
         cls.getLastError("CLIENT_LogOpen", bool(logOpenResult))
         return logOpenResult
 
@@ -262,7 +262,7 @@ class DaHuaSDK(AbsNetSDK):
         """
         关闭日志功能
         """
-        logCloseResult = cls.sdkDll.CLIENT_LogClose()
+        logCloseResult = cls.netDll.CLIENT_LogClose()
         cls.getLastError("CLIENT_LogClose", bool(logCloseResult))
         return logCloseResult
 

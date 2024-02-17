@@ -36,7 +36,7 @@ def PlayBackex(self):       # 回放的扩展形式，主要就是用的结构�
 
     loginID = c_longlong(self.userID)
     try:
-        self.lPlayHandle = self.dahuaClient.sdkDll.CLIENT_PlayBackByTimeEx2(loginID, nchannel, inParam, outParam)
+        self.lPlayHandle = self.dahuaClient.netDll.CLIENT_PlayBackByTimeEx2(loginID, nchannel, inParam, outParam)
         print("回访结果", self.lPlayHandle)
         self.dahuaClient.getLastError("PlayBackByTimeEx2", bool(self.lPlayHandle))
     except Exception as e:

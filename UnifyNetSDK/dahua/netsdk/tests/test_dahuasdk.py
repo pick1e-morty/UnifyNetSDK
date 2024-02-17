@@ -90,7 +90,7 @@ class testForm(QWidget):
         savedFileName = create_string_buffer(str(filePath).encode("gbk"))
         lPlayHandle = self.playBackHandle if self.playBackHandle is not None else self.realPlayHandle
         try:
-            catchResult = self.dahuaClient.sdkDll.CLIENT_CapturePictureEx(lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70)
+            catchResult = self.dahuaClient.netDll.CLIENT_CapturePictureEx(lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70)
             self.dahuaClient.getLastError("CLIENT_CapturePictureEx", bool(catchResult))
         except Exception as e:
             print(e)

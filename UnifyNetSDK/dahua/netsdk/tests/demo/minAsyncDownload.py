@@ -9,10 +9,10 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from datetime import timedelta
 from time import sleep
 
-import UnifyNetSDK.dahua.dh_exception
-from UnifyNetSDK.dahua.dahuasdk import DaHuaSDK
+import UnifyNetSDK.dahua.netsdk.dh_exception
+from UnifyNetSDK.dahua.netsdk.dh_netsdk import DaHuaSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
-from UnifyNetSDK.dahua.tests._testLoginConfig import testUserConfig
+from UnifyNetSDK.dahua.netsdk.tests._testLoginConfig import testUserConfig
 # 下载进度可以传给窗体，大华用回调，海康用多线程重复主动查。一秒不到，在这里不用实现
 # 取一帧有两种方式
 # 1. playsdk解码，速度快，工具本身和输出体积都很小
