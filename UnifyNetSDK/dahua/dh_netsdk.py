@@ -5,7 +5,7 @@ from ctypes import *
 import sys
 
 from UnifyNetSDK.define import AbsNetSDK, Singleton
-from UnifyNetSDK.dahua.dh_exception import ErrorCode, DHException
+from UnifyNetSDK.dahua.dh_netsdk_exception import ErrorCode, DHNetSDKException
 import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
@@ -15,8 +15,6 @@ from loguru import logger
 # logger.add(sys.stdout, level="TRACE")
 
 
-# @Singleton
-# 我去，这种形式的单例会导致我的类方法失效,然后类就变成了function
 class DaHuaNetSDK(AbsNetSDK):
     netDll = DH  # netsdk.dll由ctypesgen中间层加载
     configDll = None
@@ -228,7 +226,7 @@ class DaHuaNetSDK(AbsNetSDK):
         errorIndex = cls.netDll.CLIENT_GetLastError() & 0x7fffffff
         errorText = ErrorCode[errorIndex]
         logger.error(f"{errorIndex} {errorText}")
-        raise DHException(errorIndex, errorText)
+        raise DHNetSDKException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
@@ -242,14 +240,16 @@ class DaHuaNetSDK(AbsNetSDK):
         logger.info("SDK资源已释放")
 
     @classmethod
-    def logopen(cls):
+    def logopen(cls, absLogPath):
         """
         打开日志功能
         """
         log_info = DH.LOG_SET_PRINT_INFO()
         log_info.dwSize = sizeof(DH.LOG_SET_PRINT_INFO)
-        log_info.bSetFilePath = 1
-        log_info.szLogFilePath = os.path.join(os.getcwd(), 'dahua_sdk.log').encode('gbk')
+        log_info.bSetFilePath = True
+        log_info.szLogFilePath = str(absLogPath).encode('gbk')
+        log_info.bSetFileNum = True  # 设置log数量仅保留一个，默认大小是10240kb
+        log_info.nFileNum = 1
         # log_info.cbSDKLogCallBack = SDKLogCallBack
 
         log_info = pointer(log_info)

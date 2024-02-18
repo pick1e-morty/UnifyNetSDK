@@ -1,7 +1,7 @@
 import time
 from pathlib import Path
 
-import UnifyNetSDK.haikang.playsdk.hk_playsdk_wrapper as playDll
+import UnifyNetSDK.haikang.hk_playsdk_wrapper as playDll
 from ctypes import *
 
 nPort = c_long(0)

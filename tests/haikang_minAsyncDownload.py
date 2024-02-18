@@ -7,14 +7,21 @@ from datetime import timedelta
 from pathlib import Path
 from time import sleep
 
-from UnifyNetSDK.haikang.hk_netsdk import HaikangNetSDK, HKNetSDKException
+from UnifyNetSDK import HaikangNetSDK, HKNetSDKException
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
-from UnifyNetSDK.haikang.tests._testLoginConfig import testUserConfig
+from _testLoginConfig import testUserConfig
 
 from loguru import logger
 
 logger.remove()
 logger.add(sys.stdout, level="TRACE")
+
+haikangClient = None
+
+
+# 如果不想用全局变量这种写法就需要
+# 这样导入模块，我包里的__init__文件做了延迟导入，所以这个类实际会被识别为一个function，从而导致直接调用类方法失效（但实例是正常的）
+# from UnifyNetSDK.haikang.hk_netsdk import HaikangNetSDK
 
 
 class StopDownloadConsumer(threading.Thread):
@@ -35,7 +42,7 @@ class StopDownloadConsumer(threading.Thread):
                 with self.condition:  # 注意，我用了两个with condition，由于查询是个非常耗时的操作，查询的期间是不影响生产者继续添加句柄的。
                     self.condition.wait()  # 如果下载句柄列表为空，且生产者没有发出完毕信号，则线程阻塞等待。
             for downloadHandle in self.downloadHandleList:
-                stopRestlt = HaikangNetSDK.stopDownLoadTimer(downloadHandle)
+                stopRestlt = haikangClient.stopDownLoadTimer(downloadHandle)
                 if stopRestlt == 100:
                     with self.condition:  # 下载成功后就可以删掉这个句柄了
                         self.downloadHandleList.pop(self.downloadHandleList.index(downloadHandle))
@@ -46,6 +53,7 @@ class StopDownloadConsumer(threading.Thread):
 
 
 def main():
+    global haikangClient
     haikangClient = HaikangNetSDK()
     haikangClient.init()
     absLogPath = Path(__file__).absolute().with_name('hk_netsdk_log')

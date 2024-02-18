@@ -1,4 +1,4 @@
-class DHException(Exception):
+class DHNetSDKException(Exception):
 
     def __init__(self, code, value):
         self.code = code

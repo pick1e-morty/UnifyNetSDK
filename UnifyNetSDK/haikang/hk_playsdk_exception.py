@@ -1,4 +1,4 @@
-class HK_PlaySDK_Exception(Exception):
+class HKPlaySDKException(Exception):
 
     def __init__(self, code, value):
         self.code = code

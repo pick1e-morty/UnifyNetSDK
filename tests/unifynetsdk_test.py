@@ -1,10 +1,10 @@
-from UnifyNetSDK import HaiKangSDK, DaHuaSDK
+from UnifyNetSDK import HaikangNetSDK, DaHuaNetSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyFindFileByTimeArg, UnifyDownLoadByTimeArg
 
 from datetime import datetime, timedelta
 from pathlib import Path
 
-
+# 这是两套同步下载的代码，可以改一下，只更改实例的那一行代码，测试那个非注释那个
 
 
 def test_dahua_download():
@@ -14,7 +14,7 @@ def test_dahua_download():
     easy_login_info.devicePort = 37777
     easy_login_info.deviceAddress = "10.10.10.10"
 
-    dahuaClient = DaHuaSDK()
+    dahuaClient = DaHuaNetSDK()
     dahuaClient.init()
 
     userID, device_info = dahuaClient.login(easy_login_info)
@@ -52,7 +52,7 @@ def test_haikang_download():
     easy_login_info.devicePort = 8000
     easy_login_info.deviceAddress = "10.10.10.10"
 
-    hkClient = HaiKangSDK()
+    hkClient = HaikangNetSDK()
     hkClient.init()
     userID, device_info = hkClient.login(easy_login_info)
     print("硬盘数量", device_info.struDeviceV30.byDiskNum)

@@ -2,11 +2,13 @@ from pathlib import Path
 
 from loguru import logger
 
-from UnifyNetSDK.dahua.dh_playsdk_exception import ErrorCode, DH_PlaySDK_Exception
+from UnifyNetSDK.dahua.dh_playsdk_exception import ErrorCode, DHPlaySDKException
 from UnifyNetSDK.define import AbsPlaySDK
 import UnifyNetSDK.dahua.dh_playsdk_wrapper as playsdk_wrapper
 from ctypes import *
 
+
+# TODO playsdk的日志应该没必要开
 
 class DaHuaPlaySDK(AbsPlaySDK):
     playDll = playsdk_wrapper
@@ -44,8 +46,17 @@ class DaHuaPlaySDK(AbsPlaySDK):
     def catchPic(cls, nPort, absPicName, quality=None):
         """
         如果quality参数是None，则抓图质量为，jpg格式，压缩70%
+        大华这边限制了jpeg压缩质量为，10，30，50，70，100
+        那海康那边也需要同步一下，只能有这四种选项
         """
-        quality = cls.playDll.PicFormat_JPEG_70 if quality is None else quality
+        quality = 70 if quality is None else quality
+        qualityDict = {100: cls.playDll.PicFormat_JPEG,
+                       70: cls.playDll.PicFormat_JPEG_70,
+                       50: cls.playDll.PicFormat_JPEG_50,
+                       30: cls.playDll.PicFormat_JPEG_30,
+                       10: cls.playDll.PicFormat_JPEG_10}
+        quality = qualityDict[quality]
+
         absPicName = create_string_buffer(str(absPicName).encode("gbk"))
         catchResult = cls.playDll.PLAY_CatchPicEx(nPort, absPicName, quality)
         cls.getLastError("PLAY_CatchPicEx", bool(catchResult))
@@ -74,4 +85,4 @@ class DaHuaPlaySDK(AbsPlaySDK):
         errorIndex = cls.playDll.PLAY_GetLastErrorEx()
         errorText = ErrorCode[errorIndex]
         logger.error(f"{errorIndex} {errorText}")
-        raise DH_PlaySDK_Exception(errorIndex, errorText)
+        raise DHPlaySDKException(errorIndex, errorText)

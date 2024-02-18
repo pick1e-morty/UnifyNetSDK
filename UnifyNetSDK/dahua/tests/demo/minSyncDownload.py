@@ -2,31 +2,10 @@ import sys
 from pathlib import Path
 # sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 from datetime import timedelta, datetime
-from UnifyNetSDK import DaHuaSDK
+from UnifyNetSDK import DaHuaNetSDKs
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg, UnifyFindFileByTimeArg
 
-# TODO 首先下载进度可以传给窗体，
-# 取一帧有两种方式
-# 1. playsdk解码，速度快，工具本身和输出体积都很小
-#    # 我认为自解码依旧是异步的，想要精准控制只截取第一帧也是不可能的。
-#    # fileWatchDog，有新文件就开一次，这个程序可以打包为一个dll，但返回值怎么办？
-#         # 监控归监控，执行转换的步骤是同步的，不用dll，就内部多线程就够了，返回值的问题解决。
-# 2. 依旧是ffmpeg
-
-# TODO 海康窗体test还没做出来
-# 窗体不用做了，直接异步下载，然后开timer，500ms
-# 用户层面上两者都是相同的操作步骤，
-
-# TODO NET_DVR_SET_TRANS_TYPE参数，一个 4 字节整型的转码类型：1-PS, 2-TS，3-RTP，5-MP4
-# 或许海康能直接拿到MP4不过还是需要转图片
-
-
-# 主进程开两个线程，分别是大华和海康的视频转图片
-# 这个playctrl估计不好搞
-# 然后是进程池，开八个
-
-
-dahuaClient = DaHuaSDK()
+dahuaClient = DaHuaNetSDKs()
 dahuaClient.init()
 dahuaClient.logopen()
 

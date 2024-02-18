@@ -2,9 +2,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
-from UnifyNetSDK.haikang.haikangsdk import HaiKangSDK
+from UnifyNetSDK.haikang.hk_netsdk import HaikangNetSDK
 
-hkClient = HaiKangSDK()
+hkClient = HaikangNetSDK()
 hkClient.init()
 hkClient.logopen()
 

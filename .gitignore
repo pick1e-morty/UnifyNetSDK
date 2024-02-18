@@ -27,8 +27,7 @@ UnifyNetSDK.egg-info/
 
 
 # 功能测试账号配置文件
-/UnifyNetSDK/dahua/tests/_testLoginConfig.py
-/UnifyNetSDK/haikang/tests/_testLoginConfig.py
+*_testLoginConfig.py
 
 
 # vizviewer测试结果文件

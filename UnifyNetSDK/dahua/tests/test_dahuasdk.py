@@ -6,9 +6,9 @@ from datetime import timedelta, datetime
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QApplication, QGridLayout
-from UnifyNetSDK import DaHuaSDK
+from UnifyNetSDK.dahua.dh_netsdk import DaHuaNetSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg
-import UnifyNetSDK.dahua.ctypes_headfile as DH
+import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
 
 global formObject
 
@@ -38,7 +38,7 @@ class testForm(QWidget):
         self.initUI()
         self.chance = 4
 
-        self.dahuaClient = DaHuaSDK()
+        self.dahuaClient = DaHuaNetSDK()
         self.dahuaClient.init()
         self.dahuaClient.LogOpen()
 
