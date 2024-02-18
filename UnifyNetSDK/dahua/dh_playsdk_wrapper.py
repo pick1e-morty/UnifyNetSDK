@@ -859,7 +859,7 @@ del loaderclass
 add_library_search_dirs([])
 
 # Begin libraries
-_libs["Libs/play.dll"] = load_library("Libs/play.dll")
+_libs["Libs/win64/play.dll"] = load_library("Libs/win64/play.dll")
 
 # 1 libraries
 # End libraries
@@ -1278,14 +1278,14 @@ struct_anon_403._fields_ = [
 MEDIA_INFO = struct_anon_403# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 289
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 290
-if _libs["Libs/play.dll"].has("PLAY_GetSdkVersion", "cdecl"):
-    PLAY_GetSdkVersion = _libs["Libs/play.dll"].get("PLAY_GetSdkVersion", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetSdkVersion", "cdecl"):
+    PLAY_GetSdkVersion = _libs["Libs/win64/play.dll"].get("PLAY_GetSdkVersion", "cdecl")
     PLAY_GetSdkVersion.argtypes = []
     PLAY_GetSdkVersion.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 291
-if _libs["Libs/play.dll"].has("PLAY_GetLastErrorEx", "cdecl"):
-    PLAY_GetLastErrorEx = _libs["Libs/play.dll"].get("PLAY_GetLastErrorEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetLastErrorEx", "cdecl"):
+    PLAY_GetLastErrorEx = _libs["Libs/win64/play.dll"].get("PLAY_GetLastErrorEx", "cdecl")
     PLAY_GetLastErrorEx.argtypes = []
     PLAY_GetLastErrorEx.restype = DWORD
 
@@ -1308,106 +1308,106 @@ LOG_LevelDebug = (LOG_LevelTrace + 1)# C:\\Users\\Administrator\\Documents\\Code
 LOG_LEVEL = enum_anon_404# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 301
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 302
-if _libs["Libs/play.dll"].has("PLAY_SetPrintLogLevel", "cdecl"):
-    PLAY_SetPrintLogLevel = _libs["Libs/play.dll"].get("PLAY_SetPrintLogLevel", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPrintLogLevel", "cdecl"):
+    PLAY_SetPrintLogLevel = _libs["Libs/win64/play.dll"].get("PLAY_SetPrintLogLevel", "cdecl")
     PLAY_SetPrintLogLevel.argtypes = [LOG_LEVEL]
     PLAY_SetPrintLogLevel.restype = None
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 303
-if _libs["Libs/play.dll"].has("PLAY_GetFreePort", "cdecl"):
-    PLAY_GetFreePort = _libs["Libs/play.dll"].get("PLAY_GetFreePort", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetFreePort", "cdecl"):
+    PLAY_GetFreePort = _libs["Libs/win64/play.dll"].get("PLAY_GetFreePort", "cdecl")
     PLAY_GetFreePort.argtypes = [POINTER(LONG)]
     PLAY_GetFreePort.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 304
-if _libs["Libs/play.dll"].has("PLAY_ReleasePort", "cdecl"):
-    PLAY_ReleasePort = _libs["Libs/play.dll"].get("PLAY_ReleasePort", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ReleasePort", "cdecl"):
+    PLAY_ReleasePort = _libs["Libs/win64/play.dll"].get("PLAY_ReleasePort", "cdecl")
     PLAY_ReleasePort.argtypes = [LONG]
     PLAY_ReleasePort.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 305
-if _libs["Libs/play.dll"].has("PLAY_OpenFile", "cdecl"):
-    PLAY_OpenFile = _libs["Libs/play.dll"].get("PLAY_OpenFile", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_OpenFile", "cdecl"):
+    PLAY_OpenFile = _libs["Libs/win64/play.dll"].get("PLAY_OpenFile", "cdecl")
     PLAY_OpenFile.argtypes = [LONG, LPSTR]
     PLAY_OpenFile.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 306
-if _libs["Libs/play.dll"].has("PLAY_CloseFile", "cdecl"):
-    PLAY_CloseFile = _libs["Libs/play.dll"].get("PLAY_CloseFile", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CloseFile", "cdecl"):
+    PLAY_CloseFile = _libs["Libs/win64/play.dll"].get("PLAY_CloseFile", "cdecl")
     PLAY_CloseFile.argtypes = [LONG]
     PLAY_CloseFile.restype = BOOL
 
 fFileEndCBFun = CFUNCTYPE(UNCHECKED(None), DWORD, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 307
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 308
-if _libs["Libs/play.dll"].has("PLAY_SetFileEndCallBack", "cdecl"):
-    PLAY_SetFileEndCallBack = _libs["Libs/play.dll"].get("PLAY_SetFileEndCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetFileEndCallBack", "cdecl"):
+    PLAY_SetFileEndCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetFileEndCallBack", "cdecl")
     PLAY_SetFileEndCallBack.argtypes = [LONG, fFileEndCBFun, POINTER(None)]
     PLAY_SetFileEndCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 309
-if _libs["Libs/play.dll"].has("PLAY_SetStreamOpenMode", "cdecl"):
-    PLAY_SetStreamOpenMode = _libs["Libs/play.dll"].get("PLAY_SetStreamOpenMode", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetStreamOpenMode", "cdecl"):
+    PLAY_SetStreamOpenMode = _libs["Libs/win64/play.dll"].get("PLAY_SetStreamOpenMode", "cdecl")
     PLAY_SetStreamOpenMode.argtypes = [LONG, DWORD]
     PLAY_SetStreamOpenMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 310
-if _libs["Libs/play.dll"].has("PLAY_GetStreamOpenMode", "cdecl"):
-    PLAY_GetStreamOpenMode = _libs["Libs/play.dll"].get("PLAY_GetStreamOpenMode", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetStreamOpenMode", "cdecl"):
+    PLAY_GetStreamOpenMode = _libs["Libs/win64/play.dll"].get("PLAY_GetStreamOpenMode", "cdecl")
     PLAY_GetStreamOpenMode.argtypes = [LONG]
     PLAY_GetStreamOpenMode.restype = LONG
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 311
-if _libs["Libs/play.dll"].has("PLAY_OpenStream", "cdecl"):
-    PLAY_OpenStream = _libs["Libs/play.dll"].get("PLAY_OpenStream", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_OpenStream", "cdecl"):
+    PLAY_OpenStream = _libs["Libs/win64/play.dll"].get("PLAY_OpenStream", "cdecl")
     PLAY_OpenStream.argtypes = [LONG, PBYTE, DWORD, DWORD]
     PLAY_OpenStream.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 312
-if _libs["Libs/play.dll"].has("PLAY_CloseStream", "cdecl"):
-    PLAY_CloseStream = _libs["Libs/play.dll"].get("PLAY_CloseStream", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CloseStream", "cdecl"):
+    PLAY_CloseStream = _libs["Libs/win64/play.dll"].get("PLAY_CloseStream", "cdecl")
     PLAY_CloseStream.argtypes = [LONG]
     PLAY_CloseStream.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 313
-if _libs["Libs/play.dll"].has("PLAY_InputData", "cdecl"):
-    PLAY_InputData = _libs["Libs/play.dll"].get("PLAY_InputData", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_InputData", "cdecl"):
+    PLAY_InputData = _libs["Libs/win64/play.dll"].get("PLAY_InputData", "cdecl")
     PLAY_InputData.argtypes = [LONG, PBYTE, DWORD]
     PLAY_InputData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 314
-if _libs["Libs/play.dll"].has("PLAY_PlaySound", "cdecl"):
-    PLAY_PlaySound = _libs["Libs/play.dll"].get("PLAY_PlaySound", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_PlaySound", "cdecl"):
+    PLAY_PlaySound = _libs["Libs/win64/play.dll"].get("PLAY_PlaySound", "cdecl")
     PLAY_PlaySound.argtypes = [LONG]
     PLAY_PlaySound.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 315
-if _libs["Libs/play.dll"].has("PLAY_StopSound", "cdecl"):
-    PLAY_StopSound = _libs["Libs/play.dll"].get("PLAY_StopSound", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StopSound", "cdecl"):
+    PLAY_StopSound = _libs["Libs/win64/play.dll"].get("PLAY_StopSound", "cdecl")
     PLAY_StopSound.argtypes = []
     PLAY_StopSound.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 316
-if _libs["Libs/play.dll"].has("PLAY_PlaySoundShare", "cdecl"):
-    PLAY_PlaySoundShare = _libs["Libs/play.dll"].get("PLAY_PlaySoundShare", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_PlaySoundShare", "cdecl"):
+    PLAY_PlaySoundShare = _libs["Libs/win64/play.dll"].get("PLAY_PlaySoundShare", "cdecl")
     PLAY_PlaySoundShare.argtypes = [LONG]
     PLAY_PlaySoundShare.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 317
-if _libs["Libs/play.dll"].has("PLAY_StopSoundShare", "cdecl"):
-    PLAY_StopSoundShare = _libs["Libs/play.dll"].get("PLAY_StopSoundShare", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StopSoundShare", "cdecl"):
+    PLAY_StopSoundShare = _libs["Libs/win64/play.dll"].get("PLAY_StopSoundShare", "cdecl")
     PLAY_StopSoundShare.argtypes = [LONG]
     PLAY_StopSoundShare.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 318
-if _libs["Libs/play.dll"].has("PLAY_SetVolume", "cdecl"):
-    PLAY_SetVolume = _libs["Libs/play.dll"].get("PLAY_SetVolume", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetVolume", "cdecl"):
+    PLAY_SetVolume = _libs["Libs/win64/play.dll"].get("PLAY_SetVolume", "cdecl")
     PLAY_SetVolume.argtypes = [LONG, WORD]
     PLAY_SetVolume.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 319
-if _libs["Libs/play.dll"].has("PLAY_GetVolume", "cdecl"):
-    PLAY_GetVolume = _libs["Libs/play.dll"].get("PLAY_GetVolume", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetVolume", "cdecl"):
+    PLAY_GetVolume = _libs["Libs/win64/play.dll"].get("PLAY_GetVolume", "cdecl")
     PLAY_GetVolume.argtypes = [LONG]
     PLAY_GetVolume.restype = WORD
 
@@ -1442,134 +1442,134 @@ AUDIO_CAPTURE_END = (AUDIO_AMR_NB_ENC + 1)# C:\\Users\\Administrator\\Documents\
 AUDIO_CAPTURE_TYPE = enum_anon_405# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 335
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 336
-if _libs["Libs/play.dll"].has("PLAY_OpenAudioRecord", "cdecl"):
-    PLAY_OpenAudioRecord = _libs["Libs/play.dll"].get("PLAY_OpenAudioRecord", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_OpenAudioRecord", "cdecl"):
+    PLAY_OpenAudioRecord = _libs["Libs/win64/play.dll"].get("PLAY_OpenAudioRecord", "cdecl")
     PLAY_OpenAudioRecord.argtypes = [pCallFunction, LONG, LONG, LONG, LONG, POINTER(None)]
     PLAY_OpenAudioRecord.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 337
-if _libs["Libs/play.dll"].has("PLAY_CloseAudioRecord", "cdecl"):
-    PLAY_CloseAudioRecord = _libs["Libs/play.dll"].get("PLAY_CloseAudioRecord", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CloseAudioRecord", "cdecl"):
+    PLAY_CloseAudioRecord = _libs["Libs/win64/play.dll"].get("PLAY_CloseAudioRecord", "cdecl")
     PLAY_CloseAudioRecord.argtypes = []
     PLAY_CloseAudioRecord.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 338
-if _libs["Libs/play.dll"].has("PLAY_SpeechChange", "cdecl"):
-    PLAY_SpeechChange = _libs["Libs/play.dll"].get("PLAY_SpeechChange", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SpeechChange", "cdecl"):
+    PLAY_SpeechChange = _libs["Libs/win64/play.dll"].get("PLAY_SpeechChange", "cdecl")
     PLAY_SpeechChange.argtypes = [BOOL, c_int, c_float]
     PLAY_SpeechChange.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 339
-if _libs["Libs/play.dll"].has("PLAY_SetAudioRecScaling", "cdecl"):
-    PLAY_SetAudioRecScaling = _libs["Libs/play.dll"].get("PLAY_SetAudioRecScaling", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetAudioRecScaling", "cdecl"):
+    PLAY_SetAudioRecScaling = _libs["Libs/win64/play.dll"].get("PLAY_SetAudioRecScaling", "cdecl")
     PLAY_SetAudioRecScaling.argtypes = [c_float]
     PLAY_SetAudioRecScaling.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 340
-if _libs["Libs/play.dll"].has("PLAY_GetAudioRecScaling", "cdecl"):
-    PLAY_GetAudioRecScaling = _libs["Libs/play.dll"].get("PLAY_GetAudioRecScaling", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetAudioRecScaling", "cdecl"):
+    PLAY_GetAudioRecScaling = _libs["Libs/win64/play.dll"].get("PLAY_GetAudioRecScaling", "cdecl")
     PLAY_GetAudioRecScaling.argtypes = [POINTER(c_float)]
     PLAY_GetAudioRecScaling.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 341
-if _libs["Libs/play.dll"].has("PLAY_SetAudioRenderScaling", "cdecl"):
-    PLAY_SetAudioRenderScaling = _libs["Libs/play.dll"].get("PLAY_SetAudioRenderScaling", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetAudioRenderScaling", "cdecl"):
+    PLAY_SetAudioRenderScaling = _libs["Libs/win64/play.dll"].get("PLAY_SetAudioRenderScaling", "cdecl")
     PLAY_SetAudioRenderScaling.argtypes = [LONG, c_float]
     PLAY_SetAudioRenderScaling.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 342
-if _libs["Libs/play.dll"].has("PLAY_GetAudioRenderScaling", "cdecl"):
-    PLAY_GetAudioRenderScaling = _libs["Libs/play.dll"].get("PLAY_GetAudioRenderScaling", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetAudioRenderScaling", "cdecl"):
+    PLAY_GetAudioRenderScaling = _libs["Libs/win64/play.dll"].get("PLAY_GetAudioRenderScaling", "cdecl")
     PLAY_GetAudioRenderScaling.argtypes = [LONG, POINTER(c_float)]
     PLAY_GetAudioRenderScaling.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 343
-if _libs["Libs/play.dll"].has("PLAY_AdjustWaveAudio", "cdecl"):
-    PLAY_AdjustWaveAudio = _libs["Libs/play.dll"].get("PLAY_AdjustWaveAudio", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_AdjustWaveAudio", "cdecl"):
+    PLAY_AdjustWaveAudio = _libs["Libs/win64/play.dll"].get("PLAY_AdjustWaveAudio", "cdecl")
     PLAY_AdjustWaveAudio.argtypes = [LONG, LONG]
     PLAY_AdjustWaveAudio.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 344
-if _libs["Libs/play.dll"].has("PLAY_Play", "cdecl"):
-    PLAY_Play = _libs["Libs/play.dll"].get("PLAY_Play", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_Play", "cdecl"):
+    PLAY_Play = _libs["Libs/win64/play.dll"].get("PLAY_Play", "cdecl")
     PLAY_Play.argtypes = [LONG, HWND]
     PLAY_Play.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 345
-if _libs["Libs/play.dll"].has("PLAY_Stop", "cdecl"):
-    PLAY_Stop = _libs["Libs/play.dll"].get("PLAY_Stop", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_Stop", "cdecl"):
+    PLAY_Stop = _libs["Libs/win64/play.dll"].get("PLAY_Stop", "cdecl")
     PLAY_Stop.argtypes = [LONG]
     PLAY_Stop.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 346
-if _libs["Libs/play.dll"].has("PLAY_Pause", "cdecl"):
-    PLAY_Pause = _libs["Libs/play.dll"].get("PLAY_Pause", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_Pause", "cdecl"):
+    PLAY_Pause = _libs["Libs/win64/play.dll"].get("PLAY_Pause", "cdecl")
     PLAY_Pause.argtypes = [LONG, DWORD]
     PLAY_Pause.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 347
-if _libs["Libs/play.dll"].has("PLAY_Slow", "cdecl"):
-    PLAY_Slow = _libs["Libs/play.dll"].get("PLAY_Slow", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_Slow", "cdecl"):
+    PLAY_Slow = _libs["Libs/win64/play.dll"].get("PLAY_Slow", "cdecl")
     PLAY_Slow.argtypes = [LONG]
     PLAY_Slow.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 348
-if _libs["Libs/play.dll"].has("PLAY_Fast", "cdecl"):
-    PLAY_Fast = _libs["Libs/play.dll"].get("PLAY_Fast", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_Fast", "cdecl"):
+    PLAY_Fast = _libs["Libs/win64/play.dll"].get("PLAY_Fast", "cdecl")
     PLAY_Fast.argtypes = [LONG]
     PLAY_Fast.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 349
-if _libs["Libs/play.dll"].has("PLAY_OneByOne", "cdecl"):
-    PLAY_OneByOne = _libs["Libs/play.dll"].get("PLAY_OneByOne", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_OneByOne", "cdecl"):
+    PLAY_OneByOne = _libs["Libs/win64/play.dll"].get("PLAY_OneByOne", "cdecl")
     PLAY_OneByOne.argtypes = [LONG]
     PLAY_OneByOne.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 350
-if _libs["Libs/play.dll"].has("PLAY_OneByOneBack", "cdecl"):
-    PLAY_OneByOneBack = _libs["Libs/play.dll"].get("PLAY_OneByOneBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_OneByOneBack", "cdecl"):
+    PLAY_OneByOneBack = _libs["Libs/win64/play.dll"].get("PLAY_OneByOneBack", "cdecl")
     PLAY_OneByOneBack.argtypes = [LONG]
     PLAY_OneByOneBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 351
-if _libs["Libs/play.dll"].has("PLAY_SetColor", "cdecl"):
-    PLAY_SetColor = _libs["Libs/play.dll"].get("PLAY_SetColor", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetColor", "cdecl"):
+    PLAY_SetColor = _libs["Libs/win64/play.dll"].get("PLAY_SetColor", "cdecl")
     PLAY_SetColor.argtypes = [LONG, DWORD, c_int, c_int, c_int, c_int]
     PLAY_SetColor.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 352
-if _libs["Libs/play.dll"].has("PLAY_GetColor", "cdecl"):
-    PLAY_GetColor = _libs["Libs/play.dll"].get("PLAY_GetColor", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetColor", "cdecl"):
+    PLAY_GetColor = _libs["Libs/win64/play.dll"].get("PLAY_GetColor", "cdecl")
     PLAY_GetColor.argtypes = [LONG, DWORD, POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
     PLAY_GetColor.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 353
-if _libs["Libs/play.dll"].has("PLAY_SetAVSyncType", "cdecl"):
-    PLAY_SetAVSyncType = _libs["Libs/play.dll"].get("PLAY_SetAVSyncType", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetAVSyncType", "cdecl"):
+    PLAY_SetAVSyncType = _libs["Libs/win64/play.dll"].get("PLAY_SetAVSyncType", "cdecl")
     PLAY_SetAVSyncType.argtypes = [LONG, AV_SYNC_TYPE]
     PLAY_SetAVSyncType.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 354
-if _libs["Libs/play.dll"].has("PLAY_SetPlaySpeed", "cdecl"):
-    PLAY_SetPlaySpeed = _libs["Libs/play.dll"].get("PLAY_SetPlaySpeed", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPlaySpeed", "cdecl"):
+    PLAY_SetPlaySpeed = _libs["Libs/win64/play.dll"].get("PLAY_SetPlaySpeed", "cdecl")
     PLAY_SetPlaySpeed.argtypes = [LONG, c_float]
     PLAY_SetPlaySpeed.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 355
-if _libs["Libs/play.dll"].has("PLAY_SetPlayDirection", "cdecl"):
-    PLAY_SetPlayDirection = _libs["Libs/play.dll"].get("PLAY_SetPlayDirection", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPlayDirection", "cdecl"):
+    PLAY_SetPlayDirection = _libs["Libs/win64/play.dll"].get("PLAY_SetPlayDirection", "cdecl")
     PLAY_SetPlayDirection.argtypes = [LONG, DWORD]
     PLAY_SetPlayDirection.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 356
-if _libs["Libs/play.dll"].has("PLAY_SetDelayTime", "cdecl"):
-    PLAY_SetDelayTime = _libs["Libs/play.dll"].get("PLAY_SetDelayTime", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDelayTime", "cdecl"):
+    PLAY_SetDelayTime = _libs["Libs/win64/play.dll"].get("PLAY_SetDelayTime", "cdecl")
     PLAY_SetDelayTime.argtypes = [LONG, c_int, c_int]
     PLAY_SetDelayTime.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 357
-if _libs["Libs/play.dll"].has("PLAY_SetPlayMethod", "cdecl"):
-    PLAY_SetPlayMethod = _libs["Libs/play.dll"].get("PLAY_SetPlayMethod", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPlayMethod", "cdecl"):
+    PLAY_SetPlayMethod = _libs["Libs/win64/play.dll"].get("PLAY_SetPlayMethod", "cdecl")
     PLAY_SetPlayMethod.argtypes = [LONG, c_int, c_int, c_int, c_int]
     PLAY_SetPlayMethod.restype = BOOL
 
@@ -1586,236 +1586,236 @@ FLUENCY_FIRST = (REALTIME_FIRST + 1)# C:\\Users\\Administrator\\Documents\\CodeP
 CACHE_MODE = enum_anon_406# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 364
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 365
-if _libs["Libs/play.dll"].has("PLAY_SetCacheMode", "cdecl"):
-    PLAY_SetCacheMode = _libs["Libs/play.dll"].get("PLAY_SetCacheMode", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetCacheMode", "cdecl"):
+    PLAY_SetCacheMode = _libs["Libs/win64/play.dll"].get("PLAY_SetCacheMode", "cdecl")
     PLAY_SetCacheMode.argtypes = [LONG, CACHE_MODE]
     PLAY_SetCacheMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 366
-if _libs["Libs/play.dll"].has("PLAY_SetAudioPlayMethod", "cdecl"):
-    PLAY_SetAudioPlayMethod = _libs["Libs/play.dll"].get("PLAY_SetAudioPlayMethod", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetAudioPlayMethod", "cdecl"):
+    PLAY_SetAudioPlayMethod = _libs["Libs/win64/play.dll"].get("PLAY_SetAudioPlayMethod", "cdecl")
     PLAY_SetAudioPlayMethod.argtypes = [LONG, c_int]
     PLAY_SetAudioPlayMethod.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 367
-if _libs["Libs/play.dll"].has("PLAY_SetRotateAngle", "cdecl"):
-    PLAY_SetRotateAngle = _libs["Libs/play.dll"].get("PLAY_SetRotateAngle", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetRotateAngle", "cdecl"):
+    PLAY_SetRotateAngle = _libs["Libs/win64/play.dll"].get("PLAY_SetRotateAngle", "cdecl")
     PLAY_SetRotateAngle.argtypes = [LONG, c_int]
     PLAY_SetRotateAngle.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 368
-if _libs["Libs/play.dll"].has("PLAY_SetPlayPos", "cdecl"):
-    PLAY_SetPlayPos = _libs["Libs/play.dll"].get("PLAY_SetPlayPos", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPlayPos", "cdecl"):
+    PLAY_SetPlayPos = _libs["Libs/win64/play.dll"].get("PLAY_SetPlayPos", "cdecl")
     PLAY_SetPlayPos.argtypes = [LONG, c_float]
     PLAY_SetPlayPos.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 369
-if _libs["Libs/play.dll"].has("PLAY_GetPlayPos", "cdecl"):
-    PLAY_GetPlayPos = _libs["Libs/play.dll"].get("PLAY_GetPlayPos", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPlayPos", "cdecl"):
+    PLAY_GetPlayPos = _libs["Libs/win64/play.dll"].get("PLAY_GetPlayPos", "cdecl")
     PLAY_GetPlayPos.argtypes = [LONG]
     PLAY_GetPlayPos.restype = c_float
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 370
-if _libs["Libs/play.dll"].has("PLAY_SetPlayedTimeEx", "cdecl"):
-    PLAY_SetPlayedTimeEx = _libs["Libs/play.dll"].get("PLAY_SetPlayedTimeEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPlayedTimeEx", "cdecl"):
+    PLAY_SetPlayedTimeEx = _libs["Libs/win64/play.dll"].get("PLAY_SetPlayedTimeEx", "cdecl")
     PLAY_SetPlayedTimeEx.argtypes = [LONG, DWORD]
     PLAY_SetPlayedTimeEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 371
-if _libs["Libs/play.dll"].has("PLAY_GetPlayedTimeEx", "cdecl"):
-    PLAY_GetPlayedTimeEx = _libs["Libs/play.dll"].get("PLAY_GetPlayedTimeEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPlayedTimeEx", "cdecl"):
+    PLAY_GetPlayedTimeEx = _libs["Libs/win64/play.dll"].get("PLAY_GetPlayedTimeEx", "cdecl")
     PLAY_GetPlayedTimeEx.argtypes = [LONG]
     PLAY_GetPlayedTimeEx.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 372
-if _libs["Libs/play.dll"].has("PLAY_GetCurrentFrameNum", "cdecl"):
-    PLAY_GetCurrentFrameNum = _libs["Libs/play.dll"].get("PLAY_GetCurrentFrameNum", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetCurrentFrameNum", "cdecl"):
+    PLAY_GetCurrentFrameNum = _libs["Libs/win64/play.dll"].get("PLAY_GetCurrentFrameNum", "cdecl")
     PLAY_GetCurrentFrameNum.argtypes = [LONG]
     PLAY_GetCurrentFrameNum.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 373
-if _libs["Libs/play.dll"].has("PLAY_SetCurrentFrameNum", "cdecl"):
-    PLAY_SetCurrentFrameNum = _libs["Libs/play.dll"].get("PLAY_SetCurrentFrameNum", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetCurrentFrameNum", "cdecl"):
+    PLAY_SetCurrentFrameNum = _libs["Libs/win64/play.dll"].get("PLAY_SetCurrentFrameNum", "cdecl")
     PLAY_SetCurrentFrameNum.argtypes = [LONG, DWORD]
     PLAY_SetCurrentFrameNum.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 374
-if _libs["Libs/play.dll"].has("PLAY_GetPlayedFrames", "cdecl"):
-    PLAY_GetPlayedFrames = _libs["Libs/play.dll"].get("PLAY_GetPlayedFrames", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPlayedFrames", "cdecl"):
+    PLAY_GetPlayedFrames = _libs["Libs/win64/play.dll"].get("PLAY_GetPlayedFrames", "cdecl")
     PLAY_GetPlayedFrames.argtypes = [LONG]
     PLAY_GetPlayedFrames.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 375
-if _libs["Libs/play.dll"].has("PLAY_GetPlayedTime", "cdecl"):
-    PLAY_GetPlayedTime = _libs["Libs/play.dll"].get("PLAY_GetPlayedTime", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPlayedTime", "cdecl"):
+    PLAY_GetPlayedTime = _libs["Libs/win64/play.dll"].get("PLAY_GetPlayedTime", "cdecl")
     PLAY_GetPlayedTime.argtypes = [LONG]
     PLAY_GetPlayedTime.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 376
-if _libs["Libs/play.dll"].has("PLAY_GetFileTime", "cdecl"):
-    PLAY_GetFileTime = _libs["Libs/play.dll"].get("PLAY_GetFileTime", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetFileTime", "cdecl"):
+    PLAY_GetFileTime = _libs["Libs/win64/play.dll"].get("PLAY_GetFileTime", "cdecl")
     PLAY_GetFileTime.argtypes = [LONG]
     PLAY_GetFileTime.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 377
-if _libs["Libs/play.dll"].has("PLAY_GetFileTotalFrames", "cdecl"):
-    PLAY_GetFileTotalFrames = _libs["Libs/play.dll"].get("PLAY_GetFileTotalFrames", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetFileTotalFrames", "cdecl"):
+    PLAY_GetFileTotalFrames = _libs["Libs/win64/play.dll"].get("PLAY_GetFileTotalFrames", "cdecl")
     PLAY_GetFileTotalFrames.argtypes = [LONG]
     PLAY_GetFileTotalFrames.restype = DWORD
 
 fFileRefDoneCBFun = CFUNCTYPE(UNCHECKED(None), DWORD, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 378
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 379
-if _libs["Libs/play.dll"].has("PLAY_SetFileRefCallBack", "cdecl"):
-    PLAY_SetFileRefCallBack = _libs["Libs/play.dll"].get("PLAY_SetFileRefCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetFileRefCallBack", "cdecl"):
+    PLAY_SetFileRefCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetFileRefCallBack", "cdecl")
     PLAY_SetFileRefCallBack.argtypes = [LONG, fFileRefDoneCBFun, POINTER(None)]
     PLAY_SetFileRefCallBack.restype = BOOL
 
 fFileRefDoneCBFunEx = CFUNCTYPE(UNCHECKED(None), DWORD, BOOL, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 382
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 383
-if _libs["Libs/play.dll"].has("PLAY_SetFileRefCallBackEx", "cdecl"):
-    PLAY_SetFileRefCallBackEx = _libs["Libs/play.dll"].get("PLAY_SetFileRefCallBackEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetFileRefCallBackEx", "cdecl"):
+    PLAY_SetFileRefCallBackEx = _libs["Libs/win64/play.dll"].get("PLAY_SetFileRefCallBackEx", "cdecl")
     PLAY_SetFileRefCallBackEx.argtypes = [LONG, fFileRefDoneCBFunEx, POINTER(None)]
     PLAY_SetFileRefCallBackEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 384
-if _libs["Libs/play.dll"].has("PLAY_GetKeyFramePos", "cdecl"):
-    PLAY_GetKeyFramePos = _libs["Libs/play.dll"].get("PLAY_GetKeyFramePos", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetKeyFramePos", "cdecl"):
+    PLAY_GetKeyFramePos = _libs["Libs/win64/play.dll"].get("PLAY_GetKeyFramePos", "cdecl")
     PLAY_GetKeyFramePos.argtypes = [LONG, DWORD, DWORD, PFRAME_POS]
     PLAY_GetKeyFramePos.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 385
-if _libs["Libs/play.dll"].has("PLAY_GetNextKeyFramePos", "cdecl"):
-    PLAY_GetNextKeyFramePos = _libs["Libs/play.dll"].get("PLAY_GetNextKeyFramePos", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetNextKeyFramePos", "cdecl"):
+    PLAY_GetNextKeyFramePos = _libs["Libs/win64/play.dll"].get("PLAY_GetNextKeyFramePos", "cdecl")
     PLAY_GetNextKeyFramePos.argtypes = [LONG, DWORD, DWORD, PFRAME_POS]
     PLAY_GetNextKeyFramePos.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 386
-if _libs["Libs/play.dll"].has("PLAY_GetRefValue", "cdecl"):
-    PLAY_GetRefValue = _libs["Libs/play.dll"].get("PLAY_GetRefValue", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetRefValue", "cdecl"):
+    PLAY_GetRefValue = _libs["Libs/win64/play.dll"].get("PLAY_GetRefValue", "cdecl")
     PLAY_GetRefValue.argtypes = [LONG, POINTER(BYTE), POINTER(DWORD)]
     PLAY_GetRefValue.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 387
-if _libs["Libs/play.dll"].has("PLAY_SetRefValue", "cdecl"):
-    PLAY_SetRefValue = _libs["Libs/play.dll"].get("PLAY_SetRefValue", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetRefValue", "cdecl"):
+    PLAY_SetRefValue = _libs["Libs/win64/play.dll"].get("PLAY_SetRefValue", "cdecl")
     PLAY_SetRefValue.argtypes = [LONG, POINTER(BYTE), DWORD]
     PLAY_SetRefValue.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 388
-if _libs["Libs/play.dll"].has("PLAY_SetDecCBStream", "cdecl"):
-    PLAY_SetDecCBStream = _libs["Libs/play.dll"].get("PLAY_SetDecCBStream", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDecCBStream", "cdecl"):
+    PLAY_SetDecCBStream = _libs["Libs/win64/play.dll"].get("PLAY_SetDecCBStream", "cdecl")
     PLAY_SetDecCBStream.argtypes = [LONG, DWORD]
     PLAY_SetDecCBStream.restype = BOOL
 
 fCBDecode = CFUNCTYPE(UNCHECKED(None), LONG, POINTER(FRAME_DECODE_INFO), POINTER(FRAME_INFO_EX), POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 389
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 390
-if _libs["Libs/play.dll"].has("PLAY_SetDecodeCallBack", "cdecl"):
-    PLAY_SetDecodeCallBack = _libs["Libs/play.dll"].get("PLAY_SetDecodeCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDecodeCallBack", "cdecl"):
+    PLAY_SetDecodeCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetDecodeCallBack", "cdecl")
     PLAY_SetDecodeCallBack.argtypes = [LONG, fCBDecode, POINTER(None)]
     PLAY_SetDecodeCallBack.restype = BOOL
 
 fDisplayCBFun = CFUNCTYPE(UNCHECKED(None), LONG, String, LONG, LONG, LONG, LONG, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 391
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 392
-if _libs["Libs/play.dll"].has("PLAY_SetDisplayCallBack", "cdecl"):
-    PLAY_SetDisplayCallBack = _libs["Libs/play.dll"].get("PLAY_SetDisplayCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDisplayCallBack", "cdecl"):
+    PLAY_SetDisplayCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetDisplayCallBack", "cdecl")
     PLAY_SetDisplayCallBack.argtypes = [LONG, fDisplayCBFun, POINTER(None)]
     PLAY_SetDisplayCallBack.restype = BOOL
 
 fAudioCBFun = CFUNCTYPE(UNCHECKED(None), LONG, String, LONG, LONG, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 393
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 394
-if _libs["Libs/play.dll"].has("PLAY_SetAudioCallBack", "cdecl"):
-    PLAY_SetAudioCallBack = _libs["Libs/play.dll"].get("PLAY_SetAudioCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetAudioCallBack", "cdecl"):
+    PLAY_SetAudioCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetAudioCallBack", "cdecl")
     PLAY_SetAudioCallBack.argtypes = [LONG, fAudioCBFun, POINTER(None)]
     PLAY_SetAudioCallBack.restype = BOOL
 
 fVisibleDecodeCallBackFunc = fCBDecode# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 395
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 396
-if _libs["Libs/play.dll"].has("PLAY_SetVisibleDecodeCallBack", "cdecl"):
-    PLAY_SetVisibleDecodeCallBack = _libs["Libs/play.dll"].get("PLAY_SetVisibleDecodeCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetVisibleDecodeCallBack", "cdecl"):
+    PLAY_SetVisibleDecodeCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetVisibleDecodeCallBack", "cdecl")
     PLAY_SetVisibleDecodeCallBack.argtypes = [LONG, fVisibleDecodeCallBackFunc, POINTER(None)]
     PLAY_SetVisibleDecodeCallBack.restype = BOOL
 
 fDecCBFun = CFUNCTYPE(UNCHECKED(None), LONG, String, LONG, POINTER(FRAME_INFO), POINTER(None), LONG)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 397
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 398
-if _libs["Libs/play.dll"].has("PLAY_SetDecCallBack", "cdecl"):
-    PLAY_SetDecCallBack = _libs["Libs/play.dll"].get("PLAY_SetDecCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDecCallBack", "cdecl"):
+    PLAY_SetDecCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetDecCallBack", "cdecl")
     PLAY_SetDecCallBack.argtypes = [LONG, fDecCBFun]
     PLAY_SetDecCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 399
-if _libs["Libs/play.dll"].has("PLAY_SetDecCallBackEx", "cdecl"):
-    PLAY_SetDecCallBackEx = _libs["Libs/play.dll"].get("PLAY_SetDecCallBackEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDecCallBackEx", "cdecl"):
+    PLAY_SetDecCallBackEx = _libs["Libs/win64/play.dll"].get("PLAY_SetDecCallBackEx", "cdecl")
     PLAY_SetDecCallBackEx.argtypes = [LONG, fDecCBFun, POINTER(None)]
     PLAY_SetDecCallBackEx.restype = BOOL
 
 fVisibleDecCBFun = CFUNCTYPE(UNCHECKED(None), LONG, String, LONG, POINTER(FRAME_INFO), POINTER(None), LONG)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 400
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 401
-if _libs["Libs/play.dll"].has("PLAY_SetVisibleDecCallBack", "cdecl"):
-    PLAY_SetVisibleDecCallBack = _libs["Libs/play.dll"].get("PLAY_SetVisibleDecCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetVisibleDecCallBack", "cdecl"):
+    PLAY_SetVisibleDecCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetVisibleDecCallBack", "cdecl")
     PLAY_SetVisibleDecCallBack.argtypes = [LONG, fVisibleDecCBFun, POINTER(None)]
     PLAY_SetVisibleDecCallBack.restype = BOOL
 
 fGetWaterMarkInfoCallbackFunc = CFUNCTYPE(UNCHECKED(c_int), String, LONG, LONG, LONG, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 402
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 403
-if _libs["Libs/play.dll"].has("PLAY_SetWaterMarkCallBack", "cdecl"):
-    PLAY_SetWaterMarkCallBack = _libs["Libs/play.dll"].get("PLAY_SetWaterMarkCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetWaterMarkCallBack", "cdecl"):
+    PLAY_SetWaterMarkCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetWaterMarkCallBack", "cdecl")
     PLAY_SetWaterMarkCallBack.argtypes = [LONG, fGetWaterMarkInfoCallbackFunc, POINTER(None)]
     PLAY_SetWaterMarkCallBack.restype = BOOL
 
 fGetWaterMarkInfoCallbackFuncEx = CFUNCTYPE(UNCHECKED(c_int), LONG, String, LONG, LONG, LONG, LONG, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 404
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 405
-if _libs["Libs/play.dll"].has("PLAY_SetWaterMarkCallBackEx", "cdecl"):
-    PLAY_SetWaterMarkCallBackEx = _libs["Libs/play.dll"].get("PLAY_SetWaterMarkCallBackEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetWaterMarkCallBackEx", "cdecl"):
+    PLAY_SetWaterMarkCallBackEx = _libs["Libs/win64/play.dll"].get("PLAY_SetWaterMarkCallBackEx", "cdecl")
     PLAY_SetWaterMarkCallBackEx.argtypes = [LONG, fGetWaterMarkInfoCallbackFuncEx, POINTER(None)]
     PLAY_SetWaterMarkCallBackEx.restype = BOOL
 
 fEncChangeCBFun = CFUNCTYPE(UNCHECKED(None), LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 406
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 407
-if _libs["Libs/play.dll"].has("PLAY_SetEncTypeChangeCallBack", "cdecl"):
-    PLAY_SetEncTypeChangeCallBack = _libs["Libs/play.dll"].get("PLAY_SetEncTypeChangeCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetEncTypeChangeCallBack", "cdecl"):
+    PLAY_SetEncTypeChangeCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetEncTypeChangeCallBack", "cdecl")
     PLAY_SetEncTypeChangeCallBack.argtypes = [LONG, fEncChangeCBFun, POINTER(None)]
     PLAY_SetEncTypeChangeCallBack.restype = BOOL
 
 fEncChangeCBFunEx = CFUNCTYPE(UNCHECKED(None), LONG, POINTER(None), LONG, LONG)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 408
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 409
-if _libs["Libs/play.dll"].has("PLAY_SetEncTypeChangeCallBackEx", "cdecl"):
-    PLAY_SetEncTypeChangeCallBackEx = _libs["Libs/play.dll"].get("PLAY_SetEncTypeChangeCallBackEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetEncTypeChangeCallBackEx", "cdecl"):
+    PLAY_SetEncTypeChangeCallBackEx = _libs["Libs/win64/play.dll"].get("PLAY_SetEncTypeChangeCallBackEx", "cdecl")
     PLAY_SetEncTypeChangeCallBackEx.argtypes = [LONG, fEncChangeCBFunEx, POINTER(None)]
     PLAY_SetEncTypeChangeCallBackEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 410
-if _libs["Libs/play.dll"].has("PLAY_QueryInfo", "cdecl"):
-    PLAY_QueryInfo = _libs["Libs/play.dll"].get("PLAY_QueryInfo", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_QueryInfo", "cdecl"):
+    PLAY_QueryInfo = _libs["Libs/win64/play.dll"].get("PLAY_QueryInfo", "cdecl")
     PLAY_QueryInfo.argtypes = [LONG, c_int, String, c_int, POINTER(c_int)]
     PLAY_QueryInfo.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 411
-if _libs["Libs/play.dll"].has("PLAY_GetRealFrameBitRate", "cdecl"):
-    PLAY_GetRealFrameBitRate = _libs["Libs/play.dll"].get("PLAY_GetRealFrameBitRate", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetRealFrameBitRate", "cdecl"):
+    PLAY_GetRealFrameBitRate = _libs["Libs/win64/play.dll"].get("PLAY_GetRealFrameBitRate", "cdecl")
     PLAY_GetRealFrameBitRate.argtypes = [LONG, POINTER(c_double)]
     PLAY_GetRealFrameBitRate.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 412
-if _libs["Libs/play.dll"].has("PLAY_GetCurrentFrameRate", "cdecl"):
-    PLAY_GetCurrentFrameRate = _libs["Libs/play.dll"].get("PLAY_GetCurrentFrameRate", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetCurrentFrameRate", "cdecl"):
+    PLAY_GetCurrentFrameRate = _libs["Libs/win64/play.dll"].get("PLAY_GetCurrentFrameRate", "cdecl")
     PLAY_GetCurrentFrameRate.argtypes = [LONG]
     PLAY_GetCurrentFrameRate.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 413
-if _libs["Libs/play.dll"].has("PLAY_GetPictureSize", "cdecl"):
-    PLAY_GetPictureSize = _libs["Libs/play.dll"].get("PLAY_GetPictureSize", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPictureSize", "cdecl"):
+    PLAY_GetPictureSize = _libs["Libs/win64/play.dll"].get("PLAY_GetPictureSize", "cdecl")
     PLAY_GetPictureSize.argtypes = [LONG, POINTER(LONG), POINTER(LONG)]
     PLAY_GetPictureSize.restype = BOOL
 
@@ -2120,22 +2120,22 @@ DEMUX_INFO = struct_anon_414# C:\\Users\\Administrator\\Documents\\CodeProject\\
 fDemuxDecCBFun = CFUNCTYPE(UNCHECKED(None), LONG, String, LONG, POINTER(None), POINTER(None), POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 564
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 565
-if _libs["Libs/play.dll"].has("PLAY_SetDemuxCallBack", "cdecl"):
-    PLAY_SetDemuxCallBack = _libs["Libs/play.dll"].get("PLAY_SetDemuxCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDemuxCallBack", "cdecl"):
+    PLAY_SetDemuxCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetDemuxCallBack", "cdecl")
     PLAY_SetDemuxCallBack.argtypes = [LONG, fDemuxDecCBFun, POINTER(None)]
     PLAY_SetDemuxCallBack.restype = BOOL
 
 fH264InfoCBFun = CFUNCTYPE(UNCHECKED(c_int), LONG, String, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 572
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 573
-if _libs["Libs/play.dll"].has("PLAY_Set264EncodeInfoCallBack", "cdecl"):
-    PLAY_Set264EncodeInfoCallBack = _libs["Libs/play.dll"].get("PLAY_Set264EncodeInfoCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_Set264EncodeInfoCallBack", "cdecl"):
+    PLAY_Set264EncodeInfoCallBack = _libs["Libs/win64/play.dll"].get("PLAY_Set264EncodeInfoCallBack", "cdecl")
     PLAY_Set264EncodeInfoCallBack.argtypes = [LONG, fH264InfoCBFun, POINTER(None)]
     PLAY_Set264EncodeInfoCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 574
-if _libs["Libs/play.dll"].has("PLAY_SetSecurityKey", "cdecl"):
-    PLAY_SetSecurityKey = _libs["Libs/play.dll"].get("PLAY_SetSecurityKey", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetSecurityKey", "cdecl"):
+    PLAY_SetSecurityKey = _libs["Libs/win64/play.dll"].get("PLAY_SetSecurityKey", "cdecl")
     PLAY_SetSecurityKey.argtypes = [LONG, String, DWORD]
     PLAY_SetSecurityKey.restype = BOOL
 
@@ -2208,70 +2208,70 @@ struct_anon_417._fields_ = [
 DECRYPT_PARAM = struct_anon_417# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 604
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 605
-if _libs["Libs/play.dll"].has("PLAY_SetSecurityKeyEx", "cdecl"):
-    PLAY_SetSecurityKeyEx = _libs["Libs/play.dll"].get("PLAY_SetSecurityKeyEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetSecurityKeyEx", "cdecl"):
+    PLAY_SetSecurityKeyEx = _libs["Libs/win64/play.dll"].get("PLAY_SetSecurityKeyEx", "cdecl")
     PLAY_SetSecurityKeyEx.argtypes = [LONG, ENCRYPT_TYPE, POINTER(DECRYPT_PARAM), c_uint]
     PLAY_SetSecurityKeyEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 606
-if _libs["Libs/play.dll"].has("PLAY_SetEncryptKey", "cdecl"):
-    PLAY_SetEncryptKey = _libs["Libs/play.dll"].get("PLAY_SetEncryptKey", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetEncryptKey", "cdecl"):
+    PLAY_SetEncryptKey = _libs["Libs/win64/play.dll"].get("PLAY_SetEncryptKey", "cdecl")
     PLAY_SetEncryptKey.argtypes = [LONG, ENCRYPT_TYPE, String, c_uint]
     PLAY_SetEncryptKey.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 607
-if _libs["Libs/play.dll"].has("PLAY_SetDisplayRegion", "cdecl"):
-    PLAY_SetDisplayRegion = _libs["Libs/play.dll"].get("PLAY_SetDisplayRegion", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDisplayRegion", "cdecl"):
+    PLAY_SetDisplayRegion = _libs["Libs/win64/play.dll"].get("PLAY_SetDisplayRegion", "cdecl")
     PLAY_SetDisplayRegion.argtypes = [LONG, DWORD, POINTER(DISPLAYRECT), HWND, BOOL]
     PLAY_SetDisplayRegion.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 608
-if _libs["Libs/play.dll"].has("PLAY_RefreshPlay", "cdecl"):
-    PLAY_RefreshPlay = _libs["Libs/play.dll"].get("PLAY_RefreshPlay", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_RefreshPlay", "cdecl"):
+    PLAY_RefreshPlay = _libs["Libs/win64/play.dll"].get("PLAY_RefreshPlay", "cdecl")
     PLAY_RefreshPlay.argtypes = [LONG]
     PLAY_RefreshPlay.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 609
-if _libs["Libs/play.dll"].has("PLAY_GetSourceBufferRemain", "cdecl"):
-    PLAY_GetSourceBufferRemain = _libs["Libs/play.dll"].get("PLAY_GetSourceBufferRemain", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetSourceBufferRemain", "cdecl"):
+    PLAY_GetSourceBufferRemain = _libs["Libs/win64/play.dll"].get("PLAY_GetSourceBufferRemain", "cdecl")
     PLAY_GetSourceBufferRemain.argtypes = [LONG]
     PLAY_GetSourceBufferRemain.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 610
-if _libs["Libs/play.dll"].has("PLAY_ResetSourceBuffer", "cdecl"):
-    PLAY_ResetSourceBuffer = _libs["Libs/play.dll"].get("PLAY_ResetSourceBuffer", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ResetSourceBuffer", "cdecl"):
+    PLAY_ResetSourceBuffer = _libs["Libs/win64/play.dll"].get("PLAY_ResetSourceBuffer", "cdecl")
     PLAY_ResetSourceBuffer.argtypes = [LONG]
     PLAY_ResetSourceBuffer.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 611
-if _libs["Libs/play.dll"].has("PLAY_ResetBuffer", "cdecl"):
-    PLAY_ResetBuffer = _libs["Libs/play.dll"].get("PLAY_ResetBuffer", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ResetBuffer", "cdecl"):
+    PLAY_ResetBuffer = _libs["Libs/win64/play.dll"].get("PLAY_ResetBuffer", "cdecl")
     PLAY_ResetBuffer.argtypes = [LONG, DWORD]
     PLAY_ResetBuffer.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 612
-if _libs["Libs/play.dll"].has("PLAY_GetBufferValue", "cdecl"):
-    PLAY_GetBufferValue = _libs["Libs/play.dll"].get("PLAY_GetBufferValue", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetBufferValue", "cdecl"):
+    PLAY_GetBufferValue = _libs["Libs/win64/play.dll"].get("PLAY_GetBufferValue", "cdecl")
     PLAY_GetBufferValue.argtypes = [LONG, DWORD]
     PLAY_GetBufferValue.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 613
-if _libs["Libs/play.dll"].has("PLAY_InitDisk", "cdecl"):
-    PLAY_InitDisk = _libs["Libs/play.dll"].get("PLAY_InitDisk", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_InitDisk", "cdecl"):
+    PLAY_InitDisk = _libs["Libs/win64/play.dll"].get("PLAY_InitDisk", "cdecl")
     PLAY_InitDisk.argtypes = []
     PLAY_InitDisk.restype = UINT
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 614
-if _libs["Libs/play.dll"].has("PLAY_GetDiskType", "cdecl"):
-    PLAY_GetDiskType = _libs["Libs/play.dll"].get("PLAY_GetDiskType", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetDiskType", "cdecl"):
+    PLAY_GetDiskType = _libs["Libs/win64/play.dll"].get("PLAY_GetDiskType", "cdecl")
     PLAY_GetDiskType.argtypes = [UINT]
     PLAY_GetDiskType.restype = c_int
 
 fPercentCallbackFunc = CFUNCTYPE(UNCHECKED(None), LONG, c_int, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 615
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 616
-if _libs["Libs/play.dll"].has("PLAY_SetPercentCallBack", "cdecl"):
-    PLAY_SetPercentCallBack = _libs["Libs/play.dll"].get("PLAY_SetPercentCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPercentCallBack", "cdecl"):
+    PLAY_SetPercentCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetPercentCallBack", "cdecl")
     PLAY_SetPercentCallBack.argtypes = [LONG, LONG, LONG, fPercentCallbackFunc, POINTER(None)]
     PLAY_SetPercentCallBack.restype = BOOL
 
@@ -2284,14 +2284,14 @@ FORMAT_KEY_DATA = (FORMAT_ALL_DATA + 1)# C:\\Users\\Administrator\\Documents\\Co
 FormatType = enum_anon_418# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 621
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 622
-if _libs["Libs/play.dll"].has("PLAY_FormatDisk", "cdecl"):
-    PLAY_FormatDisk = _libs["Libs/play.dll"].get("PLAY_FormatDisk", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_FormatDisk", "cdecl"):
+    PLAY_FormatDisk = _libs["Libs/win64/play.dll"].get("PLAY_FormatDisk", "cdecl")
     PLAY_FormatDisk.argtypes = [UINT, FormatType]
     PLAY_FormatDisk.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 623
-if _libs["Libs/play.dll"].has("PLAY_QueryFileList", "cdecl"):
-    PLAY_QueryFileList = _libs["Libs/play.dll"].get("PLAY_QueryFileList", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_QueryFileList", "cdecl"):
+    PLAY_QueryFileList = _libs["Libs/win64/play.dll"].get("PLAY_QueryFileList", "cdecl")
     PLAY_QueryFileList.argtypes = [UINT, USER_TIME, USER_TIME, POINTER(UINT), pFILE_INFO, UINT, BYTE, UINT]
     PLAY_QueryFileList.restype = UINT
 
@@ -2743,64 +2743,64 @@ struct_anon_433._fields_ = [
 FISHEYE_EPTZPARAM = struct_anon_433# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 830
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 831
-if _libs["Libs/play.dll"].has("PLAY_StartFisheye", "cdecl"):
-    PLAY_StartFisheye = _libs["Libs/play.dll"].get("PLAY_StartFisheye", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StartFisheye", "cdecl"):
+    PLAY_StartFisheye = _libs["Libs/win64/play.dll"].get("PLAY_StartFisheye", "cdecl")
     PLAY_StartFisheye.argtypes = [LONG]
     PLAY_StartFisheye.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 832
-if _libs["Libs/play.dll"].has("PLAY_OptFisheyeParams", "cdecl"):
-    PLAY_OptFisheyeParams = _libs["Libs/play.dll"].get("PLAY_OptFisheyeParams", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_OptFisheyeParams", "cdecl"):
+    PLAY_OptFisheyeParams = _libs["Libs/win64/play.dll"].get("PLAY_OptFisheyeParams", "cdecl")
     PLAY_OptFisheyeParams.argtypes = [LONG, FISHEYE_OPERATETYPE, POINTER(FISHEYE_OPTPARAM)]
     PLAY_OptFisheyeParams.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 833
-if _libs["Libs/play.dll"].has("PLAY_FisheyeSecondRegion", "cdecl"):
-    PLAY_FisheyeSecondRegion = _libs["Libs/play.dll"].get("PLAY_FisheyeSecondRegion", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_FisheyeSecondRegion", "cdecl"):
+    PLAY_FisheyeSecondRegion = _libs["Libs/win64/play.dll"].get("PLAY_FisheyeSecondRegion", "cdecl")
     PLAY_FisheyeSecondRegion.argtypes = [LONG, HWND, POINTER(FISHEYE_OPTPARAM), BOOL]
     PLAY_FisheyeSecondRegion.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 834
-if _libs["Libs/play.dll"].has("PLAY_FisheyeEptzUpdate", "cdecl"):
-    PLAY_FisheyeEptzUpdate = _libs["Libs/play.dll"].get("PLAY_FisheyeEptzUpdate", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_FisheyeEptzUpdate", "cdecl"):
+    PLAY_FisheyeEptzUpdate = _libs["Libs/win64/play.dll"].get("PLAY_FisheyeEptzUpdate", "cdecl")
     PLAY_FisheyeEptzUpdate.argtypes = [LONG, POINTER(FISHEYE_EPTZPARAM), BOOL]
     PLAY_FisheyeEptzUpdate.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 835
-if _libs["Libs/play.dll"].has("PLAY_StopFisheye", "cdecl"):
-    PLAY_StopFisheye = _libs["Libs/play.dll"].get("PLAY_StopFisheye", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StopFisheye", "cdecl"):
+    PLAY_StopFisheye = _libs["Libs/win64/play.dll"].get("PLAY_StopFisheye", "cdecl")
     PLAY_StopFisheye.argtypes = [LONG]
     PLAY_StopFisheye.restype = BOOL
 
 fFishEyeInfoFun = CFUNCTYPE(UNCHECKED(None), LONG, BYTE, WORD, WORD, WORD, UINT, UINT, BYTE, BYTE, BYTE, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 836
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 848
-if _libs["Libs/play.dll"].has("PLAY_SetFishEyeInfoCallBack", "cdecl"):
-    PLAY_SetFishEyeInfoCallBack = _libs["Libs/play.dll"].get("PLAY_SetFishEyeInfoCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetFishEyeInfoCallBack", "cdecl"):
+    PLAY_SetFishEyeInfoCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetFishEyeInfoCallBack", "cdecl")
     PLAY_SetFishEyeInfoCallBack.argtypes = [LONG, fFishEyeInfoFun, POINTER(None)]
     PLAY_SetFishEyeInfoCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 849
-if _libs["Libs/play.dll"].has("PLAY_CatchPic", "cdecl"):
-    PLAY_CatchPic = _libs["Libs/play.dll"].get("PLAY_CatchPic", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CatchPic", "cdecl"):
+    PLAY_CatchPic = _libs["Libs/win64/play.dll"].get("PLAY_CatchPic", "cdecl")
     PLAY_CatchPic.argtypes = [LONG, String]
     PLAY_CatchPic.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 850
-if _libs["Libs/play.dll"].has("PLAY_CatchPicEx", "cdecl"):
-    PLAY_CatchPicEx = _libs["Libs/play.dll"].get("PLAY_CatchPicEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CatchPicEx", "cdecl"):
+    PLAY_CatchPicEx = _libs["Libs/win64/play.dll"].get("PLAY_CatchPicEx", "cdecl")
     PLAY_CatchPicEx.argtypes = [LONG, String, tPicFormats]
     PLAY_CatchPicEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 851
-if _libs["Libs/play.dll"].has("PLAY_ConvertToBmpFile", "cdecl"):
-    PLAY_ConvertToBmpFile = _libs["Libs/play.dll"].get("PLAY_ConvertToBmpFile", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ConvertToBmpFile", "cdecl"):
+    PLAY_ConvertToBmpFile = _libs["Libs/win64/play.dll"].get("PLAY_ConvertToBmpFile", "cdecl")
     PLAY_ConvertToBmpFile.argtypes = [String, LONG, LONG, LONG, LONG, String]
     PLAY_ConvertToBmpFile.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 852
-if _libs["Libs/play.dll"].has("PLAY_ConvertToJpegFile", "cdecl"):
-    PLAY_ConvertToJpegFile = _libs["Libs/play.dll"].get("PLAY_ConvertToJpegFile", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ConvertToJpegFile", "cdecl"):
+    PLAY_ConvertToJpegFile = _libs["Libs/win64/play.dll"].get("PLAY_ConvertToJpegFile", "cdecl")
     PLAY_ConvertToJpegFile.argtypes = [String, LONG, LONG, c_int, c_int, String]
     PLAY_ConvertToJpegFile.restype = BOOL
 
@@ -2836,74 +2836,74 @@ struct_anon_434._fields_ = [
 ImageConvertInfo = struct_anon_434# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 865
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 866
-if _libs["Libs/play.dll"].has("PLAY_ConvertToImageData", "cdecl"):
-    PLAY_ConvertToImageData = _libs["Libs/play.dll"].get("PLAY_ConvertToImageData", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ConvertToImageData", "cdecl"):
+    PLAY_ConvertToImageData = _libs["Libs/win64/play.dll"].get("PLAY_ConvertToImageData", "cdecl")
     PLAY_ConvertToImageData.argtypes = [POINTER(ImageConvertInfo)]
     PLAY_ConvertToImageData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 867
-if _libs["Libs/play.dll"].has("PLAY_GetPicBMP", "cdecl"):
-    PLAY_GetPicBMP = _libs["Libs/play.dll"].get("PLAY_GetPicBMP", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPicBMP", "cdecl"):
+    PLAY_GetPicBMP = _libs["Libs/win64/play.dll"].get("PLAY_GetPicBMP", "cdecl")
     PLAY_GetPicBMP.argtypes = [LONG, PBYTE, DWORD, POINTER(DWORD)]
     PLAY_GetPicBMP.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 868
-if _libs["Libs/play.dll"].has("PLAY_GetPicBMPEx", "cdecl"):
-    PLAY_GetPicBMPEx = _libs["Libs/play.dll"].get("PLAY_GetPicBMPEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPicBMPEx", "cdecl"):
+    PLAY_GetPicBMPEx = _libs["Libs/win64/play.dll"].get("PLAY_GetPicBMPEx", "cdecl")
     PLAY_GetPicBMPEx.argtypes = [LONG, PBYTE, DWORD, POINTER(DWORD), LONG, LONG, c_int]
     PLAY_GetPicBMPEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 869
-if _libs["Libs/play.dll"].has("PLAY_GetPicJPEG", "cdecl"):
-    PLAY_GetPicJPEG = _libs["Libs/play.dll"].get("PLAY_GetPicJPEG", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPicJPEG", "cdecl"):
+    PLAY_GetPicJPEG = _libs["Libs/win64/play.dll"].get("PLAY_GetPicJPEG", "cdecl")
     PLAY_GetPicJPEG.argtypes = [LONG, PBYTE, DWORD, POINTER(DWORD), c_int]
     PLAY_GetPicJPEG.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 870
-if _libs["Libs/play.dll"].has("PLAY_GetPicTIFF", "cdecl"):
-    PLAY_GetPicTIFF = _libs["Libs/play.dll"].get("PLAY_GetPicTIFF", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPicTIFF", "cdecl"):
+    PLAY_GetPicTIFF = _libs["Libs/win64/play.dll"].get("PLAY_GetPicTIFF", "cdecl")
     PLAY_GetPicTIFF.argtypes = [LONG, PBYTE, DWORD, POINTER(DWORD)]
     PLAY_GetPicTIFF.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 871
-if _libs["Libs/play.dll"].has("PLAY_CatchResizePic", "cdecl"):
-    PLAY_CatchResizePic = _libs["Libs/play.dll"].get("PLAY_CatchResizePic", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CatchResizePic", "cdecl"):
+    PLAY_CatchResizePic = _libs["Libs/win64/play.dll"].get("PLAY_CatchResizePic", "cdecl")
     PLAY_CatchResizePic.argtypes = [LONG, String, LONG, LONG, tPicFormats]
     PLAY_CatchResizePic.restype = BOOL
 
 fDrawCBFun = CFUNCTYPE(UNCHECKED(None), LONG, HDC, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 872
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 873
-if _libs["Libs/play.dll"].has("PLAY_RigisterDrawFun", "cdecl"):
-    PLAY_RigisterDrawFun = _libs["Libs/play.dll"].get("PLAY_RigisterDrawFun", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_RigisterDrawFun", "cdecl"):
+    PLAY_RigisterDrawFun = _libs["Libs/win64/play.dll"].get("PLAY_RigisterDrawFun", "cdecl")
     PLAY_RigisterDrawFun.argtypes = [LONG, fDrawCBFun, POINTER(None)]
     PLAY_RigisterDrawFun.restype = BOOL
 
 fDrawCBRenderHandleFun = CFUNCTYPE(UNCHECKED(None), LONG, c_int, POINTER(None), POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 874
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 875
-if _libs["Libs/play.dll"].has("PLAY_RigisterDrawRendleHandleFun", "cdecl"):
-    PLAY_RigisterDrawRendleHandleFun = _libs["Libs/play.dll"].get("PLAY_RigisterDrawRendleHandleFun", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_RigisterDrawRendleHandleFun", "cdecl"):
+    PLAY_RigisterDrawRendleHandleFun = _libs["Libs/win64/play.dll"].get("PLAY_RigisterDrawRendleHandleFun", "cdecl")
     PLAY_RigisterDrawRendleHandleFun.argtypes = [LONG, fDrawCBRenderHandleFun, POINTER(None)]
     PLAY_RigisterDrawRendleHandleFun.restype = BOOL
 
 fDrawCBFunEx = CFUNCTYPE(UNCHECKED(None), LONG, LONG, HDC, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 876
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 877
-if _libs["Libs/play.dll"].has("PLAY_RigisterDrawFunEx", "cdecl"):
-    PLAY_RigisterDrawFunEx = _libs["Libs/play.dll"].get("PLAY_RigisterDrawFunEx", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_RigisterDrawFunEx", "cdecl"):
+    PLAY_RigisterDrawFunEx = _libs["Libs/win64/play.dll"].get("PLAY_RigisterDrawFunEx", "cdecl")
     PLAY_RigisterDrawFunEx.argtypes = [LONG, LONG, fDrawCBFunEx, POINTER(None)]
     PLAY_RigisterDrawFunEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 878
-if _libs["Libs/play.dll"].has("PLAY_StartPrepareRecord", "cdecl"):
-    PLAY_StartPrepareRecord = _libs["Libs/play.dll"].get("PLAY_StartPrepareRecord", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StartPrepareRecord", "cdecl"):
+    PLAY_StartPrepareRecord = _libs["Libs/win64/play.dll"].get("PLAY_StartPrepareRecord", "cdecl")
     PLAY_StartPrepareRecord.argtypes = [LONG, String]
     PLAY_StartPrepareRecord.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 879
-if _libs["Libs/play.dll"].has("PLAY_StopPrepareRecord", "cdecl"):
-    PLAY_StopPrepareRecord = _libs["Libs/play.dll"].get("PLAY_StopPrepareRecord", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StopPrepareRecord", "cdecl"):
+    PLAY_StopPrepareRecord = _libs["Libs/win64/play.dll"].get("PLAY_StopPrepareRecord", "cdecl")
     PLAY_StopPrepareRecord.argtypes = [LONG]
     PLAY_StopPrepareRecord.restype = BOOL
 
@@ -2950,58 +2950,58 @@ DATA_RECORD_COUNT = (DATA_RECORD_ORIGINAL_SEQUENCE + 1)# C:\\Users\\Administrato
 DATA_RECORD_TYPE = enum_anon_435# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 901
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 902
-if _libs["Libs/play.dll"].has("PLAY_StartDataRecord", "cdecl"):
-    PLAY_StartDataRecord = _libs["Libs/play.dll"].get("PLAY_StartDataRecord", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StartDataRecord", "cdecl"):
+    PLAY_StartDataRecord = _libs["Libs/win64/play.dll"].get("PLAY_StartDataRecord", "cdecl")
     PLAY_StartDataRecord.argtypes = [LONG, String, c_int]
     PLAY_StartDataRecord.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 903
-if _libs["Libs/play.dll"].has("PLAY_WriteData", "cdecl"):
-    PLAY_WriteData = _libs["Libs/play.dll"].get("PLAY_WriteData", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_WriteData", "cdecl"):
+    PLAY_WriteData = _libs["Libs/win64/play.dll"].get("PLAY_WriteData", "cdecl")
     PLAY_WriteData.argtypes = [LONG, PBYTE, DWORD]
     PLAY_WriteData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 904
-if _libs["Libs/play.dll"].has("PLAY_StopDataRecord", "cdecl"):
-    PLAY_StopDataRecord = _libs["Libs/play.dll"].get("PLAY_StopDataRecord", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StopDataRecord", "cdecl"):
+    PLAY_StopDataRecord = _libs["Libs/win64/play.dll"].get("PLAY_StopDataRecord", "cdecl")
     PLAY_StopDataRecord.argtypes = [LONG]
     PLAY_StopDataRecord.restype = BOOL
 
 fAVIConvertCallback = CFUNCTYPE(UNCHECKED(None), LONG, LONG, POINTER(None), POINTER(BOOL), String)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 905
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 906
-if _libs["Libs/play.dll"].has("PLAY_StartAVIConvert", "cdecl"):
-    PLAY_StartAVIConvert = _libs["Libs/play.dll"].get("PLAY_StartAVIConvert", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StartAVIConvert", "cdecl"):
+    PLAY_StartAVIConvert = _libs["Libs/win64/play.dll"].get("PLAY_StartAVIConvert", "cdecl")
     PLAY_StartAVIConvert.argtypes = [LONG, String, fAVIConvertCallback, POINTER(None)]
     PLAY_StartAVIConvert.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 907
-if _libs["Libs/play.dll"].has("PLAY_StopAVIConvert", "cdecl"):
-    PLAY_StopAVIConvert = _libs["Libs/play.dll"].get("PLAY_StopAVIConvert", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_StopAVIConvert", "cdecl"):
+    PLAY_StopAVIConvert = _libs["Libs/win64/play.dll"].get("PLAY_StopAVIConvert", "cdecl")
     PLAY_StopAVIConvert.argtypes = [LONG]
     PLAY_StopAVIConvert.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 908
-if _libs["Libs/play.dll"].has("PLAY_SetEngine", "cdecl"):
-    PLAY_SetEngine = _libs["Libs/play.dll"].get("PLAY_SetEngine", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetEngine", "cdecl"):
+    PLAY_SetEngine = _libs["Libs/win64/play.dll"].get("PLAY_SetEngine", "cdecl")
     PLAY_SetEngine.argtypes = [LONG, DecodeType, RenderType]
     PLAY_SetEngine.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 909
-if _libs["Libs/play.dll"].has("PLAY_SetPicQuality", "cdecl"):
-    PLAY_SetPicQuality = _libs["Libs/play.dll"].get("PLAY_SetPicQuality", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetPicQuality", "cdecl"):
+    PLAY_SetPicQuality = _libs["Libs/win64/play.dll"].get("PLAY_SetPicQuality", "cdecl")
     PLAY_SetPicQuality.argtypes = [LONG, BOOL]
     PLAY_SetPicQuality.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 910
-if _libs["Libs/play.dll"].has("PLAY_GetPictureQuality", "cdecl"):
-    PLAY_GetPictureQuality = _libs["Libs/play.dll"].get("PLAY_GetPictureQuality", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetPictureQuality", "cdecl"):
+    PLAY_GetPictureQuality = _libs["Libs/win64/play.dll"].get("PLAY_GetPictureQuality", "cdecl")
     PLAY_GetPictureQuality.argtypes = [LONG, POINTER(BOOL)]
     PLAY_GetPictureQuality.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 911
-if _libs["Libs/play.dll"].has("PLAY_VerticalSyncEnable", "cdecl"):
-    PLAY_VerticalSyncEnable = _libs["Libs/play.dll"].get("PLAY_VerticalSyncEnable", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_VerticalSyncEnable", "cdecl"):
+    PLAY_VerticalSyncEnable = _libs["Libs/win64/play.dll"].get("PLAY_VerticalSyncEnable", "cdecl")
     PLAY_VerticalSyncEnable.argtypes = [LONG, BOOL]
     PLAY_VerticalSyncEnable.restype = BOOL
 
@@ -3020,32 +3020,32 @@ PLAY_THROW_FRAME_FLAG_ADAPTION_LOW_CPU = 4# C:\\Users\\Administrator\\Documents\
 PLAY_STRATEGE_E = enum__PLAY_STRATEGE# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 919
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 920
-if _libs["Libs/play.dll"].has("PLAY_EnableLargePicAdjustment", "cdecl"):
-    PLAY_EnableLargePicAdjustment = _libs["Libs/play.dll"].get("PLAY_EnableLargePicAdjustment", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_EnableLargePicAdjustment", "cdecl"):
+    PLAY_EnableLargePicAdjustment = _libs["Libs/win64/play.dll"].get("PLAY_EnableLargePicAdjustment", "cdecl")
     PLAY_EnableLargePicAdjustment.argtypes = [LONG, c_int]
     PLAY_EnableLargePicAdjustment.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 921
-if _libs["Libs/play.dll"].has("PLAY_SetDecodeThreadNum", "cdecl"):
-    PLAY_SetDecodeThreadNum = _libs["Libs/play.dll"].get("PLAY_SetDecodeThreadNum", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDecodeThreadNum", "cdecl"):
+    PLAY_SetDecodeThreadNum = _libs["Libs/win64/play.dll"].get("PLAY_SetDecodeThreadNum", "cdecl")
     PLAY_SetDecodeThreadNum.argtypes = [LONG, DWORD]
     PLAY_SetDecodeThreadNum.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 922
-if _libs["Libs/play.dll"].has("PLAY_SetDecodeStrategy", "cdecl"):
-    PLAY_SetDecodeStrategy = _libs["Libs/play.dll"].get("PLAY_SetDecodeStrategy", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDecodeStrategy", "cdecl"):
+    PLAY_SetDecodeStrategy = _libs["Libs/win64/play.dll"].get("PLAY_SetDecodeStrategy", "cdecl")
     PLAY_SetDecodeStrategy.argtypes = [LONG, c_int]
     PLAY_SetDecodeStrategy.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 923
-if _libs["Libs/play.dll"].has("PLAY_AntiAliasEnable", "cdecl"):
-    PLAY_AntiAliasEnable = _libs["Libs/play.dll"].get("PLAY_AntiAliasEnable", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_AntiAliasEnable", "cdecl"):
+    PLAY_AntiAliasEnable = _libs["Libs/win64/play.dll"].get("PLAY_AntiAliasEnable", "cdecl")
     PLAY_AntiAliasEnable.argtypes = [LONG, BOOL]
     PLAY_AntiAliasEnable.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 924
-if _libs["Libs/play.dll"].has("PLAY_RenderPrivateData", "cdecl"):
-    PLAY_RenderPrivateData = _libs["Libs/play.dll"].get("PLAY_RenderPrivateData", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_RenderPrivateData", "cdecl"):
+    PLAY_RenderPrivateData = _libs["Libs/win64/play.dll"].get("PLAY_RenderPrivateData", "cdecl")
     PLAY_RenderPrivateData.argtypes = [LONG, BOOL, LONG]
     PLAY_RenderPrivateData.restype = BOOL
 
@@ -3066,8 +3066,8 @@ IVSDRAWER_DATA_WITH_LARGE_AMOUNT = 25# C:\\Users\\Administrator\\Documents\\Code
 IVSDRAWER_TYPE = enum_anon_436# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 933
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 934
-if _libs["Libs/play.dll"].has("PLAY_SetIvsEnable", "cdecl"):
-    PLAY_SetIvsEnable = _libs["Libs/play.dll"].get("PLAY_SetIvsEnable", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetIvsEnable", "cdecl"):
+    PLAY_SetIvsEnable = _libs["Libs/win64/play.dll"].get("PLAY_SetIvsEnable", "cdecl")
     PLAY_SetIvsEnable.argtypes = [LONG, c_int, BOOL]
     PLAY_SetIvsEnable.restype = BOOL
 
@@ -3091,16 +3091,16 @@ struct_anon_437._fields_ = [
 IVSDRAWER_TrackEx2Config = struct_anon_437# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 941
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 942
-if _libs["Libs/play.dll"].has("PLAY_SetIVSTrackEx2Config", "cdecl"):
-    PLAY_SetIVSTrackEx2Config = _libs["Libs/play.dll"].get("PLAY_SetIVSTrackEx2Config", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetIVSTrackEx2Config", "cdecl"):
+    PLAY_SetIVSTrackEx2Config = _libs["Libs/win64/play.dll"].get("PLAY_SetIVSTrackEx2Config", "cdecl")
     PLAY_SetIVSTrackEx2Config.argtypes = [c_int, IVSDRAWER_TrackEx2Config]
     PLAY_SetIVSTrackEx2Config.restype = BOOL
 
 fDataCBFun = CFUNCTYPE(UNCHECKED(None), LONG, String, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 943
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 944
-if _libs["Libs/play.dll"].has("PLAY_SetDataCallBack", "cdecl"):
-    PLAY_SetDataCallBack = _libs["Libs/play.dll"].get("PLAY_SetDataCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetDataCallBack", "cdecl"):
+    PLAY_SetDataCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetDataCallBack", "cdecl")
     PLAY_SetDataCallBack.argtypes = [LONG, fDataCBFun, POINTER(None)]
     PLAY_SetDataCallBack.restype = BOOL
 
@@ -3218,16 +3218,16 @@ TRAFFIC_LIGHT_INFO = struct_anon_440# C:\\Users\\Administrator\\Documents\\CodeP
 fIVSInfoCallbackFunc = CFUNCTYPE(UNCHECKED(None), String, LONG, LONG, LONG, POINTER(None), POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 994
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 995
-if _libs["Libs/play.dll"].has("PLAY_SetIVSCallBack", "cdecl"):
-    PLAY_SetIVSCallBack = _libs["Libs/play.dll"].get("PLAY_SetIVSCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetIVSCallBack", "cdecl"):
+    PLAY_SetIVSCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetIVSCallBack", "cdecl")
     PLAY_SetIVSCallBack.argtypes = [LONG, fIVSInfoCallbackFunc, POINTER(None)]
     PLAY_SetIVSCallBack.restype = BOOL
 
 fGPSInfoCallbackFunc = CFUNCTYPE(UNCHECKED(c_int), String, LONG, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 996
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 997
-if _libs["Libs/play.dll"].has("PLAY_SetGPSCallBack", "cdecl"):
-    PLAY_SetGPSCallBack = _libs["Libs/play.dll"].get("PLAY_SetGPSCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetGPSCallBack", "cdecl"):
+    PLAY_SetGPSCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetGPSCallBack", "cdecl")
     PLAY_SetGPSCallBack.argtypes = [LONG, fGPSInfoCallbackFunc, POINTER(None)]
     PLAY_SetGPSCallBack.restype = BOOL
 
@@ -3325,14 +3325,14 @@ PSTATISTIC_INFO = POINTER(struct_statistic_info)# C:\\Users\\Administrator\\Docu
 fStatisticCallbackFunc = CFUNCTYPE(UNCHECKED(c_int), PSTATISTIC_INFO, POINTER(None))# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1042
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1043
-if _libs["Libs/play.dll"].has("PLAY_SetStatisticCallBack", "cdecl"):
-    PLAY_SetStatisticCallBack = _libs["Libs/play.dll"].get("PLAY_SetStatisticCallBack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetStatisticCallBack", "cdecl"):
+    PLAY_SetStatisticCallBack = _libs["Libs/win64/play.dll"].get("PLAY_SetStatisticCallBack", "cdecl")
     PLAY_SetStatisticCallBack.argtypes = [LONG, fStatisticCallbackFunc, POINTER(None)]
     PLAY_SetStatisticCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1044
-if _libs["Libs/play.dll"].has("PLAY_SetViewProportion", "cdecl"):
-    PLAY_SetViewProportion = _libs["Libs/play.dll"].get("PLAY_SetViewProportion", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetViewProportion", "cdecl"):
+    PLAY_SetViewProportion = _libs["Libs/win64/play.dll"].get("PLAY_SetViewProportion", "cdecl")
     PLAY_SetViewProportion.argtypes = [LONG, c_int, c_int]
     PLAY_SetViewProportion.restype = BOOL
 
@@ -3353,14 +3353,14 @@ AUDIO_PLAYBACK_MODE_NOTIFICATION = (AUDIO_PLAYBACK_MODE_ALARM + 1)# C:\\Users\\A
 AUDIO_PLAYBACK_MODE = enum_anon_441# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1053
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1054
-if _libs["Libs/play.dll"].has("PLAY_SetAudioPlaybackMode", "cdecl"):
-    PLAY_SetAudioPlaybackMode = _libs["Libs/play.dll"].get("PLAY_SetAudioPlaybackMode", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetAudioPlaybackMode", "cdecl"):
+    PLAY_SetAudioPlaybackMode = _libs["Libs/win64/play.dll"].get("PLAY_SetAudioPlaybackMode", "cdecl")
     PLAY_SetAudioPlaybackMode.argtypes = [LONG, AUDIO_PLAYBACK_MODE]
     PLAY_SetAudioPlaybackMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1055
-if _libs["Libs/play.dll"].has("PLAY_ViewResolutionChanged", "cdecl"):
-    PLAY_ViewResolutionChanged = _libs["Libs/play.dll"].get("PLAY_ViewResolutionChanged", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_ViewResolutionChanged", "cdecl"):
+    PLAY_ViewResolutionChanged = _libs["Libs/win64/play.dll"].get("PLAY_ViewResolutionChanged", "cdecl")
     PLAY_ViewResolutionChanged.argtypes = [LONG, c_int, c_int, DWORD]
     PLAY_ViewResolutionChanged.restype = BOOL
 
@@ -3382,14 +3382,14 @@ struct_profiled_window_mask._fields_ = [
 ProfieldWindowMask = struct_profiled_window_mask# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1061
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1062
-if _libs["Libs/play.dll"].has("PLAY_DrawProfiledWindow", "cdecl"):
-    PLAY_DrawProfiledWindow = _libs["Libs/play.dll"].get("PLAY_DrawProfiledWindow", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_DrawProfiledWindow", "cdecl"):
+    PLAY_DrawProfiledWindow = _libs["Libs/win64/play.dll"].get("PLAY_DrawProfiledWindow", "cdecl")
     PLAY_DrawProfiledWindow.argtypes = [LONG, BOOL, POINTER(ProfieldWindowMask)]
     PLAY_DrawProfiledWindow.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1063
-if _libs["Libs/play.dll"].has("PLAY_EnableAutoTrack", "cdecl"):
-    PLAY_EnableAutoTrack = _libs["Libs/play.dll"].get("PLAY_EnableAutoTrack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_EnableAutoTrack", "cdecl"):
+    PLAY_EnableAutoTrack = _libs["Libs/win64/play.dll"].get("PLAY_EnableAutoTrack", "cdecl")
     PLAY_EnableAutoTrack.argtypes = [LONG, BOOL, c_int]
     PLAY_EnableAutoTrack.restype = BOOL
 
@@ -3433,56 +3433,56 @@ struct_auto_track_config._fields_ = [
 AutoTrackConfig = struct_auto_track_config# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1080
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1081
-if _libs["Libs/play.dll"].has("PLAY_SetMutiWindowAutoTrack", "cdecl"):
-    PLAY_SetMutiWindowAutoTrack = _libs["Libs/play.dll"].get("PLAY_SetMutiWindowAutoTrack", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetMutiWindowAutoTrack", "cdecl"):
+    PLAY_SetMutiWindowAutoTrack = _libs["Libs/win64/play.dll"].get("PLAY_SetMutiWindowAutoTrack", "cdecl")
     PLAY_SetMutiWindowAutoTrack.argtypes = [LONG, POINTER(AutoTrackConfig), BOOL]
     PLAY_SetMutiWindowAutoTrack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1082
-if _libs["Libs/play.dll"].has("PLAY_GetLastError", "cdecl"):
-    PLAY_GetLastError = _libs["Libs/play.dll"].get("PLAY_GetLastError", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_GetLastError", "cdecl"):
+    PLAY_GetLastError = _libs["Libs/win64/play.dll"].get("PLAY_GetLastError", "cdecl")
     PLAY_GetLastError.argtypes = [LONG]
     PLAY_GetLastError.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1083
-if _libs["Libs/play.dll"].has("PLAY_CreateFile", "cdecl"):
-    PLAY_CreateFile = _libs["Libs/play.dll"].get("PLAY_CreateFile", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CreateFile", "cdecl"):
+    PLAY_CreateFile = _libs["Libs/win64/play.dll"].get("PLAY_CreateFile", "cdecl")
     PLAY_CreateFile.argtypes = [LPSTR]
     PLAY_CreateFile.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1084
-if _libs["Libs/play.dll"].has("PLAY_DestroyFile", "cdecl"):
-    PLAY_DestroyFile = _libs["Libs/play.dll"].get("PLAY_DestroyFile", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_DestroyFile", "cdecl"):
+    PLAY_DestroyFile = _libs["Libs/win64/play.dll"].get("PLAY_DestroyFile", "cdecl")
     PLAY_DestroyFile.argtypes = [LONG]
     PLAY_DestroyFile.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1085
-if _libs["Libs/play.dll"].has("PLAY_CreateStream", "cdecl"):
-    PLAY_CreateStream = _libs["Libs/play.dll"].get("PLAY_CreateStream", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_CreateStream", "cdecl"):
+    PLAY_CreateStream = _libs["Libs/win64/play.dll"].get("PLAY_CreateStream", "cdecl")
     PLAY_CreateStream.argtypes = [DWORD]
     PLAY_CreateStream.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1086
-if _libs["Libs/play.dll"].has("PLAY_DestroyStream", "cdecl"):
-    PLAY_DestroyStream = _libs["Libs/play.dll"].get("PLAY_DestroyStream", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_DestroyStream", "cdecl"):
+    PLAY_DestroyStream = _libs["Libs/win64/play.dll"].get("PLAY_DestroyStream", "cdecl")
     PLAY_DestroyStream.argtypes = [LONG]
     PLAY_DestroyStream.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1087
-if _libs["Libs/play.dll"].has("PLAY_BackOne", "cdecl"):
-    PLAY_BackOne = _libs["Libs/play.dll"].get("PLAY_BackOne", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_BackOne", "cdecl"):
+    PLAY_BackOne = _libs["Libs/win64/play.dll"].get("PLAY_BackOne", "cdecl")
     PLAY_BackOne.argtypes = [LONG]
     PLAY_BackOne.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1088
-if _libs["Libs/play.dll"].has("PLAY_SetEncChangeMsg", "cdecl"):
-    PLAY_SetEncChangeMsg = _libs["Libs/play.dll"].get("PLAY_SetEncChangeMsg", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetEncChangeMsg", "cdecl"):
+    PLAY_SetEncChangeMsg = _libs["Libs/win64/play.dll"].get("PLAY_SetEncChangeMsg", "cdecl")
     PLAY_SetEncChangeMsg.argtypes = [LONG, HWND, UINT]
     PLAY_SetEncChangeMsg.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\DH_PlaySDK.h: 1089
-if _libs["Libs/play.dll"].has("PLAY_SetFileEndMsg", "cdecl"):
-    PLAY_SetFileEndMsg = _libs["Libs/play.dll"].get("PLAY_SetFileEndMsg", "cdecl")
+if _libs["Libs/win64/play.dll"].has("PLAY_SetFileEndMsg", "cdecl"):
+    PLAY_SetFileEndMsg = _libs["Libs/win64/play.dll"].get("PLAY_SetFileEndMsg", "cdecl")
     PLAY_SetFileEndMsg.argtypes = [LONG, HWND, UINT]
     PLAY_SetFileEndMsg.restype = BOOL
 

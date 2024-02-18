@@ -2,9 +2,9 @@ from pathlib import Path
 
 from loguru import logger
 
-from UnifyNetSDK.dahua.playsdk.dh_playsdk_exception import ErrorCode, DH_PlaySDK_Exception
+from UnifyNetSDK.dahua.dh_playsdk_exception import ErrorCode, DH_PlaySDK_Exception
 from UnifyNetSDK.define import AbsPlaySDK
-import UnifyNetSDK.dahua.playsdk.dh_playsdk_wrapper as playsdk_wrapper
+import UnifyNetSDK.dahua.dh_playsdk_wrapper as playsdk_wrapper
 from ctypes import *
 
 
@@ -20,6 +20,12 @@ class DaHuaPlaySDK(AbsPlaySDK):
         result = cls.playDll.PLAY_GetFreePort(byref(nPort))
         cls.getLastError("PLAY_GetFreePort", bool(result))
         return nPort
+
+    @classmethod
+    def releasePort(cls, nPort):
+        result = cls.playDll.PLAY_ReleasePort(nPort)
+        cls.getLastError("PLAY_ReleasePort", bool(result))
+        return result
 
     @classmethod
     def openFile(cls, nPort, videoFilePath: [str, Path]):
@@ -40,6 +46,7 @@ class DaHuaPlaySDK(AbsPlaySDK):
         如果quality参数是None，则抓图质量为，jpg格式，压缩70%
         """
         quality = cls.playDll.PicFormat_JPEG_70 if quality is None else quality
+        absPicName = create_string_buffer(str(absPicName).encode("gbk"))
         catchResult = cls.playDll.PLAY_CatchPicEx(nPort, absPicName, quality)
         cls.getLastError("PLAY_CatchPicEx", bool(catchResult))
         return catchResult

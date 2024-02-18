@@ -5,8 +5,8 @@ from ctypes import *
 import sys
 
 from UnifyNetSDK.define import AbsNetSDK, Singleton
-from UnifyNetSDK.dahua.netsdk.dh_exception import ErrorCode, DHException
-import UnifyNetSDK.dahua.netsdk.dh_netsdk_wrapper as DH
+from UnifyNetSDK.dahua.dh_exception import ErrorCode, DHException
+import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
 
