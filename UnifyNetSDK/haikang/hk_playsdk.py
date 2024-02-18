@@ -2,7 +2,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from UnifyNetSDK.haikang.hk_playsdk_exception import ErrorCode, HK_PlaySDK_Exception
+from UnifyNetSDK.haikang.hk_playsdk_exception import ErrorCode, HKPlaySDKException
 from UnifyNetSDK.define import AbsPlaySDK
 import UnifyNetSDK.haikang.hk_playsdk_wrapper as playsdk_wrapper
 from ctypes import *
@@ -44,8 +44,13 @@ class HaikangPlaySDK(AbsPlaySDK):
     def catchPic(cls, nPort, absPicName, quality=None):
         """
         如果quality参数是None，则抓图质量为，jpg格式，压缩70%
+        大华那边限制了jpeg压缩质量为，10，30，50，70，100
+        那海康这边也需要同步一下，只能有这四种选项
         """
         quality = 70 if quality is None else quality
+        qualityDict = {100: 100, 70: 70, 50: 50, 30: 30, 10: 10}
+        quality = qualityDict[quality]
+
         setResult = cls.playDll.PlayM4_SetJpegQuality(quality)  # 设置jpeg压缩质量
         cls.getLastError(nPort, "PlayM4_SetJpegQuality", bool(setResult))
 
@@ -92,4 +97,4 @@ class HaikangPlaySDK(AbsPlaySDK):
         errorIndex = cls.playDll.PlayM4_GetLastError(nPort)
         errorText = ErrorCode[errorIndex]
         logger.error(f"{errorIndex} {errorText}")
-        raise HK_PlaySDK_Exception(errorIndex, errorText)
+        raise HKPlaySDKException(errorIndex, errorText)

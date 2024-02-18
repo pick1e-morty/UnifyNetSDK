@@ -1,8 +1,6 @@
 import time
-from ctypes import create_string_buffer
 from pathlib import Path
-
-from UnifyNetSDK.haikang.hk_palysdk import HaikangPlaySDK
+from UnifyNetSDK import HaikangPlaySDK
 
 playClient = HaikangPlaySDK()
 nPort = playClient.getFreePort()

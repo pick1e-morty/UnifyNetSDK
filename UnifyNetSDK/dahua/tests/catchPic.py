@@ -6,9 +6,9 @@ from datetime import timedelta
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QWidget, QLabel, QApplication, QGridLayout
-from UnifyNetSDK import DaHuaSDK
+from UnifyNetSDK import DaHuaNetSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyPlayBackByTimeArg
-import UnifyNetSDK.dahua.ctypes_headfile as DH
+import UnifyNetSDK.dahua.dh_playsdk_wrapper as DH
 from UnifyNetSDK.dahua.tests._testLoginConfig import testUserConfig
 
 global formObject
@@ -45,10 +45,8 @@ def downLoadPosCallBack(lPlayHandle, dwTotalSize, dwDownLoadSize, dwUser):
     filePath = Path(__file__).with_name(str(num) + ".jpeg")
     savedFileName = create_string_buffer(str(filePath).encode("gbk"))
     if dwDownLoadSize >= dwTotalSize:
-
         formObject.dahuaClient.catchPicture(lPlayHandle, savedFileName)
         formObject.dahuaClient.stopPlayBack(lPlayHandle)
-
 
 
 class CatchPic(QWidget):

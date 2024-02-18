@@ -6,9 +6,9 @@ from datetime import timedelta, datetime
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QApplication, QGridLayout
-from UnifyNetSDK import DaHuaSDK
+from UnifyNetSDK import DaHuaNetSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg
-import UnifyNetSDK.dahua.ctypes_headfile as DH
+import UnifyNetSDK.dahua.dh_playsdk_wrapper as DH
 
 global formObject
 

@@ -1,4 +1,4 @@
-class HK_NetSDK_Exception(Exception):
+class HKNetSDKException(Exception):
 
     def __init__(self, code, value):
         self.code = code

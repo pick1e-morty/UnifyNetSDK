@@ -1,4 +1,4 @@
-class DH_PlaySDK_Exception(Exception):
+class DHPlaySDKException(Exception):
 
     def __init__(self, code, value):
         self.code = code

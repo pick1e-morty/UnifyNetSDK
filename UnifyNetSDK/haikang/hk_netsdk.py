@@ -4,7 +4,7 @@ from time import sleep
 from ctypes import *
 import sys
 from UnifyNetSDK.define import *
-from UnifyNetSDK.haikang.hk_netsdk_exception import ErrorCode, HK_NetSDK_Exception
+from UnifyNetSDK.haikang.hk_netsdk_exception import ErrorCode, HKNetSDKException
 from UnifyNetSDK.parameter import *
 import UnifyNetSDK.haikang.hk_netsdk_wrapper as HK
 from loguru import logger
@@ -35,9 +35,7 @@ print(var6,type(var6))
 """
 
 
-# @Singleton
-# 上面这个单例有问题，会影响类的类方法，python最终会认为这个类一个function
-class HaiKangNetSDK(AbsNetSDK):
+class HaikangNetSDK(AbsNetSDK):
     sdkDll = None
     playctrlDll = None
 
@@ -162,7 +160,9 @@ class HaiKangNetSDK(AbsNetSDK):
     def stopDownLoadTimer(cls, downLoadHandle: int):
         downLoadPos = c_int()
         lpOutLen = c_ulong(0)
-        cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), byref(lpOutLen))
+        controlResult = cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), byref(lpOutLen))
+        cls.getLastError("NET_DVR_PlayBackControl_V40", controlResult)
+
         logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
         if downLoadPos.value == 100:
             logger.success(f"下载ID {downLoadHandle} 下载成功")
@@ -221,7 +221,7 @@ class HaiKangNetSDK(AbsNetSDK):
         errorIndex = cls.sdkDll.NET_DVR_GetLastError()
         errorText = ErrorCode[errorIndex]
         logger.error(f"{errorIndex} {errorText}")
-        raise HKException(errorIndex, errorText)
+        raise HKNetSDKException(errorIndex, errorText)
 
     @classmethod
     def logout(cls, userID):
@@ -236,11 +236,19 @@ class HaiKangNetSDK(AbsNetSDK):
         cls.getLastError("NET_DVR_Cleanup", bool(cleanupResult))
 
     @classmethod
-    def logopen(cls):
+    def logopen(cls, absLogPath):
         """
         打开日志功能
         """
-        logFilePath = os.path.join(os.getcwd(), 'haikang_sdk.log').encode('gbk')
+
+        # 设置log数量仅保留一个，手册没说默认大小是多少，希望也是10240kb吧
+
+        log_cfg = HK.NET_DVR_LOCAL_LOG_CFG()
+        log_cfg.wSDKLogNum = 1
+        setResult = cls.sdkDll.NET_DVR_SetSDKLocalCfg(HK.NET_DVR_LOCAL_CFG_TYPE_LOG, byref(log_cfg))
+        cls.getLastError("NET_DVR_SetSDKLocalCfg", bool(setResult))
+
+        logFilePath = str(absLogPath).encode('gbk')
         setResult = cls.sdkDll.NET_DVR_SetLogToFile(3, logFilePath, True)
         # 日志的等级 日志文件的路径 是否删除超出的文件数
         cls.getLastError("NET_DVR_SetLogToFile", bool(setResult))
