@@ -4,9 +4,9 @@ from time import sleep
 from ctypes import *
 import sys
 from UnifyNetSDK.define import *
-from UnifyNetSDK.haikang.netsdk.hk_exception import ErrorCode, HKException
+from UnifyNetSDK.haikang.hk_netsdk_exception import ErrorCode, HK_NetSDK_Exception
 from UnifyNetSDK.parameter import *
-import UnifyNetSDK.haikang.netsdk.hk_netsdk_wrapper as HK
+import UnifyNetSDK.haikang.hk_netsdk_wrapper as HK
 from loguru import logger
 
 logger.remove()
@@ -37,7 +37,7 @@ print(var6,type(var6))
 
 # @Singleton
 # 上面这个单例有问题，会影响类的类方法，python最终会认为这个类一个function
-class HaiKangSDK(AbsNetSDK):
+class HaiKangNetSDK(AbsNetSDK):
     sdkDll = None
     playctrlDll = None
 
@@ -129,9 +129,9 @@ class HaiKangSDK(AbsNetSDK):
         while True:
             findResult = cls.stopFindFileTimer(findHandle)
             if findResult != HK.NET_DVR_ISFINDING:  #
-                if findResult is True:      # 大华和海康这部分功能的实现真是花开两朵各表一枝啊
-                    return True             # 我统一了一下
-                else:                       # 找到了就True，没找到我底层这边打印个错误代码就行
+                if findResult is True:  # 大华和海康这部分功能的实现真是花开两朵各表一枝啊
+                    return True  # 我统一了一下
+                else:  # 找到了就True，没找到我底层这边打印个错误代码就行
                     return False
             sleep(0.5)
 

@@ -62,11 +62,11 @@ def generateCtypesWrapper(fileName: str, log2file: bool = True):
     if fileName == "DH_NetSDK.h":
         dllFile = "Libs/win64/dhnetsdk.dll"
     elif fileName == "DH_PlaySDK.h":
-        dllFile = "Libs/play.dll"
+        dllFile = "Libs/win64/play.dll"
     elif fileName == "HK_NetSDK.h":
         dllFile = "lib/win/HCNetSDK.dll"
     elif fileName == "HK_PlaySDK.h":
-        dllFile = "Libs/PlayCtrl.dll"
+        dllFile = "lib/win/PlayCtrl.dll"
     else:
         raise Exception("参数有误")
 
@@ -171,7 +171,7 @@ if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放
     # clangformat(dahua_playsdk)
     # sanitizeText(dahua_playsdk, copy2replaceDir=True)
     # remove_default_parameters(dahua_playsdk)
-    generateCtypesWrapper(dahua_playsdk, log2file=True)
+    # generateCtypesWrapper(dahua_playsdk, log2file=True)
 
     # clangformat(haikang)
     # sanitizeText(haikang, copy2replaceDir=True)
@@ -181,11 +181,11 @@ if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放
     # clangformat(haikang_playsdk)
     # sanitizeText(haikang_playsdk, copy2replaceDir=True)
     # remove_default_parameters(haikang_playsdk)
-    # generateCtypesWrapper(haikang_playsdk, log2file=True)
+    generateCtypesWrapper(haikang_playsdk, log2file=True)
 
 """
-一条龙运行完成之后还需要进行一些手动操作
-大华头文件
+运行到第三步之后之后还需要进行一些手动操作
+大华netsdk头文件
 添加行
 #include <stdbool.h>
 替换行内容
@@ -193,4 +193,10 @@ if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放
     #define CLIENT_NET_API extern "C"  替换为  #define CLIENT_NET_API __declspec(dllimport)  # 这步跟海康对比一下，我应该是做错了的
     #define LPDWORD DWORD*  替换为  #define LPDWORD unsigned int*
     #define LLONG long  替换为  #define LLONG long long
+
+
+海康playsdk头文件
+添加行
+#include <windows.h>
+    
 """
