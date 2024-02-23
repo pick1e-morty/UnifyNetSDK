@@ -6,9 +6,12 @@ from datetime import timedelta
 from pathlib import Path
 from time import sleep
 
-from UnifyNetSDK import DaHuaNetSDK, DHNetSDKException
+from UnifyNetSDK import DaHuaNetSDK
+from UnifyNetSDK.dahua.dh_netsdk_exception import DHNetSDKException
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
-from _testLoginConfig import testUserConfig
+from _testLoginConfig import getTestUserConfig
+
+testUserConfig = getTestUserConfig("dahua")
 
 from loguru import logger
 
@@ -74,39 +77,38 @@ def main():
     stopDownInstance = StopDownloadConsumer(dahuaCondition, downloadHandleList)
     stopDownInstance.start()
 
-    for channel, downloadArgList in testUserConfig.downloadArgDict.items():
-        for downloadArg in downloadArgList:
-            findArg = UnifyFindFileByTimeArg()
-            findArg.channel = channel
-            findArg.startTime = downloadArg.downloadTime
-            findArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
-            try:
-                findResult = dahuaClient.syncFindFileByTime(userID, findArg)  # 这个查询最高居然可达780ms，过分。上层还是用两套代码吧，海康的查询能做异步的，那就让他异步。不然代价太高了
-                print(f"查找录像结果为{findResult}")  # 0说明没找到
-                if findResult is not True:
-                    text = findArg.getSimpleReadMsg() + "\n没有查到录像"
-                    logger.error(text)
-                    continue
-            except DHNetSDKException as e:
-                text = findArg.getSimpleReadMsg() + f"\n{e}"
+    for downloadArg in testUserConfig.downloadArgList:
+        findArg = UnifyFindFileByTimeArg()
+        findArg.channel = downloadArg.channel
+        findArg.startTime = downloadArg.downloadTime
+        findArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
+        try:
+            findResult = dahuaClient.syncFindFileByTime(userID, findArg)  # 这个查询最高居然可达780ms，过分。上层还是用两套代码吧，海康的查询能做异步的，那就让他异步。不然代价太高了
+            print(f"查找录像结果为{findResult}")  # 0说明没找到
+            if findResult is not True:
+                text = findArg.getSimpleReadMsg() + "\n没有查到录像"
                 logger.error(text)
                 continue
+        except DHNetSDKException as e:
+            text = findArg.getSimpleReadMsg() + f"\n{e}"
+            logger.error(text)
+            continue
 
-            downloadbytimeArg = UnifyDownLoadByTimeArg()
-            downloadbytimeArg.channel = channel
-            downloadbytimeArg.saveFilePath = downloadArg.savePath
-            downloadbytimeArg.startTime = downloadArg.downloadTime
-            downloadbytimeArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
-            downLoadHandle = dahuaClient.asyncDownLoadByTime(userID, downloadbytimeArg)
-            print(f"下载句柄{downLoadHandle}")
-            if downLoadHandle != 0:
-                with dahuaCondition:
-                    downloadHandleList.append(downLoadHandle)
-                    dahuaCondition.notify()
-            else:
-                text = downloadbytimeArg.getSimpleReadMsg()
-                text += "\n下载句柄为空，该录像下载失败"
-                logger.error(text)
+        downloadbytimeArg = UnifyDownLoadByTimeArg()
+        downloadbytimeArg.channel = downloadArg.channel
+        downloadbytimeArg.saveFilePath = downloadArg.savePath
+        downloadbytimeArg.startTime = downloadArg.downloadTime
+        downloadbytimeArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
+        downLoadHandle = dahuaClient.asyncDownLoadByTime(userID, downloadbytimeArg)
+        print(f"下载句柄{downLoadHandle}")
+        if downLoadHandle != 0:
+            with dahuaCondition:
+                downloadHandleList.append(downLoadHandle)
+                dahuaCondition.notify()
+        else:
+            text = downloadbytimeArg.getSimpleReadMsg()
+            text += "\n下载句柄为空，该录像下载失败"
+            logger.error(text)
 
     stopDownInstance.producerDone()
     stopDownInstance.join(10)  # 超时10秒，

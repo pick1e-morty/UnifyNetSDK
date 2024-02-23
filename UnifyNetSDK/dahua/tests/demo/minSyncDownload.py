@@ -4,16 +4,18 @@ from pathlib import Path
 from datetime import timedelta, datetime
 from UnifyNetSDK import DaHuaNetSDKs
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg, UnifyFindFileByTimeArg
+from tests._testLoginConfig import getTestUserConfig
+testUserConfig = getTestUserConfig("dahua")
 
 dahuaClient = DaHuaNetSDKs()
 dahuaClient.init()
 dahuaClient.logopen()
 
 easy_login_info = UnifyLoginArg()
-easy_login_info.userName = "admin"
-easy_login_info.userPassword = "admin"
-easy_login_info.devicePort = 80
-easy_login_info.deviceAddress = "10.10.10.10"
+easy_login_info.userName = testUserConfig.devUserName
+easy_login_info.userPassword = testUserConfig.devPassword
+easy_login_info.devicePort = testUserConfig.devPort
+easy_login_info.deviceAddress = testUserConfig.devIP
 
 userID, device_info = dahuaClient.login(easy_login_info)
 print("硬盘数量", device_info.stuDeviceInfo.nDiskNum)

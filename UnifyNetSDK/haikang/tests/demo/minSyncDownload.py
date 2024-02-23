@@ -3,16 +3,19 @@ from pathlib import Path
 
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from UnifyNetSDK.haikang.hk_netsdk import HaikangNetSDK
+from tests._testLoginConfig import getTestUserConfig
+
+testUserConfig = getTestUserConfig("haikang")
 
 hkClient = HaikangNetSDK()
 hkClient.init()
 hkClient.logopen()
 
 easy_login_info = UnifyLoginArg()
-easy_login_info.userName = "admin"
-easy_login_info.userPassword = "admin"
-easy_login_info.devicePort = 8000
-easy_login_info.deviceAddress = "10.10.10.10"
+easy_login_info.userName = testUserConfig.devUserName
+easy_login_info.userPassword = testUserConfig.devPassword
+easy_login_info.devicePort = testUserConfig.devPort
+easy_login_info.deviceAddress = testUserConfig.devIP
 
 userID, device_info = hkClient.login(easy_login_info)
 print("硬盘数量", device_info.struDeviceV30.byDiskNum)

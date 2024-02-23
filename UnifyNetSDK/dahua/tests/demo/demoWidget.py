@@ -9,6 +9,9 @@ from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QApplication, QGridLay
 from UnifyNetSDK import DaHuaNetSDK
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg
 import UnifyNetSDK.dahua.dh_playsdk_wrapper as DH
+from tests._testLoginConfig import getTestUserConfig
+
+testUserConfig = getTestUserConfig("dahua")
 
 global formObject
 
@@ -74,10 +77,11 @@ class testForm(QWidget):
 
     def login(self):
         easy_login_info = UnifyLoginArg()
-        easy_login_info.userName = "admin"
-        easy_login_info.userPassword = "ydfb450000"
-        easy_login_info.devicePort = 80
-        easy_login_info.deviceAddress = "10.30.15.216"
+        easy_login_info.userName = testUserConfig.devUserName
+        easy_login_info.userPassword = testUserConfig.devPassword
+        easy_login_info.devicePort = testUserConfig.devPort
+        easy_login_info.deviceAddress = testUserConfig.devIP
+
         userID, device_info = self.dahuaClient.login(easy_login_info)
         print("硬盘数量", device_info.stuDeviceInfo.nDiskNum)
         self.userID = userID

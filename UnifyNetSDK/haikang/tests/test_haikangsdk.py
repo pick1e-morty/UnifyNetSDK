@@ -3,14 +3,15 @@ from pathlib import Path
 
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from UnifyNetSDK.haikang.hk_netsdk import HaikangNetSDK
-
+from tests._testLoginConfig import getTestUserConfig
+testUserConfig = getTestUserConfig("haikang")
 
 def test_login():
     easy_login_info = UnifyLoginArg()
-    easy_login_info.userName = "admin"
-    easy_login_info.userPassword = "zzfb450000"
-    easy_login_info.devicePort = 8000
-    easy_login_info.deviceAddress = "10.200.15.41"
+    easy_login_info.userName = testUserConfig.devUserName
+    easy_login_info.userPassword = testUserConfig.devPassword
+    easy_login_info.devicePort = testUserConfig.devPort
+    easy_login_info.deviceAddress = testUserConfig.devIP
 
     hkClient = HaiKangNetSDK()
     hkClient.init()
