@@ -9,8 +9,6 @@ from UnifyNetSDK.parameter import *
 import UnifyNetSDK.haikang.hk_netsdk_wrapper as HK
 from loguru import logger
 
-logger.remove()
-logger.add(sys.stdout, level="DEBUG")
 
 """
 from ctypes import *
@@ -44,9 +42,9 @@ class HaikangNetSDK(AbsNetSDK):
 
     @classmethod
     def init(cls):
-        initResult = bool(cls.sdkDll.NET_DVR_Init())
+        initResult = cls.sdkDll.NET_DVR_Init()
         logger.info(f"SDK初始化已执行")
-        cls.getLastError("NET_DVR_Init", initResult)
+        cls.getLastError("NET_DVR_Init", bool(initResult))
 
     @classmethod
     def _loadLibrary(cls):
@@ -85,7 +83,7 @@ class HaikangNetSDK(AbsNetSDK):
         deviceInfo = HK.NET_DVR_DEVICEINFO_V40()
         # 登录
         userID = cls.sdkDll.NET_DVR_Login_V40(loginInfo, byref(deviceInfo))
-        cls.getLastError("NET_DVR_Login_V40", userID)
+        cls.getLastError("NET_DVR_Login_V40", int(userID))
         return userID, deviceInfo
 
     @classmethod
@@ -93,7 +91,7 @@ class HaikangNetSDK(AbsNetSDK):
 
         lpFindData = HK.NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
         findResult = cls.sdkDll.NET_DVR_FindNextFile_V50(findHandle, byref(lpFindData))
-        cls.getLastError("NET_DVR_FindNextFile_V50", findResult)
+        cls.getLastError("NET_DVR_FindNextFile_V50", int(findResult))
 
         # findStateList = {1001: HK.NET_DVR_FILE_NOFIND,
         #                  1003: HK.NET_DVR_NOMOREFILE,
@@ -109,7 +107,7 @@ class HaikangNetSDK(AbsNetSDK):
         elif findResult == HK.NET_DVR_FILE_SUCCESS:
             logger.success(f"查找ID {findHandle},查找成功")
             stopFindResult = cls.sdkDll.NET_DVR_FindClose_V30(findHandle)
-            cls.getLastError("NET_DVR_FindClose_V30", stopFindResult)
+            cls.getLastError("NET_DVR_FindClose_V30", bool(stopFindResult))
             return True
         elif findResult in findStateList:
             logger.error(f"查找ID {findHandle},查找状态异常代码 {findResult},{findStateList[findResult]}")
@@ -152,7 +150,7 @@ class HaikangNetSDK(AbsNetSDK):
 
         # 开始查询
         findHandle = cls.sdkDll.NET_DVR_FindFile_V50(userID, pFindCond)
-        cls.getLastError("NET_DVR_FindFile_V50", findHandle)
+        cls.getLastError("NET_DVR_FindFile_V50", int(findHandle))
 
         return findHandle
 
@@ -161,17 +159,17 @@ class HaikangNetSDK(AbsNetSDK):
         downLoadPos = c_int()
         lpOutLen = c_ulong(0)
         controlResult = cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), byref(lpOutLen))
-        cls.getLastError("NET_DVR_PlayBackControl_V40", controlResult)
+        cls.getLastError("NET_DVR_PlayBackControl_V40", bool(controlResult))
 
         logger.trace(f"下载ID {downLoadHandle},下载状态 {downLoadPos.value}")
         if downLoadPos.value == 100:
             logger.success(f"下载ID {downLoadHandle} 下载成功")
             stopGetFileResult = cls.sdkDll.NET_DVR_StopGetFile(downLoadHandle)
-            cls.getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+            cls.getLastError("NET_DVR_StopGetFile", bool(stopGetFileResult))
         elif downLoadPos.value == 200:
             logger.error(f"下载ID {downLoadHandle} 下载异常")
             stopGetFileResult = cls.sdkDll.NET_DVR_StopGetFile(downLoadHandle)
-            cls.getLastError("NET_DVR_StopGetFile", stopGetFileResult)
+            cls.getLastError("NET_DVR_StopGetFile", bool(stopGetFileResult))
         return downLoadPos.value
 
     @classmethod
@@ -203,7 +201,7 @@ class HaikangNetSDK(AbsNetSDK):
         pDownloadCond.struStopTime = cls.datetime2DVR_Struct_TIME(downLoadArg.stopTime)
         # 开始下载
         downLoadHandle = cls.sdkDll.NET_DVR_GetFileByTime_V40(userID, sSavedFileName, byref(pDownloadCond))
-        cls.getLastError("NET_DVR_GetFileByTime_V40", downLoadHandle)
+        cls.getLastError("NET_DVR_GetFileByTime_V40", int(downLoadHandle))
 
         controlResult = cls.sdkDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYSTART, c_void_p(), 0, c_void_p(), byref(c_ulong(0)))
         cls.getLastError("NET_DVR_PlayBackControl_V40", bool(controlResult))

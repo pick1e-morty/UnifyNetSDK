@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from pathlib import Path
 from time import sleep
 from ctypes import *
 import sys
@@ -9,10 +10,6 @@ from UnifyNetSDK.dahua.dh_netsdk_exception import ErrorCode, DHNetSDKException
 import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
 from UnifyNetSDK.parameter import *
 from loguru import logger
-
-
-# logger.remove()
-# logger.add(sys.stdout, level="TRACE")
 
 
 class DaHuaNetSDK(AbsNetSDK):
@@ -120,7 +117,7 @@ class DaHuaNetSDK(AbsNetSDK):
         loginInfo.nPort = loginArg.devicePort
         loginInfo.szUserName = loginArg.userName.encode()
         loginInfo.szPassword = loginArg.userPassword.encode()
-        # loginInfo.emSpecCap = DH.EM_LOGIN_SPAC_CAP_TYPE.TCP
+        loginInfo.emSpecCap = DH.EM_LOGIN_SPEC_CAP_TCP
 
         # 设备信息, 输出参数
         deviceInfo = DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
@@ -174,7 +171,7 @@ class DaHuaNetSDK(AbsNetSDK):
         if nTotalSize.value == nDownLoadSize.value:
             logger.success(f"下载ID {downLoadHandle} 下载完成")
             stopGetFileResult = cls.netDll.CLIENT_StopDownload(downLoadHandle)
-            cls.getLastError("CLIENT_StopDownload", stopGetFileResult)
+            cls.getLastError("CLIENT_StopDownload", bool(stopGetFileResult))
             return True
         else:
             return False
@@ -236,7 +233,7 @@ class DaHuaNetSDK(AbsNetSDK):
 
     @classmethod
     def cleanup(cls):
-        cls.netDll.CLIENT_Cleanup()
+        cls.netDll.CLIENT_Cleanup() # 没有返回值
         logger.info("SDK资源已释放")
 
     @classmethod

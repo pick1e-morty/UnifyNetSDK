@@ -11,12 +11,10 @@ from UnifyNetSDK.dahua.dh_netsdk_exception import DHNetSDKException
 from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
 from _testLoginConfig import getTestUserConfig
 
-testUserConfig = getTestUserConfig("dahua")
+testUserConfig = getTestUserConfig("dahua", generateNum=1)
 
 from loguru import logger
 
-logger.remove()
-logger.add(sys.stdout, level="TRACE")
 
 dahuaClient = None
 

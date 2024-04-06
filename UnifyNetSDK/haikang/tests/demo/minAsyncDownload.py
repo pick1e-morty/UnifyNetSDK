@@ -15,9 +15,6 @@ testUserConfig = getTestUserConfig("haikang")
 
 from loguru import logger
 
-logger.remove()
-logger.add(sys.stdout, level="TRACE")
-
 haikangClient = None
 
 

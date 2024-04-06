@@ -15,8 +15,6 @@ testUserConfig = getTestUserConfig("dahua")
 
 from loguru import logger
 
-logger.remove()
-logger.add(sys.stdout, level="TRACE")
 
 dahuaClient = None
 
