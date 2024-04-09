@@ -1,15 +1,14 @@
-import os
+from ctypes import *
 from datetime import datetime
 from pathlib import Path
 from time import sleep
-from ctypes import *
-import sys
 
-from UnifyNetSDK.define import AbsNetSDK, Singleton
-from UnifyNetSDK.dahua.dh_netsdk_exception import ErrorCode, DHNetSDKException
-import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
-from UnifyNetSDK.parameter import *
 from loguru import logger
+
+import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
+from UnifyNetSDK.dahua.dh_netsdk_exception import DHNetSDKExceptionDict
+from UnifyNetSDK.define import AbsNetSDK
+from UnifyNetSDK.parameter import *
 
 
 class DaHuaNetSDK(AbsNetSDK):
@@ -221,9 +220,13 @@ class DaHuaNetSDK(AbsNetSDK):
     @classmethod
     def _getLastError(cls):
         errorIndex = cls.netDll.CLIENT_GetLastError() & 0x7fffffff
-        errorText = ErrorCode[errorIndex]
-        logger.error(f"{errorIndex} {errorText}")
-        raise DHNetSDKException(errorIndex, errorText)
+        try:
+            exception = DHNetSDKExceptionDict[errorIndex]
+        except IndexError:
+            logger.error(f"{errorIndex} 未知错误")
+            raise Exception("未知错误")
+        logger.error(f"{errorIndex} {exception}")
+        raise exception
 
     @classmethod
     def logout(cls, userID):
@@ -233,7 +236,7 @@ class DaHuaNetSDK(AbsNetSDK):
 
     @classmethod
     def cleanup(cls):
-        cls.netDll.CLIENT_Cleanup() # 没有返回值
+        cls.netDll.CLIENT_Cleanup()  # 没有返回值
         logger.info("SDK资源已释放")
 
     @classmethod

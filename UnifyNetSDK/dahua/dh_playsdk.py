@@ -1,11 +1,11 @@
+from ctypes import *
 from pathlib import Path
 
 from loguru import logger
 
-from UnifyNetSDK.dahua.dh_playsdk_exception import ErrorCode, DHPlaySDKException
-from UnifyNetSDK.define import AbsPlaySDK
 import UnifyNetSDK.dahua.dh_playsdk_wrapper as playsdk_wrapper
-from ctypes import *
+from UnifyNetSDK.dahua.dh_playsdk_exception import DHPlaySDKExceptionDict
+from UnifyNetSDK.define import AbsPlaySDK
 
 
 # TODO playsdk的日志应该没必要开
@@ -83,6 +83,10 @@ class DaHuaPlaySDK(AbsPlaySDK):
     @classmethod
     def _getLastError(cls):
         errorIndex = cls.playDll.PLAY_GetLastErrorEx()
-        errorText = ErrorCode[errorIndex]
-        logger.error(f"{errorIndex} {errorText}")
-        raise DHPlaySDKException(errorIndex, errorText)
+        try:
+            exception = DHPlaySDKExceptionDict[errorIndex]
+        except IndexError:
+            logger.error(f"{errorIndex} 未知错误")
+            raise Exception("未知错误")
+        logger.error(f"{errorIndex} {exception}")
+        raise exception

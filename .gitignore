@@ -1,8 +1,8 @@
 # 除了源文件存放文件夹，另外三步生成的头文件都不保留
-UnifyNetSDK/gen_ctypes_file/*/*.h
-!UnifyNetSDK/gen_ctypes_file/_1_original/*.h
+gen_ctypes_file/*/*.h
+gen_ctypes_file/_1_original/*.h
 # 格式化用的二进制文件
-/UnifyNetSDK/gen_ctypes_file/tools/clang_format/clang-format.exe
+gen_ctypes_file/tools/clang_format/clang-format.exe
 
 # 排除SDK的动态链接库
 UnifyNetSDK/dahua/Libs/win64/*

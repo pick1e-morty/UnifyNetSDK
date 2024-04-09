@@ -1,8 +1,8 @@
 import time
-from ctypes import create_string_buffer
 from pathlib import Path
 
 from UnifyNetSDK.dahua.dh_playsdk import DaHuaPlaySDK
+from UnifyNetSDK.dahua.dh_playsdk_exception import DHPlaySDKException
 
 playClient = DaHuaPlaySDK()
 nPort = playClient.getFreePort()
@@ -14,7 +14,13 @@ time.sleep(0.1)
 
 absPath = Path(__file__).absolute()
 absPicName = absPath.with_name("test.jpg")
-playClient.catchPic(nPort, absPicName)
+try:
+    playClient.catchPic(nPort, absPicName)
+# except PLAY_NO_FRAME as e:
+#     print(e)
+except DHPlaySDKException as e:
+    print(e)
+
 playClient.stop(nPort)
 playClient.close(nPort)
 playClient.releasePort(nPort)

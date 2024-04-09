@@ -1,5 +1,15 @@
 # 变更日志
-## v2.0.0
+## v1.1.0
+四个sdk的错误代码不再是str，也不再是raise SDKException(errorIndex)，而是基于Exception的子类，raise NET_DVR_NOERROR
+
+
+## v1.0.2
+修复错误处理sdk函数返回数值类型的问题
+
+## v1.0.1
+修复大华playsdkException与海康playsdkException混淆的问题
+
+## v1.0.1
 支持大华异步下载回放
 支持大华和海康playsdk的基本功能及catchPic
 

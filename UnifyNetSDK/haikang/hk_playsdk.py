@@ -1,11 +1,11 @@
+from ctypes import *
 from pathlib import Path
 
 from loguru import logger
 
-from UnifyNetSDK.haikang.hk_playsdk_exception import ErrorCode, HKPlaySDKException
-from UnifyNetSDK.define import AbsPlaySDK
 import UnifyNetSDK.haikang.hk_playsdk_wrapper as playsdk_wrapper
-from ctypes import *
+from UnifyNetSDK.define import AbsPlaySDK
+from UnifyNetSDK.haikang.hk_playsdk_exception import HKPlaySDKExceptionDict
 
 
 class HaikangPlaySDK(AbsPlaySDK):
@@ -95,6 +95,10 @@ class HaikangPlaySDK(AbsPlaySDK):
     @classmethod
     def _getLastError(cls, nPort):
         errorIndex = cls.playDll.PlayM4_GetLastError(nPort)
-        errorText = ErrorCode[errorIndex]
-        logger.error(f"{errorIndex} {errorText}")
-        raise HKPlaySDKException(errorIndex, errorText)
+        try:
+            exception = HKPlaySDKExceptionDict[errorIndex]
+        except IndexError:
+            logger.error(f"{errorIndex} 未知错误")
+            raise Exception("未知错误")
+        logger.error(f"{errorIndex} {exception}")
+        raise exception

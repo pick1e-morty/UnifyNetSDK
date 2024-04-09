@@ -2,6 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/UnifyNetSDK/gen_ctypes_file/tools/sub_ctypesgen" vcs="Git" />
   </component>
 </project>

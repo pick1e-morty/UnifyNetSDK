@@ -1,14 +1,13 @@
-import os
+from ctypes import *
 from pathlib import Path
 from time import sleep
-from ctypes import *
-import sys
-from UnifyNetSDK.define import *
-from UnifyNetSDK.haikang.hk_netsdk_exception import ErrorCode, HKNetSDKException
-from UnifyNetSDK.parameter import *
-import UnifyNetSDK.haikang.hk_netsdk_wrapper as HK
+
 from loguru import logger
 
+import UnifyNetSDK.haikang.hk_netsdk_wrapper as HK
+from UnifyNetSDK.define import *
+from UnifyNetSDK.haikang.hk_netsdk_exception import HKNetSDKExceptionDict
+from UnifyNetSDK.parameter import *
 
 """
 from ctypes import *
@@ -217,9 +216,13 @@ class HaikangNetSDK(AbsNetSDK):
     @classmethod
     def __getLastError(cls):
         errorIndex = cls.sdkDll.NET_DVR_GetLastError()
-        errorText = ErrorCode[errorIndex]
-        logger.error(f"{errorIndex} {errorText}")
-        raise HKNetSDKException(errorIndex, errorText)
+        try:
+            exception = HKNetSDKExceptionDict[errorIndex]
+        except IndexError:
+            logger.error(f"{errorIndex} 未知错误")
+            raise Exception("未知错误")
+        logger.error(f"{errorIndex} {exception}")
+        raise exception
 
     @classmethod
     def logout(cls, userID):
