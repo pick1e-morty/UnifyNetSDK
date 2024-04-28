@@ -81,7 +81,7 @@ class NET_DVR_NETWORK_RECV_TIMEOUT(HKNetSDKException):
 class NET_DVR_NETWORK_ERRORDATA(HKNetSDKException):
     def __init__(self, errorText=None):
         self.errorIndex = 11
-        tempErrorInfo = "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这是当前错误的原因之一"
+        tempErrorInfo = "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这可能是当前错误的原因之一"
         self.errorInfo = tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
 
 

@@ -1,6 +1,6 @@
 # 变更日志
 ## v1.1.0
-四个sdk的错误代码不再是str，也不再是raise SDKException(errorIndex)，而是基于Exception的子类，raise NET_DVR_NOERROR
+四个sdk的错误代码不再是str，也不再是raise SDKException(errorIndex)，而是继承于Exception的子类，像这样raise NET_DVR_NOERROR
 
 
 ## v1.0.2

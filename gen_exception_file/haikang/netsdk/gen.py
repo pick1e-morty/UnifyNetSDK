@@ -1231,7 +1231,7 @@ class HKNetSDKException(Exception):
 
 from gen_exception_file.utils import genrateExceptionDict, genrateException
 
-AppendErrorInfo = {11: "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这是当前错误的原因之一"}
+AppendErrorInfo = {11: "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这可能是当前错误的原因之一"}
 if __name__ == '__main__':
     genrateException(HKNetSDKException, ErrorCode, AppendErrorInfo)
     genrateExceptionDict("HKNetSDKExceptionDict", ErrorCode, fileName="HKNetSDKException")

@@ -37,7 +37,6 @@ class UnifyFindFileByTimeArg:
         return text
 
 
-
 class UnifyPlayBackByTimeArg:
     # 基础的按时间回放参数定义，高度相同
     def __init__(self):
@@ -45,7 +44,18 @@ class UnifyPlayBackByTimeArg:
         self.startTime = None
         self.stopTime = None
         self.hwnd = None
-        self.dataCallBack = None
-        self.dwPosUser = None
-        self.downLoadPosCallBack = None
-        self.dwDataUser = None
+        self.dataCallBack = None        # 设备返回数据的回调函数
+        self.dwDataUser = None          # 用户自定义参数
+        self.downLoadPosCallBack = None # 设备返回下载进度的回调函数
+        self.dwPosUser = None           # 用户自定义参数
+
+
+class UninfyNTPArg:
+    # 基础的NTP参数定义
+    def __init__(self):
+        self.enable = False  # 是否启用NTP
+        self.domainOrIP = ""  # 域名或IP
+        self.port = 0  # NTP 端口
+        self.updateInterval = 0  # 更新时间间隔
+        self.timeZone = None  # 时区,两家时区还不是用的同一套系统，一个24时区一个36时区，不管了，默认None，不传sdk那边就设置东八UTC+8
+

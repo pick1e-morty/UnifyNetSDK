@@ -18,6 +18,42 @@ class DaHuaNetSDK(AbsNetSDK):
     renderDll = None
     infraDll = None
 
+    DH_TIME_ZONE = {
+        DH.DH_TIME_ZONE_0: "GMT+00:00",
+        DH.DH_TIME_ZONE_1: "GMT+01:00",
+        DH.DH_TIME_ZONE_2: "GMT+02:00",
+        DH.DH_TIME_ZONE_3: "GMT+03:00",
+        DH.DH_TIME_ZONE_4: "GMT+03:30",
+        DH.DH_TIME_ZONE_6: "GMT+04:00",
+        DH.DH_TIME_ZONE_7: "GMT+05:00",
+        DH.DH_TIME_ZONE_8: "GMT+05:30",
+        DH.DH_TIME_ZONE_9: "GMT+05:45",
+        DH.DH_TIME_ZONE_10: "GMT+06:00",
+        DH.DH_TIME_ZONE_11: "GMT+06:30",
+        DH.DH_TIME_ZONE_12: "GMT+07:00",
+        DH.DH_TIME_ZONE_13: "GMT+08:00",
+        DH.DH_TIME_ZONE_14: "GMT+09:00",
+        DH.DH_TIME_ZONE_15: "GMT+09:30",
+        DH.DH_TIME_ZONE_16: "GMT+10:00",
+        DH.DH_TIME_ZONE_17: "GMT+11:00",
+        DH.DH_TIME_ZONE_18: "GMT+12:00",
+        DH.DH_TIME_ZONE_19: "GMT-13:00",
+        DH.DH_TIME_ZONE_20: "GMT-01:00",
+        DH.DH_TIME_ZONE_21: "GMT-02:00",
+        DH.DH_TIME_ZONE_22: "GMT-03:00",
+        DH.DH_TIME_ZONE_23: "GMT-03:30",
+        DH.DH_TIME_ZONE_24: "GMT-04:00",
+        DH.DH_TIME_ZONE_25: "GMT-05:00",
+        DH.DH_TIME_ZONE_26: "GMT-06:00",
+        DH.DH_TIME_ZONE_27: "GMT-07:00",
+        DH.DH_TIME_ZONE_28: "GMT-08:00",
+        DH.DH_TIME_ZONE_29: "GMT-09:00",
+        DH.DH_TIME_ZONE_30: "GMT-10:00",
+        DH.DH_TIME_ZONE_31: "GMT-11:00",
+        DH.DH_TIME_ZONE_32: "GMT-12:00"
+
+    }
+
     def __init__(self):
         pass
         # self._loadLibrary()
@@ -61,6 +97,81 @@ class DaHuaNetSDK(AbsNetSDK):
         except OSError as e:
             logger.error(f"动态库加载失败,原错误信息:{e}")
             # logger.exception(e)
+
+    @classmethod
+    def getTime_CFG(cls, userID):
+        lChannel = 0
+        dwOutBufferSize = sizeof(DH.NET_TIME)
+        lpOutBuffer = DH.NET_TIME()
+        lpBytesReturned = c_ulong()
+        waittime = 1000
+        result = cls.netDll.CLIENT_GetDevConfig(userID, DH.DH_DEV_TIMECFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, byref(lpBytesReturned), waittime)
+        cls.getLastError("CLIENT_GetDevConfig__DH_DEV_TIMECFG", bool(result))
+        pyTime = cls.DVR_Struct_Time2Datetime(lpOutBuffer)
+        return pyTime
+
+    @classmethod
+    def setTime_CFG(cls, userID, pyTime: datetime):
+        lChannel = 0
+        dwOutBufferSize = sizeof(DH.NET_TIME)
+        lpOutBuffer = cls.datetime2DVR_Struct_TIME(pyTime)
+        waittime = 1000
+        result = cls.netDll.CLIENT_SetDevConfig(userID, DH.DH_DEV_TIMECFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, waittime)
+        cls.getLastError("CLIENT_SetDevConfig__DH_DEV_TIMECFG", bool(result))
+        return result
+
+    @classmethod
+    def getNTP_CFG(cls, userID):
+        lChannel = 0
+        dwOutBufferSize = sizeof(DH.DHDEV_NTP_CFG)
+        lpOutBuffer = DH.DHDEV_NTP_CFG()
+        lpBytesReturned = c_ulong()
+        waittime = 1000
+        result = cls.netDll.CLIENT_GetDevConfig(userID, DH.DH_DEV_NTP_CFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, byref(lpBytesReturned), waittime)
+        cls.getLastError("CLIENT_GetDevConfig__DH_DEV_NTP_CFG", bool(result))
+
+        ntpArg = UninfyNTPArg()
+        ntpArg.enable = bool(lpOutBuffer.bEnable)
+
+        t_szHostIp = bytes(lpOutBuffer.szHostIp).decode('utf-8')
+        t_szDomainName = bytes(lpOutBuffer.szDomainName).decode('utf-8')
+        if lpOutBuffer.nType == 0:
+            ntpArg.domainOrIP = t_szHostIp      # 这个szHostIp可能零几年的遗留参数吧，现在没被用了
+        elif lpOutBuffer.nType == 1:
+            ntpArg.domainOrIP = t_szDomainName
+        elif lpOutBuffer.nType == 2:
+            ntpArg.domainOrIP = t_szHostIp + " 左IP右域名 " + t_szDomainName
+
+        ntpArg.port = lpOutBuffer.nHostPort
+        ntpArg.updateInterval = lpOutBuffer.nUpdateInterval
+        ntpArg.timeZone = cls.DH_TIME_ZONE[lpOutBuffer.nTimeZone]
+
+        return ntpArg
+
+    @classmethod
+    def setNTP_CFG(cls, userID, ntpArg: UninfyNTPArg):
+        lChannel = 0
+        dwOutBufferSize = sizeof(DH.DHDEV_NTP_CFG)
+        lpInBuffer = DH.DHDEV_NTP_CFG()
+        waittime = 1000
+        lpInBuffer.bEnable = ntpArg.enable
+        lpInBuffer.szDomainName = ntpArg.domainOrIP.encode('utf-8')
+        # lpInBuffer.szHostIp 这个参数不起ip和域名分设的作用，文档说 主机IP
+        lpInBuffer.nHostPort = ntpArg.port
+        lpInBuffer.nUpdateInterval = ntpArg.updateInterval
+        dongBaTimeZone = DH.DH_TIME_ZONE_13
+        lpInBuffer.nTimeZone = dongBaTimeZone if ntpArg.timeZone is None else ntpArg.timeZone  # 用户不传时间区，默认东八区
+
+        result = cls.netDll.CLIENT_SetDevConfig(userID, DH.DH_DEV_NTP_CFG, lChannel, byref(lpInBuffer), dwOutBufferSize, waittime)
+        cls.getLastError("CLIENT_SetDevConfig__DH_DEV_NTP_CFG", bool(result))
+
+        MustRuningResult = cls.getNTP_CFG(userID)
+        logger.debug(f"设置NTP参数后，需要再次获取NTP参数才能在前端中看到结果，结果为{MustRuningResult}")
+        cls.getLastError("CLIENT_GetDevConfig__DH_DEV_NTP_CFG", bool(MustRuningResult))
+        if result and MustRuningResult:
+            return result
+        else:
+            return False
 
     @classmethod
     def realPlay(cls, userID, channel, hwnd):
@@ -277,3 +388,11 @@ class DaHuaNetSDK(AbsNetSDK):
         netTime.dwMinute = timeArg.minute
         netTime.dwSecond = timeArg.second
         return netTime
+
+    @staticmethod
+    def DVR_Struct_Time2Datetime(timeArg: DH.NET_TIME):
+        """
+        大华时间类型转换成datetime类型
+        """
+        pyTime = datetime(timeArg.dwYear, timeArg.dwMonth, timeArg.dwDay, timeArg.dwHour, timeArg.dwMinute, timeArg.dwSecond)
+        return pyTime
