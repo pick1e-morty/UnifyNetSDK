@@ -1,3 +1,4 @@
+import typing
 from ctypes import *
 from pathlib import Path
 
@@ -22,26 +23,26 @@ class HaikangPlaySDK(AbsPlaySDK):
         return nPort
 
     @classmethod
-    def releasePort(cls, nPort):
+    def releasePort(cls, nPort: int):
         result = cls.playDll.PlayM4_FreePort(nPort)
         cls.getLastError(nPort, "PlayM4_FreePort", bool(result))
         return result
 
     @classmethod
-    def openFile(cls, nPort, videoFilePath: [str, Path]):
+    def openFile(cls, nPort: int, videoFilePath: [str, Path]):
         filePath = create_string_buffer(str(videoFilePath).encode("gbk"))
         openResult = cls.playDll.PlayM4_OpenFile(nPort, filePath)
         cls.getLastError(nPort, "PlayM4_OpenFile", bool(openResult))
         return openResult
 
     @classmethod
-    def play(cls, nPort, hwnd=None):
+    def play(cls, nPort: int, hwnd=None):
         playResult = cls.playDll.PlayM4_Play(nPort, hwnd)
         cls.getLastError(nPort, "PlayM4_Play", bool(playResult))
         return playResult
 
     @classmethod
-    def catchPic(cls, nPort, absPicName, quality=None):
+    def catchPic(cls, nPort: int, absPicName: str, quality=None):
         """
         如果quality参数是None，则抓图质量为，jpg格式，压缩70%
         大华那边限制了jpeg压缩质量为，10，30，50，70，100
@@ -75,25 +76,25 @@ class HaikangPlaySDK(AbsPlaySDK):
         return catchResult
 
     @classmethod
-    def stop(cls, nPort):
+    def stop(cls, nPort: int):
         stopResult = cls.playDll.PlayM4_Stop(nPort)
         cls.getLastError(nPort, "PlayM4_Stop", bool(stopResult))
         return stopResult
 
     @classmethod
-    def close(cls, nPort):
+    def close(cls, nPort: int):
         closeResult = cls.playDll.PlayM4_CloseFile(nPort)
         cls.getLastError(nPort, "PlayM4_CloseFile", bool(closeResult))
         return closeResult
 
     @classmethod
-    def getLastError(cls, nPort, methodName: str, methodResult):
+    def getLastError(cls, nPort: int, methodName: str, methodResult: typing.Union[int, bool]):
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
             cls._getLastError(nPort)
 
     @classmethod
-    def _getLastError(cls, nPort):
+    def _getLastError(cls, nPort: int):
         errorIndex = cls.playDll.PlayM4_GetLastError(nPort)
         try:
             exception = HKPlaySDKExceptionDict[errorIndex]

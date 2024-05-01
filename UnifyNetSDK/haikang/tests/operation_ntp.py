@@ -68,7 +68,15 @@ def main():
             if initResult and not releaseResult:
                 haikangClient.cleanup()
 
+    print(initResult)
+    print(releaseResult)
+    print(logOpenResult)
+    print(logCloseResult)
+    print(loginResult)
+    print(logoutResult)
+    print(haikangClient)
+    print(userID)
+
 
 if __name__ == '__main__':
     main()
-

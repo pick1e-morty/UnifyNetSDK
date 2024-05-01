@@ -15,7 +15,6 @@ testUserConfig = getTestUserConfig("dahua")
 
 from loguru import logger
 
-
 dahuaClient = None
 
 
@@ -114,6 +113,7 @@ def main():
     dahuaClient.logout(userID)
     dahuaClient.logclose()
     dahuaClient.cleanup()
+    sys.exit(1)
 
 
 if __name__ == "__main__":

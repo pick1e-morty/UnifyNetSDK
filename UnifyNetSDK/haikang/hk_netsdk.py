@@ -1,3 +1,4 @@
+import typing
 from ctypes import *
 from pathlib import Path
 from time import sleep
@@ -34,16 +35,21 @@ print(var6,type(var6))
 
 class HaikangNetSDK(AbsNetSDK):
     netDll = None
+    # 目前调用dll的函数都是cls.netdll.func的形式调用
+    # 需要变量引用，Enum或者结构体之类的用了DH直接引用
+    # 海康跟大华又不相同了，海康还必须做一个NET_DVR_SetSDKInitCfg，
+    # 所以 如果_loadLibrary执行失败那所有的classmethod都会(报错?)
     playDll = None
 
     def __init__(self):
         self._loadLibrary()
 
     @classmethod
-    def init(cls):
+    def init(cls) -> bool:
         initResult = cls.netDll.NET_DVR_Init()
         logger.info(f"SDK初始化已执行")
         cls.getLastError("NET_DVR_Init", bool(initResult))
+        return bool(initResult)
 
     @classmethod
     def _loadLibrary(cls):
@@ -52,7 +58,7 @@ class HaikangNetSDK(AbsNetSDK):
             libPath = curPyPath / "lib/win"
             # cls.netDll = CDLL(str(libPath / "HCNetSDK.dll"))  # 加载网络库
             cls.netDll = HK  # hcnetsdk.dll由ctypesgen中间层加载
-            # cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库
+            # cls.playctrlDll = CDLL(str(libPath / 'PlayCtrl.dll'))  # 加载播放库。其他库需要再制作头文件的
 
             sdk_ComPath = HK.NET_DVR_LOCAL_SDK_PATH()
             sdk_ComPath.sPath = str(libPath).encode("gbk")
@@ -70,7 +76,7 @@ class HaikangNetSDK(AbsNetSDK):
             # logger.exception(e)
 
     @classmethod
-    def getTime_CFG(cls, userID):
+    def getTime_CFG(cls, userID: int) -> datetime:
         lChannel = 0
         dwOutBufferSize = sizeof(HK.NET_DVR_TIME)
         lpOutBuffer = HK.NET_DVR_TIME()
@@ -82,16 +88,16 @@ class HaikangNetSDK(AbsNetSDK):
         return pyTime
 
     @classmethod
-    def setTime_CFG(cls, userID, pyTime: datetime):
+    def setTime_CFG(cls, userID: int, pyTime: datetime) -> bool:
         lChannel = 0
         dwOutBufferSize = sizeof(HK.NET_DVR_TIME)
         lpOutBuffer = cls.datetime2DVR_Struct_TIME(pyTime)
         result = cls.netDll.NET_DVR_SetDVRConfig(userID, HK.NET_DVR_SET_TIMECFG, lChannel, byref(lpOutBuffer), dwOutBufferSize)
         cls.getLastError("NET_DVR_SetDVRConfig__NET_DVR_SET_TIMECFG", bool(result))
-        return result
+        return bool(result)
 
     @classmethod
-    def getNTP_CFG(cls, userID):
+    def getNTP_CFG(cls, userID: int) -> UninfyNTPArg:
         lChannel = 0
         dwOutBufferSize = sizeof(HK.NET_DVR_NTPPARA)
         lpOutBuffer = HK.NET_DVR_NTPPARA()
@@ -116,7 +122,7 @@ class HaikangNetSDK(AbsNetSDK):
         return ntpArg
 
     @classmethod
-    def setNTP_CFG(cls, userID, ntpArg: UninfyNTPArg):
+    def setNTP_CFG(cls, userID: int, ntpArg: UninfyNTPArg) -> bool:
         # 注意，如果想修改时区为非默认东八区，ntpArg.timeZone被处理为一个列表，第一元素为小时，第二元素为分钟。元素类型为int
         lChannel = 0
         dwOutBufferSize = sizeof(HK.NET_DVR_NTPPARA)
@@ -138,10 +144,10 @@ class HaikangNetSDK(AbsNetSDK):
 
         result = cls.netDll.NET_DVR_SetDVRConfig(userID, HK.NET_DVR_SET_NTPCFG, lChannel, byref(lpOutBuffer), dwOutBufferSize)
         cls.getLastError("NET_DVR_SetDVRConfig__NET_DVR_SET_NTPCFG", bool(result))
-        return result
+        return bool(result)
 
     @classmethod
-    def login(cls, loginArg: UnifyLoginArg):
+    def login(cls, loginArg: UnifyLoginArg) -> (int, HK.NET_DVR_USER_LOGIN_INFO):
         # 登录参数，包括设备地址、登录用户、密码等
         loginInfo = HK.NET_DVR_USER_LOGIN_INFO()
         loginInfo.bUseAsynLogin = 0  # 同步通讯登录
@@ -157,7 +163,7 @@ class HaikangNetSDK(AbsNetSDK):
         return userID, deviceInfo
 
     @classmethod
-    def stopFindFileTimer(cls, findHandle):
+    def stopFindFileTimer(cls, findHandle: int) -> int:
 
         lpFindData = HK.NET_DVR_FINDDATA_V50()  # 这是一个out参数，用来接收文件查找结果信息的
         findResult = cls.netDll.NET_DVR_FindNextFile_V50(findHandle, byref(lpFindData))
@@ -186,7 +192,7 @@ class HaikangNetSDK(AbsNetSDK):
         return findResult
 
     @classmethod
-    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+    def syncFindFileByTime(cls, userID: int, findFileArg: UnifyFindFileByTimeArg) -> bool:
         """
         成功返回True
         失败返回False
@@ -202,12 +208,12 @@ class HaikangNetSDK(AbsNetSDK):
             sleep(0.5)
 
     @classmethod
-    def asyncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+    def asyncFindFileByTime(cls, userID: int, findFileArg: UnifyFindFileByTimeArg) -> int:
         findHandle = cls.__findFileByTime(userID, findFileArg)
         return findHandle
 
     @classmethod
-    def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
+    def __findFileByTime(cls, userID: int, findFileArg: UnifyFindFileByTimeArg) -> int:
         # 准备参数
         struStreamID = HK.NET_DVR_STREAM_INFO()
         struStreamID.dwSize = sizeof(HK.NET_DVR_STREAM_INFO)
@@ -225,7 +231,7 @@ class HaikangNetSDK(AbsNetSDK):
         return findHandle
 
     @classmethod
-    def stopDownLoadTimer(cls, downLoadHandle: int):
+    def stopDownLoadTimer(cls, downLoadHandle: int) -> int:
         downLoadPos = c_int()
         lpOutLen = c_ulong(0)
         controlResult = cls.netDll.NET_DVR_PlayBackControl_V40(downLoadHandle, HK.NET_DVR_PLAYGETPOS, c_void_p(), 0, byref(downLoadPos), byref(lpOutLen))
@@ -243,7 +249,7 @@ class HaikangNetSDK(AbsNetSDK):
         return downLoadPos.value
 
     @classmethod
-    def syncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    def syncDownLoadByTime(cls, userID: int, downLoadArg: UnifyDownLoadByTimeArg) -> bool:
         """
         hk说按照时间下载就只会有三个数值，0：正在下载，100：下载完成，200：下载异常
         其它报错都会直接被raise出来
@@ -256,12 +262,12 @@ class HaikangNetSDK(AbsNetSDK):
             sleep(0.5)
 
     @classmethod
-    def asyncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    def asyncDownLoadByTime(cls, userID: int, downLoadArg: UnifyDownLoadByTimeArg):
         downLoadHandle = cls.__downLoadByTime(userID, downLoadArg)
         return downLoadHandle
 
     @classmethod
-    def __downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    def __downLoadByTime(cls, userID: int, downLoadArg: UnifyDownLoadByTimeArg) -> int:
         # 准备参数
         logger.info(f"下载文件路径为{downLoadArg.saveFilePath}")
         sSavedFileName = create_string_buffer(str(downLoadArg.saveFilePath).encode("gbk"))
@@ -279,13 +285,13 @@ class HaikangNetSDK(AbsNetSDK):
         return downLoadHandle
 
     @classmethod  # 目前认为海康把两种状态作为方法执行错位的标识，-1和False，其他的都是正常值，不过我怕它整个新花样，如果能在这个方法中指定错误值，哦。。。那就需要白名单和黑名单了。。。。。。。。。。
-    def getLastError(cls, methodName, methodResult):  # todo 如果这种写法能用的话记得加到define里
+    def getLastError(cls, methodName: str, methodResult: typing.Union[int, bool]) -> None:  # todo 如果这种写法能用的话记得加到define里
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
             cls.__getLastError()
 
     @classmethod
-    def __getLastError(cls):
+    def __getLastError(cls) -> None:
         errorIndex = cls.netDll.NET_DVR_GetLastError()
         try:
             exception = HKNetSDKExceptionDict[errorIndex]
@@ -296,19 +302,21 @@ class HaikangNetSDK(AbsNetSDK):
         raise exception
 
     @classmethod
-    def logout(cls, userID):
+    def logout(cls, userID: int) -> bool:
         logoutResult = cls.netDll.NET_DVR_Logout(userID)
         logger.info(f"用户ID：{userID} 已登出")
         cls.getLastError("NET_DVR_Logout", bool(logoutResult))
+        return bool(logoutResult)
 
     @classmethod
-    def cleanup(cls):
+    def cleanup(cls) -> bool:
         cleanupResult = cls.netDll.NET_DVR_Cleanup()
         logger.info("SDK资源已释放")
         cls.getLastError("NET_DVR_Cleanup", bool(cleanupResult))
+        return bool(cleanupResult)
 
     @classmethod
-    def logopen(cls, absLogPath):
+    def logopen(cls, absLogPath: str) -> bool:
         """
         打开日志功能
         """
@@ -317,25 +325,28 @@ class HaikangNetSDK(AbsNetSDK):
 
         log_cfg = HK.NET_DVR_LOCAL_LOG_CFG()
         log_cfg.wSDKLogNum = 1
-        setResult = cls.netDll.NET_DVR_SetSDKLocalCfg(HK.NET_DVR_LOCAL_CFG_TYPE_LOG, byref(log_cfg))
-        cls.getLastError("NET_DVR_SetSDKLocalCfg", bool(setResult))
+        setCFGResult = cls.netDll.NET_DVR_SetSDKLocalCfg(HK.NET_DVR_LOCAL_CFG_TYPE_LOG, byref(log_cfg))
+        cls.getLastError("NET_DVR_SetSDKLocalCfg", bool(setCFGResult))
 
         logFilePath = str(absLogPath).encode('gbk')
-        setResult = cls.netDll.NET_DVR_SetLogToFile(3, logFilePath, True)
+        setFileResult = cls.netDll.NET_DVR_SetLogToFile(3, logFilePath, True)
         # 日志的等级 日志文件的路径 是否删除超出的文件数
-        cls.getLastError("NET_DVR_SetLogToFile", bool(setResult))
-        return setResult
+        cls.getLastError("NET_DVR_SetLogToFile", bool(setFileResult))
+        if setCFGResult and setFileResult:
+            return True
+        else:
+            return False
 
     @classmethod
-    def logclose(cls):
+    def logclose(cls) -> bool:
         """
         关闭日志功能
         """
-        pass
+        return True
         # 海康不需要关闭日志，这是为了用户层调用对齐
 
     @staticmethod
-    def datetime2DVR_Struct_TIME(timeArg: datetime):
+    def datetime2DVR_Struct_TIME(timeArg: datetime) -> HK.NET_DVR_TIME:
         # 省事的时间类型转换,下载录像用的时间类型
         net_dvr_time = HK.NET_DVR_TIME()
         net_dvr_time.dwYear = timeArg.year
@@ -347,7 +358,7 @@ class HaikangNetSDK(AbsNetSDK):
         return net_dvr_time
 
     @staticmethod
-    def datetime2NET_DVR_TIME_SEARCH_COND(timeArg: datetime):
+    def datetime2NET_DVR_TIME_SEARCH_COND(timeArg: datetime) -> HK.NET_DVR_TIME_SEARCH_COND:
         # 省事的时间类型转换,查询录像用的时间类型
         net_dvr_time_search_cond = HK.NET_DVR_TIME_SEARCH_COND()
         net_dvr_time_search_cond.wYear = timeArg.year
@@ -359,7 +370,7 @@ class HaikangNetSDK(AbsNetSDK):
         return net_dvr_time_search_cond
 
     @staticmethod
-    def DVR_Struct_Time2Datetime(timeArg: HK.NET_DVR_TIME):
+    def DVR_Struct_Time2Datetime(timeArg: HK.NET_DVR_TIME) -> datetime:
         pyTime = datetime(timeArg.dwYear, timeArg.dwMonth, timeArg.dwDay, timeArg.dwHour, timeArg.dwMinute, timeArg.dwSecond)
         return pyTime
 

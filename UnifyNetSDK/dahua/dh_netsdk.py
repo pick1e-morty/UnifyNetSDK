@@ -1,3 +1,4 @@
+import typing
 from ctypes import *
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,8 @@ from UnifyNetSDK.parameter import *
 
 class DaHuaNetSDK(AbsNetSDK):
     netDll = DH  # netsdk.dll由ctypesgen中间层加载
+    # 目前调用dll的函数都是cls.netdll.func的形式调用
+    # 需要变量引用，Enum或者结构体之类的用了DH直接引用
     configDll = None
     playDll = None
     renderDll = None
@@ -79,10 +82,11 @@ class DaHuaNetSDK(AbsNetSDK):
         self.netDll.CLIENT_PlayBackByTimeEx.restype = c_longlong
 
     @classmethod
-    def init(cls):
+    def init(cls) -> bool:
         initResult = cls.netDll.CLIENT_InitEx(DH.fDisConnect(0), 0, DH.NETSDK_INIT_PARAM())
         logger.info(f"SDK初始化已执行")
         cls.getLastError("CLIENT_InitEx", bool(initResult))
+        return bool(initResult)
 
     @classmethod
     def _loadLibrary(cls):  # 未使用
@@ -99,7 +103,8 @@ class DaHuaNetSDK(AbsNetSDK):
             # logger.exception(e)
 
     @classmethod
-    def getTime_CFG(cls, userID):
+    def getTime_CFG(cls, userID: int) -> datetime:
+        # 获取设备时间
         lChannel = 0
         dwOutBufferSize = sizeof(DH.NET_TIME)
         lpOutBuffer = DH.NET_TIME()
@@ -111,17 +116,19 @@ class DaHuaNetSDK(AbsNetSDK):
         return pyTime
 
     @classmethod
-    def setTime_CFG(cls, userID, pyTime: datetime):
+    def setTime_CFG(cls, userID: int, pyTime: datetime) -> bool:
+        # 设置设备时间
         lChannel = 0
         dwOutBufferSize = sizeof(DH.NET_TIME)
         lpOutBuffer = cls.datetime2DVR_Struct_TIME(pyTime)
         waittime = 1000
         result = cls.netDll.CLIENT_SetDevConfig(userID, DH.DH_DEV_TIMECFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, waittime)
         cls.getLastError("CLIENT_SetDevConfig__DH_DEV_TIMECFG", bool(result))
-        return result
+        return bool(result)
 
     @classmethod
-    def getNTP_CFG(cls, userID):
+    def getNTP_CFG(cls, userID: int) -> UninfyNTPArg:
+        # 获取设备NTP配置
         lChannel = 0
         dwOutBufferSize = sizeof(DH.DHDEV_NTP_CFG)
         lpOutBuffer = DH.DHDEV_NTP_CFG()
@@ -136,7 +143,7 @@ class DaHuaNetSDK(AbsNetSDK):
         t_szHostIp = bytes(lpOutBuffer.szHostIp).decode('utf-8')
         t_szDomainName = bytes(lpOutBuffer.szDomainName).decode('utf-8')
         if lpOutBuffer.nType == 0:
-            ntpArg.domainOrIP = t_szHostIp      # 这个szHostIp可能零几年的遗留参数吧，现在没被用了
+            ntpArg.domainOrIP = t_szHostIp  # 这个szHostIp可能零几年的遗留参数吧，现在没被用了
         elif lpOutBuffer.nType == 1:
             ntpArg.domainOrIP = t_szDomainName
         elif lpOutBuffer.nType == 2:
@@ -149,7 +156,8 @@ class DaHuaNetSDK(AbsNetSDK):
         return ntpArg
 
     @classmethod
-    def setNTP_CFG(cls, userID, ntpArg: UninfyNTPArg):
+    def setNTP_CFG(cls, userID: int, ntpArg: UninfyNTPArg) -> bool:
+        # 设置设备NTP配置
         lChannel = 0
         dwOutBufferSize = sizeof(DH.DHDEV_NTP_CFG)
         lpInBuffer = DH.DHDEV_NTP_CFG()
@@ -169,12 +177,12 @@ class DaHuaNetSDK(AbsNetSDK):
         logger.debug(f"设置NTP参数后，需要再次获取NTP参数才能在前端中看到结果，结果为{MustRuningResult}")
         cls.getLastError("CLIENT_GetDevConfig__DH_DEV_NTP_CFG", bool(MustRuningResult))
         if result and MustRuningResult:
-            return result
+            return True
         else:
             return False
 
     @classmethod
-    def realPlay(cls, userID, channel, hwnd):
+    def realPlay(cls, userID: int, channel: int, hwnd) -> int:
         """
         hwnd只需要从QtWidgets.QWidget.winId()获取即可,转换均有sdk这边来做
         """
@@ -185,13 +193,15 @@ class DaHuaNetSDK(AbsNetSDK):
         return realPlayHandle
 
     @classmethod
-    def stopRealPlay(cls, realPlayHandle):
+    def stopRealPlay(cls, realPlayHandle: int) -> bool:
+        # 停止实时预览
         stopRealPlayResult = cls.netDll.CLIENT_StopRealPlay(realPlayHandle)
         cls.getLastError("CLIENT_StopRealPlayEx", bool(stopRealPlayResult))
-        return stopRealPlayResult
+        return bool(stopRealPlayResult)
 
     @classmethod
-    def playBackByTime(cls, userID, playBackArg: UnifyPlayBackByTimeArg):
+    def playBackByTime(cls, userID: int, playBackArg: UnifyPlayBackByTimeArg) -> int:
+        # 按照时间参数进行回放
         channel = playBackArg.channel
         startDateTime = cls.datetime2DVR_Struct_TIME(playBackArg.startTime)
         endDateTime = cls.datetime2DVR_Struct_TIME(playBackArg.stopTime)
@@ -205,21 +215,22 @@ class DaHuaNetSDK(AbsNetSDK):
         return playBackHandle
 
     @classmethod
-    def stopPlayBack(cls, playBackHandle):
+    def stopPlayBack(cls, playBackHandle: int) -> bool:
+        # 停止回放
         stopPlayBackResult = cls.netDll.CLIENT_StopPlayBack(playBackHandle)
         cls.getLastError("CLIENT_StopPlayBack", bool(stopPlayBackResult))
-        return stopPlayBackResult
+        return bool(stopPlayBackResult)
 
     @classmethod
-    def catchPicture(cls, lPlayHandle, savedFileName):
+    def catchPicture(cls, lPlayHandle: int, savedFileName: str) -> bool:
         # 抓图，可以是实时预览或是回放函数的返回的句柄，
         # 重中之重的是这两个函数的hwnd必须是有效的
         catchResult = cls.netDll.CLIENT_CapturePictureEx(lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70)
         cls.getLastError("CLIENT_CapturePictureEx", bool(catchResult))
-        return catchResult
+        return bool(catchResult)
 
     @classmethod
-    def login(cls, loginArg: UnifyLoginArg):
+    def login(cls, loginArg: UnifyLoginArg) -> (int, DH.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY):
         # 登录参数，包括设备地址、登录用户、密码等
         loginInfo = DH.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
         loginInfo.dwSize = sizeof(DH.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY)
@@ -239,39 +250,32 @@ class DaHuaNetSDK(AbsNetSDK):
         return login_id, deviceInfo
 
     @classmethod
-    def syncFindFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):  # 大华的sdk，能通过时间查询的就这一个方法，且没有返回给我查找句柄，所以大华这边只能有sync了
+    def syncFindFileByTime(cls, userID: int, findFileArg: UnifyFindFileByTimeArg) -> bool:  # 大华的sdk，能通过时间查询的就这一个方法，且没有返回给我查找句柄，所以大华这边只能有sync了
+        # 同步阻塞 按照时间查找录像文件是否存在
         return cls.__findFileByTime(userID, findFileArg)  # CLIENT_FindFileEx能返回句柄，但不能按照时间查询
 
     @classmethod
-    def __findFileByTime(cls, userID, findFileArg: UnifyFindFileByTimeArg):
-        """
-        成功返回True
-        失败返回False
-        """
-        # 准备参数
+    def __findFileByTime(cls, userID: int, findFileArg: UnifyFindFileByTimeArg) -> bool:
+        # 按照时间查找录像文件是否存在
         nChannelId = findFileArg.channel
         nRecordFileType = DH.EM_RECORD_TYPE_ALL
         tmStart = cls.datetime2DVR_Struct_TIME(findFileArg.startTime)
         tmEnd = cls.datetime2DVR_Struct_TIME(findFileArg.stopTime)
-
         structArray = DH.NET_RECORDFILE_INFO * 100
         nriFileinfo = structArray()
-
         nriFileinfo_ptr = cast(pointer(nriFileinfo[0]), DH.LPNET_RECORDFILE_INFO)
-
         maxlen = sizeof(structArray)
         filecount = c_int(0)
-
         pchCardid = None  # char * 空指针  char *pchCardid
         waittime = 2000
         byTime = True
-        findFileResult = cls.netDll.CLIENT_QueryRecordFile(userID, nChannelId, nRecordFileType, byref(tmStart), byref(tmEnd),
-                                                           pchCardid, nriFileinfo_ptr, maxlen, byref(filecount), waittime, byTime)
+        findFileResult = cls.netDll.CLIENT_QueryRecordFile(userID, nChannelId, nRecordFileType, byref(tmStart), byref(tmEnd), pchCardid, nriFileinfo_ptr, maxlen, byref(filecount), waittime, byTime)
         cls.getLastError("CLIENT_QueryRecordFile", bool(findFileResult))
         return bool(filecount.value)
 
     @classmethod
-    def stopDownLoadTimer(cls, downLoadHandle):
+    def stopDownLoadTimer(cls, downLoadHandle: int) -> bool:
+        # 内部实现的 关闭下载句柄 的类方法
         nTotalSize = c_int(0)  # 下载的总长度，单位:KB
         nDownLoadSize = c_int(0)  # 已下载的长度，单位:KB
 
@@ -287,26 +291,24 @@ class DaHuaNetSDK(AbsNetSDK):
             return False
 
     @classmethod
-    def syncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
-        """
-        本方法自己提供一个while用于阻塞判读视频是否下载完成
-        其它报错会被raise出来
-        """
+    def syncDownLoadByTime(cls, userID: int, downLoadArg: UnifyDownLoadByTimeArg) -> bool:
+        # 同步阻塞，按照时间参数下载录像
         downLoadHandle = cls.__downLoadByTime(userID, downLoadArg)
         while True:
             downLoadResult = cls.stopDownLoadTimer(downLoadHandle)  # 每0.5秒查一下有没有下载完成
             if downLoadResult is True:
-                return downLoadResult
+                return bool(downLoadResult)
             sleep(1)
 
     @classmethod
-    def asyncDownLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
+    def asyncDownLoadByTime(cls, userID: int, downLoadArg: UnifyDownLoadByTimeArg) -> int:
+        # 异步，按照时间参数下载录像，句柄由用户关闭
         downLoadHandle = cls.__downLoadByTime(userID, downLoadArg)
         return downLoadHandle
 
     @classmethod
-    def __downLoadByTime(cls, userID, downLoadArg: UnifyDownLoadByTimeArg):
-        # 准备参数
+    def __downLoadByTime(cls, userID: int, downLoadArg: UnifyDownLoadByTimeArg) -> int:
+        # 按照时间参数下载录像文件的底层方法
         logger.info(f"下载文件路径为{downLoadArg.saveFilePath}")
         savedFileName = create_string_buffer(str(downLoadArg.saveFilePath).encode("gbk"))
         channel = downLoadArg.channel
@@ -323,13 +325,15 @@ class DaHuaNetSDK(AbsNetSDK):
         return downLoadHandle
 
     @classmethod
-    def getLastError(cls, methodName: str, methodResult):
+    def getLastError(cls, methodName: str, methodResult: typing.Union[int, bool]) -> None:
+        # 获取错误码，就算没有错误也会被 raise NO_ERROR
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
             cls._getLastError()
 
     @classmethod
-    def _getLastError(cls):
+    def _getLastError(cls) -> None:
+        # 获取错误码的底层实现
         errorIndex = cls.netDll.CLIENT_GetLastError() & 0x7fffffff
         try:
             exception = DHNetSDKExceptionDict[errorIndex]
@@ -340,21 +344,23 @@ class DaHuaNetSDK(AbsNetSDK):
         raise exception
 
     @classmethod
-    def logout(cls, userID):
+    def logout(cls, userID: int) -> bool:
+        # 登出
         logoutResult = cls.netDll.CLIENT_Logout(userID)
         logger.info(f"用户ID：{userID} 已登出")
         cls.getLastError("CLIENT_Logout", bool(logoutResult))
+        return bool(logoutResult)
 
     @classmethod
-    def cleanup(cls):
+    def cleanup(cls) -> bool:
+        # 释放资源
         cls.netDll.CLIENT_Cleanup()  # 没有返回值
         logger.info("SDK资源已释放")
+        return True  # 但是还是要做厂商SDK返回值对齐
 
     @classmethod
-    def logopen(cls, absLogPath):
-        """
-        打开日志功能
-        """
+    def logopen(cls, absLogPath: str) -> bool:
+        # 打开日志功能
         log_info = DH.LOG_SET_PRINT_INFO()
         log_info.dwSize = sizeof(DH.LOG_SET_PRINT_INFO)
         log_info.bSetFilePath = True
@@ -366,19 +372,17 @@ class DaHuaNetSDK(AbsNetSDK):
         log_info = pointer(log_info)
         logOpenResult = cls.netDll.CLIENT_LogOpen(log_info)
         cls.getLastError("CLIENT_LogOpen", bool(logOpenResult))
-        return logOpenResult
+        return bool(logOpenResult)
 
     @classmethod
-    def logclose(cls):
-        """
-        关闭日志功能
-        """
+    def logclose(cls) -> bool:
+        # 关闭日志功能
         logCloseResult = cls.netDll.CLIENT_LogClose()
         cls.getLastError("CLIENT_LogClose", bool(logCloseResult))
-        return logCloseResult
+        return bool(logCloseResult)
 
     @staticmethod
-    def datetime2DVR_Struct_TIME(timeArg: datetime):
+    def datetime2DVR_Struct_TIME(timeArg: datetime) -> DH.NET_TIME:
         # 省事的时间类型转换,下载录像用的时间类型
         netTime = DH.NET_TIME()
         netTime.dwYear = timeArg.year
@@ -390,9 +394,7 @@ class DaHuaNetSDK(AbsNetSDK):
         return netTime
 
     @staticmethod
-    def DVR_Struct_Time2Datetime(timeArg: DH.NET_TIME):
-        """
-        大华时间类型转换成datetime类型
-        """
+    def DVR_Struct_Time2Datetime(timeArg: DH.NET_TIME) -> datetime:
+        # 大华时间类型转换成datetime类型
         pyTime = datetime(timeArg.dwYear, timeArg.dwMonth, timeArg.dwDay, timeArg.dwHour, timeArg.dwMinute, timeArg.dwSecond)
         return pyTime
