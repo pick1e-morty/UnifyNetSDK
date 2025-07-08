@@ -23,7 +23,10 @@ class WrapperPrinter:
         self.file = open(outpath, "w") if outpath else sys.stdout
         self.options = options
 
-        if self.options.strip_build_path and self.options.strip_build_path[-1] != os.path.sep:
+        if (
+            self.options.strip_build_path
+            and self.options.strip_build_path[-1] != os.path.sep
+        ):
             self.options.strip_build_path += os.path.sep
 
         if not self.options.embed_preamble and outpath:
@@ -58,7 +61,9 @@ class WrapperPrinter:
                 method_table[kind](desc)
                 self.file.write("\n")
 
-        self.print_group(self.options.inserted_files, "inserted files", self.insert_file)
+        self.print_group(
+            self.options.inserted_files, "inserted files", self.insert_file
+        )
         self.strip_prefixes()
 
     def __del__(self):
@@ -93,7 +98,9 @@ class WrapperPrinter:
     def template_subs(self):
         template_subs = {
             "date": time.ctime(),
-            "argv": " ".join([x for x in sys.argv if not x.startswith("--strip-build-path")]),
+            "argv": " ".join(
+                [x for x in sys.argv if not x.startswith("--strip-build-path")]
+            ),
             "name": os.path.basename(self.options.headers[0]),
         }
 
@@ -229,7 +236,9 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        self.file.write("class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base))
+        self.file.write(
+            "class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base)
+        )
 
     def print_struct_members(self, struct):
         if struct.opaque:
@@ -238,12 +247,16 @@ class WrapperPrinter:
         # is this supposed to be packed?
         if struct.attrib.get("packed", False):
             aligned = struct.attrib.get("aligned", [1])
-            assert len(aligned) == 1, "cgrammar gave more than one arg for aligned attribute"
+            assert (
+                len(aligned) == 1
+            ), "cgrammar gave more than one arg for aligned attribute"
             aligned = aligned[0]
             if isinstance(aligned, ExpressionNode):
                 # TODO: for non-constant expression nodes, this will fail:
                 aligned = aligned.evaluate(None)
-            self.file.write("{}_{}._pack_ = {}\n".format(struct.variety, struct.tag, aligned))
+            self.file.write(
+                "{}_{}._pack_ = {}\n".format(struct.variety, struct.tag, aligned)
+            )
 
         # handle unnamed fields.
         unnamed_fields = []
@@ -306,7 +319,11 @@ class WrapperPrinter:
         # look there. Otherwise, check all the libraries.
         use_single_lib = function.source_library or len(self.options.libraries) == 1
         if use_single_lib:
-            lib = function.source_library if function.source_library else self.options.libraries[0]
+            lib = (
+                function.source_library
+                if function.source_library
+                else self.options.libraries[0]
+            )
             self.file.write(
                 'if _libs["{L}"].has("{CN}", "{CC}"):\n'
                 '    {PN} = _libs["{L}"].get("{CN}", "{CC}")\n'.format(
@@ -326,7 +343,10 @@ class WrapperPrinter:
         # Argument types
         self.file.write(
             "    %s.argtypes = [%s]\n"
-            % (function.py_name(), ", ".join([a.py_string() for a in function.argtypes]))
+            % (
+                function.py_name(),
+                ", ".join([a.py_string() for a in function.argtypes]),
+            )
         )
 
         # Return value
@@ -342,11 +362,13 @@ class WrapperPrinter:
             )
         else:
             self.file.write(
-                "    %s.restype = %s\n" % (function.py_name(), function.restype.py_string())
+                "    %s.restype = %s\n"
+                % (function.py_name(), function.restype.py_string())
             )
             if function.errcheck:
                 self.file.write(
-                    "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
+                    "    %s.errcheck = %s\n"
+                    % (function.py_name(), function.errcheck.py_string())
                 )
 
         if not use_single_lib:
@@ -413,7 +435,9 @@ class WrapperPrinter:
                 "        break\n"
                 "    except:\n"
                 "        pass\n".format(
-                    PN=variable.py_name(), PS=variable.ctype.py_string(), CN=variable.c_name()
+                    PN=variable.py_name(),
+                    PS=variable.ctype.py_string(),
+                    CN=variable.c_name(),
                 )
             )
 
@@ -474,7 +498,9 @@ class WrapperPrinter:
         try:
             inserted_file = open(filename, "r")
         except IOError:
-            error_message('Cannot open file "%s". Skipped it.' % filename, cls="missing-file")
+            error_message(
+                'Cannot open file "%s". Skipped it.' % filename, cls="missing-file"
+            )
 
         self.file.write(
             '# Begin "{filename}"\n'

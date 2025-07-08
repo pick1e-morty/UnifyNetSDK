@@ -91,7 +91,11 @@ class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
     def handle_define_unparseable(self, name, params, value, filename, lineno):
         # Called by CParser
         if params:
-            original_string = "#define %s(%s) %s" % (name, ",".join(params), " ".join(value))
+            original_string = "#define %s(%s) %s" % (
+                name,
+                ",".join(params),
+                " ".join(value),
+            )
         else:
             original_string = "#define %s %s" % (name, " ".join(value))
         macro = MacroDescription(name, params, None, src=(filename, lineno))
@@ -136,7 +140,13 @@ class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
             argtype.visit(self)
 
         function = FunctionDescription(
-            name, restype, argtypes, errcheck, variadic, attrib, src=(filename, repr(lineno))
+            name,
+            restype,
+            argtypes,
+            errcheck,
+            variadic,
+            attrib,
+            src=(filename, repr(lineno)),
         )
 
         self.functions.append(function)
@@ -229,7 +239,9 @@ class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
 
         if ctypeenum.opaque:
             if tag not in self.already_seen_opaque_enums:
-                enum = EnumDescription(ctypeenum.tag, None, ctypeenum, src=(filename, str(lineno)))
+                enum = EnumDescription(
+                    ctypeenum.tag, None, ctypeenum, src=(filename, str(lineno))
+                )
                 enum.opaque = True
 
                 self.already_seen_opaque_enums[tag] = enum

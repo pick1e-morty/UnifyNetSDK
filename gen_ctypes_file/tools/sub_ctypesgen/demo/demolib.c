@@ -14,7 +14,4 @@ Dumb manual build with:
 
 #include "demolib.h"
 
-int trivial_add(int a, int b)
-{
-    return a + b;
-}
+int trivial_add(int a, int b) { return a + b; }

@@ -15,7 +15,7 @@ testUserConfig = getTestUserConfig("haikang")
 def main():
     haikangClient = HaikangNetSDK()
     haikangClient.init()
-    absLogPath = Path(__file__).absolute().with_name('hk_netsdk_log')
+    absLogPath = Path(__file__).absolute().with_name("hk_netsdk_log")
     haikangClient.logopen(absLogPath)
 
     easy_login_info = UnifyLoginArg()
@@ -52,7 +52,14 @@ def main():
     """
 
     try:
-        result = haikangClient.netDll.NET_DVR_GetDVRConfig(userID, HK.NET_DVR_GET_NTPCFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, byref(lpBytesReturned))
+        result = haikangClient.netDll.NET_DVR_GetDVRConfig(
+            userID,
+            HK.NET_DVR_GET_NTPCFG,
+            lChannel,
+            byref(lpOutBuffer),
+            dwOutBufferSize,
+            byref(lpBytesReturned),
+        )
     except HKNetSDKException as e:
         print(str(e))
     else:
@@ -62,7 +69,7 @@ def main():
             print(type(lpOutBuffer.sNTPServer), lpOutBuffer.sNTPServer)
 
             server_bytes = bytes(lpOutBuffer.sNTPServer)
-            server_text = server_bytes.decode('utf-8').rstrip('\x00')
+            server_text = server_bytes.decode("utf-8").rstrip("\x00")
 
             print("NTP校时是否启用", lpOutBuffer.byEnableNTP)
             print("NTP服务器域名或者IP地址", server_text)
@@ -71,11 +78,15 @@ def main():
 
             print(lpOutBuffer.cTimeDifferenceH, lpOutBuffer.cTimeDifferenceM)
 
-            difference_h = int.from_bytes(lpOutBuffer.cTimeDifferenceH, byteorder='big', signed=True)
-            sign = '+' if difference_h >= 0 else '-'
+            difference_h = int.from_bytes(
+                lpOutBuffer.cTimeDifferenceH, byteorder="big", signed=True
+            )
+            sign = "+" if difference_h >= 0 else "-"
             difference_h_text = f"{sign}{abs(difference_h):02d}"
 
-            difference_m = int.from_bytes(lpOutBuffer.cTimeDifferenceM, byteorder='big', signed=True)
+            difference_m = int.from_bytes(
+                lpOutBuffer.cTimeDifferenceM, byteorder="big", signed=True
+            )
             print(f"GMT{difference_h_text}:{difference_m:0>2d}")
 
         else:

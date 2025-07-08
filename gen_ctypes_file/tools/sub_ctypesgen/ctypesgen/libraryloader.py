@@ -1,6 +1,7 @@
 """
 Load libraries - appropriately for all our supported platforms
 """
+
 # ----------------------------------------------------------------------------
 # Copyright (c) 2008 David James
 # Copyright (c) 2006-2008 Alex Holkner
@@ -126,7 +127,9 @@ class LibraryLoader:
             # then we search the directory where the generated python interface is stored
             if this_file is not None:
                 for fmt in self.name_formats:
-                    yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
+                    yield os.path.abspath(
+                        os.path.join(os.path.dirname(__file__), fmt % libname)
+                    )
 
             # now, use the ctypes tools to try to find the library
             for fmt in self.name_formats:

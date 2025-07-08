@@ -73,7 +73,9 @@ if __name__ == "__main__":
     import argparse
 
     p = argparse.ArgumentParser()
-    p.add_argument("--save", action="store_true", help=f"Store version to {VERSION_FILE}")
+    p.add_argument(
+        "--save", action="store_true", help=f"Store version to {VERSION_FILE}"
+    )
     p.add_argument(
         "--read-file-version",
         action="store_true",

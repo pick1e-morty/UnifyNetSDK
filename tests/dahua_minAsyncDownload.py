@@ -1,5 +1,6 @@
 import sys
 import threading
+
 # from pathlib import Path
 # sys.path.append(str(Path(__file__).resolve().parent.parent))
 from datetime import timedelta
@@ -8,7 +9,11 @@ from time import sleep
 
 from UnifyNetSDK import DaHuaNetSDK
 from UnifyNetSDK.dahua.dh_netsdk_exception import DHNetSDKException
-from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyFindFileByTimeArg
+from UnifyNetSDK.parameter import (
+    UnifyLoginArg,
+    UnifyDownLoadByTimeArg,
+    UnifyFindFileByTimeArg,
+)
 from _testLoginConfig import getTestUserConfig
 
 testUserConfig = getTestUserConfig("dahua", generateNum=1)
@@ -37,7 +42,9 @@ class StopDownloadConsumer(threading.Thread):
     def run(self):
         while True:
             if not self.downloadHandleList:
-                if self.done is True:  # 如果下载句柄列表为空，且生产者发出完毕信号，则跳出永真循环。
+                if (
+                    self.done is True
+                ):  # 如果下载句柄列表为空，且生产者发出完毕信号，则跳出永真循环。
                     break
                 with self.condition:  # 注意，我用了两个with condition，由于查询是个非常耗时的操作，查询的期间是不影响生产者继续添加句柄的。
                     self.condition.wait()  # 如果下载句柄列表为空，但生产者没有发出完毕信号，则线程阻塞等待。
@@ -45,7 +52,9 @@ class StopDownloadConsumer(threading.Thread):
                 stopRestlt = dahuaClient.stopDownLoadTimer(downloadHandle)
                 if stopRestlt is True:
                     with self.condition:  # 下载成功后就可以删掉这个句柄了
-                        self.downloadHandleList.pop(self.downloadHandleList.index(downloadHandle))
+                        self.downloadHandleList.pop(
+                            self.downloadHandleList.index(downloadHandle)
+                        )
                 # 可是如果下载结果一直不为true呢，句柄就噶了，而且也不能获取对应的失败原因。print的信息很不理想
                 # 如果真的存在这种情况，就需要把查询和关闭功能写到这里，然后才能获取真正失败的原因。
                 # 这部分暂时不写。
@@ -81,7 +90,9 @@ def main():
         findArg.startTime = downloadArg.downloadTime
         findArg.stopTime = downloadArg.downloadTime + timedelta(seconds=1)
         try:
-            findResult = dahuaClient.syncFindFileByTime(userID, findArg)  # 这个查询最高居然可达780ms，过分。上层还是用两套代码吧，海康的查询能做异步的，那就让他异步。不然代价太高了
+            findResult = dahuaClient.syncFindFileByTime(
+                userID, findArg
+            )  # 这个查询最高居然可达780ms，过分。上层还是用两套代码吧，海康的查询能做异步的，那就让他异步。不然代价太高了
             print(f"查找录像结果为{findResult}")  # 0说明没找到
             if findResult is not True:
                 text = findArg.getSimpleReadMsg() + "\n没有查到录像"

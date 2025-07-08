@@ -14,14 +14,14 @@ dwOutBufferSize = sizeof(HK.NET_DVR_NTPPARA)
 lpOutBuffer = HK.NET_DVR_NTPPARA()
 lpOutBuffer.byEnableNTP = new_ntparg.enable
 
-ba = bytearray(new_ntparg.domainOrIP.encode('utf-8'))
+ba = bytearray(new_ntparg.domainOrIP.encode("utf-8"))
 lpOutBuffer.sNTPServer = (c_ubyte * 64)(*ba)
 print(ba, type(ba))
 print(lpOutBuffer.sNTPServer, type(lpOutBuffer.sNTPServer))
 # 将 c_ubyte_Array_64 对象转换为字符串
 ntp_server_str = cast(lpOutBuffer.sNTPServer, c_char_p).value.decode()
 for i in range(64):
-    print(lpOutBuffer.sNTPServer[i], end='')
+    print(lpOutBuffer.sNTPServer[i], end="")
 print()
 
 # 打印字符串
@@ -30,8 +30,8 @@ print(ntp_server_str)
 lpOutBuffer.wNtpPort = new_ntparg.port
 lpOutBuffer.wInterval = new_ntparg.updateInterval
 
-lpOutBuffer.cTimeDifferenceH = "8".encode('utf-8')  # 默认 东八区，正八
-lpOutBuffer.cTimeDifferenceM = "0".encode('utf-8')
+lpOutBuffer.cTimeDifferenceH = "8".encode("utf-8")  # 默认 东八区，正八
+lpOutBuffer.cTimeDifferenceM = "0".encode("utf-8")
 
 # b'\x08' b'\x00'
 

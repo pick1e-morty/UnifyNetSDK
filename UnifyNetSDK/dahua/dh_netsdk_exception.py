@@ -1931,7 +1931,9 @@ class NET_ERROR_FACE_RECOGNITION_SERVER_GROUP_ID_EXCEED(DHNetSDKException):
         self.errorInfo = errorText
 
 
-class NET_ERROR_FACE_RECOGNITION_SERVER_GROUP_ID_NOT_IN_REGISTER_GROUP(DHNetSDKException):
+class NET_ERROR_FACE_RECOGNITION_SERVER_GROUP_ID_NOT_IN_REGISTER_GROUP(
+    DHNetSDKException
+):
     def __init__(self, errorText=None):
         self.errorIndex = 1052
         self.errorInfo = errorText
@@ -2097,21 +2099,27 @@ class NET_ERROR_DEVICE_PARSE_PROTOCOL(DHNetSDKException):
     def __init__(self, errorText=None):
         self.errorIndex = 1079
         tempErrorInfo = "错误码索引重复了，该错误码所对应的另一个类型为NET_ERROR_FACE_RECOGNITION_SERVER_DELETE_GROUP_ERROR"
-        self.errorInfo = tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        self.errorInfo = (
+            tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        )
 
 
 class NET_ERROR_DEVICE_INVALID_REQUEST(DHNetSDKException):
     def __init__(self, errorText=None):
         self.errorIndex = 1080
         tempErrorInfo = "错误码索引重复了，该错误码所对应的另一个类型为NET_ERROR_FACE_RECOGNITION_SERVER_NAME_FORMAT_ERROR"
-        self.errorInfo = tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        self.errorInfo = (
+            tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        )
 
 
 class NET_ERROR_DEVICE_INTERNAL_ERROR(DHNetSDKException):
     def __init__(self, errorText=None):
         self.errorIndex = 1081
         tempErrorInfo = "错误码索引重复了，该错误码所对应的另一个类型为NET_ERROR_FACE_RECOGNITION_SERVER_FILEPATH_NOT_SET"
-        self.errorInfo = tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        self.errorInfo = (
+            tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        )
 
 
 class NET_ERROR_DEVICE_REQUEST_TIMEOUT(DHNetSDKException):

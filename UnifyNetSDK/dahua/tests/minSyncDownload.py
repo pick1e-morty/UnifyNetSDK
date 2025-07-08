@@ -1,10 +1,17 @@
 import sys
 from pathlib import Path
+
 # sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 from datetime import timedelta, datetime
 from UnifyNetSDK import DaHuaNetSDKs
-from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg, UnifyFindFileByTimeArg
+from UnifyNetSDK.parameter import (
+    UnifyLoginArg,
+    UnifyDownLoadByTimeArg,
+    UnifyPlayBackByTimeArg,
+    UnifyFindFileByTimeArg,
+)
 from tests._testLoginConfig import getTestUserConfig
+
 testUserConfig = getTestUserConfig("dahua")
 
 dahuaClient = DaHuaNetSDKs()

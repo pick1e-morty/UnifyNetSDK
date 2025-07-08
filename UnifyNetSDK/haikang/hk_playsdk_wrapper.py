@@ -27,7 +27,6 @@ del t
 del _int_types
 
 
-
 class UserString:
     def __init__(self, seq):
         if isinstance(seq, bytes):
@@ -436,6 +435,7 @@ def ord_if_char(value):
     """
     return ord(value) if (isinstance(value, bytes) or isinstance(value, str)) else value
 
+
 # End preamble
 
 _libs = {}
@@ -571,7 +571,9 @@ class LibraryLoader:
             # then we search the directory where the generated python interface is stored
             if this_file is not None:
                 for fmt in self.name_formats:
-                    yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
+                    yield os.path.abspath(
+                        os.path.join(os.path.dirname(__file__), fmt % libname)
+                    )
 
             # now, use the ctypes tools to try to find the library
             for fmt in self.name_formats:
@@ -866,828 +868,914 @@ _libs["lib/win/PlayCtrl.dll"] = load_library("lib/win/PlayCtrl.dll")
 
 # No modules
 
-BOOL = c_int# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 131
+BOOL = c_int  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 131
 
-BYTE = c_ubyte# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 139
+BYTE = c_ubyte  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 139
 
-WORD = c_ushort# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 140
+WORD = c_ushort  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 140
 
-DWORD = c_ulong# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 141
+DWORD = c_ulong  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 141
 
-PBYTE = POINTER(BYTE)# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 144
+PBYTE = POINTER(
+    BYTE
+)  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 144
 
-UINT = c_uint# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 159
+UINT = c_uint  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwindef.h: 159
 
-CHAR = c_char# C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 295
+CHAR = c_char  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 295
 
-LONG = c_long# C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 297
+LONG = c_long  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 297
 
-LPSTR = POINTER(CHAR)# C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 346
+LPSTR = POINTER(
+    CHAR
+)  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 346
 
-LONGLONG = c_int64# C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 500
+LONGLONG = c_int64  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/winnt.h: 500
+
 
 # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 26
 class struct_HWND__(Structure):
     pass
 
+
 struct_HWND__.__slots__ = [
-    'unused',
+    "unused",
 ]
 struct_HWND__._fields_ = [
-    ('unused', c_int),
+    ("unused", c_int),
 ]
 
-HWND = POINTER(struct_HWND__)# C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 26
+HWND = POINTER(
+    struct_HWND__
+)  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 26
+
 
 # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 47
 class struct_HDC__(Structure):
     pass
 
+
 struct_HDC__.__slots__ = [
-    'unused',
+    "unused",
 ]
 struct_HDC__._fields_ = [
-    ('unused', c_int),
+    ("unused", c_int),
 ]
 
-HDC = POINTER(struct_HDC__)# C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 47
+HDC = POINTER(
+    struct_HDC__
+)  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 47
+
 
 # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 56
 class struct_HMONITOR__(Structure):
     pass
 
+
 struct_HMONITOR__.__slots__ = [
-    'unused',
+    "unused",
 ]
 struct_HMONITOR__._fields_ = [
-    ('unused', c_int),
+    ("unused", c_int),
 ]
 
-HMONITOR = POINTER(struct_HMONITOR__)# C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 56
+HMONITOR = POINTER(
+    struct_HMONITOR__
+)  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 56
 
-COLORREF = DWORD# C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 61
+COLORREF = DWORD  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 61
+
 
 # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 78
 class struct_tagRECT(Structure):
     pass
 
+
 struct_tagRECT.__slots__ = [
-    'left',
-    'top',
-    'right',
-    'bottom',
+    "left",
+    "top",
+    "right",
+    "bottom",
 ]
 struct_tagRECT._fields_ = [
-    ('left', LONG),
-    ('top', LONG),
-    ('right', LONG),
-    ('bottom', LONG),
+    ("left", LONG),
+    ("top", LONG),
+    ("right", LONG),
+    ("bottom", LONG),
 ]
 
-RECT = struct_tagRECT# C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 78
+RECT = (
+    struct_tagRECT  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/windef.h: 78
+)
+
 
 # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwinbase.h: 58
 class struct__SYSTEMTIME(Structure):
     pass
 
+
 struct__SYSTEMTIME.__slots__ = [
-    'wYear',
-    'wMonth',
-    'wDayOfWeek',
-    'wDay',
-    'wHour',
-    'wMinute',
-    'wSecond',
-    'wMilliseconds',
+    "wYear",
+    "wMonth",
+    "wDayOfWeek",
+    "wDay",
+    "wHour",
+    "wMinute",
+    "wSecond",
+    "wMilliseconds",
 ]
 struct__SYSTEMTIME._fields_ = [
-    ('wYear', WORD),
-    ('wMonth', WORD),
-    ('wDayOfWeek', WORD),
-    ('wDay', WORD),
-    ('wHour', WORD),
-    ('wMinute', WORD),
-    ('wSecond', WORD),
-    ('wMilliseconds', WORD),
+    ("wYear", WORD),
+    ("wMonth", WORD),
+    ("wDayOfWeek", WORD),
+    ("wDay", WORD),
+    ("wHour", WORD),
+    ("wMinute", WORD),
+    ("wSecond", WORD),
+    ("wMilliseconds", WORD),
 ]
 
-SYSTEMTIME = struct__SYSTEMTIME# C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwinbase.h: 58
+SYSTEMTIME = struct__SYSTEMTIME  # C:/Program Files/mingw64/x86_64-w64-mingw32/include/minwinbase.h: 58
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 162
 class struct_anon_396(Structure):
     pass
 
+
 struct_anon_396.__slots__ = [
-    'nFilePos',
-    'nFrameNum',
-    'nFrameTime',
-    'nErrorFrameNum',
-    'pErrorTime',
-    'nErrorLostFrameNum',
-    'nErrorFrameSize',
+    "nFilePos",
+    "nFrameNum",
+    "nFrameTime",
+    "nErrorFrameNum",
+    "pErrorTime",
+    "nErrorLostFrameNum",
+    "nErrorFrameSize",
 ]
 struct_anon_396._fields_ = [
-    ('nFilePos', LONGLONG),
-    ('nFrameNum', c_long),
-    ('nFrameTime', c_long),
-    ('nErrorFrameNum', c_long),
-    ('pErrorTime', POINTER(SYSTEMTIME)),
-    ('nErrorLostFrameNum', c_long),
-    ('nErrorFrameSize', c_long),
+    ("nFilePos", LONGLONG),
+    ("nFrameNum", c_long),
+    ("nFrameTime", c_long),
+    ("nErrorFrameNum", c_long),
+    ("pErrorTime", POINTER(SYSTEMTIME)),
+    ("nErrorLostFrameNum", c_long),
+    ("nErrorFrameSize", c_long),
 ]
 
-FRAME_POS = struct_anon_396# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 162
+FRAME_POS = struct_anon_396  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 162
 
-PFRAME_POS = POINTER(struct_anon_396)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 162
+PFRAME_POS = POINTER(
+    struct_anon_396
+)  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 162
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 171
 class struct_anon_397(Structure):
     pass
 
+
 struct_anon_397.__slots__ = [
-    'nWidth',
-    'nHeight',
-    'nStamp',
-    'nType',
-    'nFrameRate',
-    'dwFrameNum',
+    "nWidth",
+    "nHeight",
+    "nStamp",
+    "nType",
+    "nFrameRate",
+    "dwFrameNum",
 ]
 struct_anon_397._fields_ = [
-    ('nWidth', c_long),
-    ('nHeight', c_long),
-    ('nStamp', c_long),
-    ('nType', c_long),
-    ('nFrameRate', c_long),
-    ('dwFrameNum', DWORD),
+    ("nWidth", c_long),
+    ("nHeight", c_long),
+    ("nStamp", c_long),
+    ("nType", c_long),
+    ("nFrameRate", c_long),
+    ("dwFrameNum", DWORD),
 ]
 
-FRAME_INFO = struct_anon_397# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 171
+FRAME_INFO = struct_anon_397  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 171
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 179
 class struct_anon_398(Structure):
     pass
 
+
 struct_anon_398.__slots__ = [
-    'pDataBuf',
-    'nSize',
-    'nFrameNum',
-    'bIsAudio',
-    'nReserved',
+    "pDataBuf",
+    "nSize",
+    "nFrameNum",
+    "bIsAudio",
+    "nReserved",
 ]
 struct_anon_398._fields_ = [
-    ('pDataBuf', String),
-    ('nSize', c_long),
-    ('nFrameNum', c_long),
-    ('bIsAudio', BOOL),
-    ('nReserved', c_long),
+    ("pDataBuf", String),
+    ("nSize", c_long),
+    ("nFrameNum", c_long),
+    ("bIsAudio", BOOL),
+    ("nReserved", c_long),
 ]
 
-FRAME_TYPE = struct_anon_398# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 179
+FRAME_TYPE = struct_anon_398  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 179
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 187
 class struct_anon_399(Structure):
     pass
 
+
 struct_anon_399.__slots__ = [
-    'pDataBuf',
-    'nSize',
-    'nFrameNum',
-    'bRsaRight',
-    'nReserved',
+    "pDataBuf",
+    "nSize",
+    "nFrameNum",
+    "bRsaRight",
+    "nReserved",
 ]
 struct_anon_399._fields_ = [
-    ('pDataBuf', String),
-    ('nSize', c_long),
-    ('nFrameNum', c_long),
-    ('bRsaRight', BOOL),
-    ('nReserved', c_long),
+    ("pDataBuf", String),
+    ("nSize", c_long),
+    ("nFrameNum", c_long),
+    ("bRsaRight", BOOL),
+    ("nReserved", c_long),
 ]
 
-WATERMARK_INFO = struct_anon_399# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 187
+WATERMARK_INFO = struct_anon_399  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 187
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 193
 class struct_SYNCDATA_INFO(Structure):
     pass
 
+
 struct_SYNCDATA_INFO.__slots__ = [
-    'dwDataType',
-    'dwDataLen',
-    'pData',
+    "dwDataType",
+    "dwDataLen",
+    "pData",
 ]
 struct_SYNCDATA_INFO._fields_ = [
-    ('dwDataType', DWORD),
-    ('dwDataLen', DWORD),
-    ('pData', POINTER(BYTE)),
+    ("dwDataType", DWORD),
+    ("dwDataLen", DWORD),
+    ("pData", POINTER(BYTE)),
 ]
 
-SYNCDATA_INFO = struct_SYNCDATA_INFO# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 193
+SYNCDATA_INFO = struct_SYNCDATA_INFO  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 193
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 200
 class struct__VCA_RECT_F_(Structure):
     pass
 
+
 struct__VCA_RECT_F_.__slots__ = [
-    'x',
-    'y',
-    'width',
-    'height',
+    "x",
+    "y",
+    "width",
+    "height",
 ]
 struct__VCA_RECT_F_._fields_ = [
-    ('x', c_float),
-    ('y', c_float),
-    ('width', c_float),
-    ('height', c_float),
+    ("x", c_float),
+    ("y", c_float),
+    ("width", c_float),
+    ("height", c_float),
 ]
 
-VCA_RECT_F = struct__VCA_RECT_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 200
+VCA_RECT_F = struct__VCA_RECT_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 200
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 207
 class struct_anon_400(Structure):
     pass
 
+
 struct_anon_400.__slots__ = [
-    'privt_type',
-    'reseverd',
-    'privt_len',
-    'privt_data',
+    "privt_type",
+    "reseverd",
+    "privt_len",
+    "privt_data",
 ]
 struct_anon_400._fields_ = [
-    ('privt_type', c_ubyte),
-    ('reseverd', c_ubyte * int(6)),
-    ('privt_len', c_ubyte),
-    ('privt_data', c_ubyte * int(32)),
+    ("privt_type", c_ubyte),
+    ("reseverd", c_ubyte * int(6)),
+    ("privt_len", c_ubyte),
+    ("privt_data", c_ubyte * int(32)),
 ]
 
-IS_PRIVT_INFO = struct_anon_400# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 207
+IS_PRIVT_INFO = struct_anon_400  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 207
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 214
 class struct_anon_401(Structure):
     pass
 
+
 struct_anon_401.__slots__ = [
-    'red',
-    'green',
-    'blue',
-    'alpha',
+    "red",
+    "green",
+    "blue",
+    "alpha",
 ]
 struct_anon_401._fields_ = [
-    ('red', c_ubyte),
-    ('green', c_ubyte),
-    ('blue', c_ubyte),
-    ('alpha', c_ubyte),
+    ("red", c_ubyte),
+    ("green", c_ubyte),
+    ("blue", c_ubyte),
+    ("alpha", c_ubyte),
 ]
 
-IS_PRIVT_INFO_COLOR = struct_anon_401# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 214
+IS_PRIVT_INFO_COLOR = struct_anon_401  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 214
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 222
 class struct_anon_402(Structure):
     pass
 
+
 struct_anon_402.__slots__ = [
-    'color',
-    'confidence',
-    'pos_len',
-    'pos_data',
-    'type',
+    "color",
+    "confidence",
+    "pos_len",
+    "pos_data",
+    "type",
 ]
 struct_anon_402._fields_ = [
-    ('color', IS_PRIVT_INFO_COLOR),
-    ('confidence', c_ubyte),
-    ('pos_len', c_ubyte),
-    ('pos_data', c_ubyte * int(22)),
-    ('type', c_uint),
+    ("color", IS_PRIVT_INFO_COLOR),
+    ("confidence", c_ubyte),
+    ("pos_len", c_ubyte),
+    ("pos_data", c_ubyte * int(22)),
+    ("type", c_uint),
 ]
 
-IS_PRIVT_INFO_CONTRABAND = struct_anon_402# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 222
+IS_PRIVT_INFO_CONTRABAND = struct_anon_402  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 222
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 229
 class struct__VCA_TARGET_EX(Structure):
     pass
 
+
 struct__VCA_TARGET_EX.__slots__ = [
-    'ID',
-    'reserved',
-    'rect',
-    'reserved1',
+    "ID",
+    "reserved",
+    "rect",
+    "reserved1",
 ]
 struct__VCA_TARGET_EX._fields_ = [
-    ('ID', c_uint),
-    ('reserved', c_ubyte * int(8)),
-    ('rect', VCA_RECT_F),
-    ('reserved1', c_ubyte * int(40)),
+    ("ID", c_uint),
+    ("reserved", c_ubyte * int(8)),
+    ("rect", VCA_RECT_F),
+    ("reserved1", c_ubyte * int(40)),
 ]
 
-VCA_TARGET_EX = struct__VCA_TARGET_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 229
+VCA_TARGET_EX = struct__VCA_TARGET_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 229
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 234
 class struct__VCA_TARGET_LIST_EX(Structure):
     pass
 
+
 struct__VCA_TARGET_LIST_EX.__slots__ = [
-    'target_num',
-    'pstTarget',
+    "target_num",
+    "pstTarget",
 ]
 struct__VCA_TARGET_LIST_EX._fields_ = [
-    ('target_num', c_uint),
-    ('pstTarget', POINTER(VCA_TARGET_EX)),
+    ("target_num", c_uint),
+    ("pstTarget", POINTER(VCA_TARGET_EX)),
 ]
 
-VCA_TARGET_LIST_EX = struct__VCA_TARGET_LIST_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 234
+VCA_TARGET_LIST_EX = struct__VCA_TARGET_LIST_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 234
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 240
 class struct__INTEL_INFO_EX(Structure):
     pass
 
+
 struct__INTEL_INFO_EX.__slots__ = [
-    'type',
-    'stTarget',
-    'stTarget_EX',
+    "type",
+    "stTarget",
+    "stTarget_EX",
 ]
 struct__INTEL_INFO_EX._fields_ = [
-    ('type', c_uint),
-    ('stTarget', VCA_TARGET_LIST_EX),
-    ('stTarget_EX', VCA_TARGET_LIST_EX),
+    ("type", c_uint),
+    ("stTarget", VCA_TARGET_LIST_EX),
+    ("stTarget_EX", VCA_TARGET_LIST_EX),
 ]
 
-INTEL_INFO_EX = struct__INTEL_INFO_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 240
+INTEL_INFO_EX = struct__INTEL_INFO_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 240
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 245
 class struct__VCA_POINT_F_(Structure):
     pass
 
+
 struct__VCA_POINT_F_.__slots__ = [
-    'x',
-    'y',
+    "x",
+    "y",
 ]
 struct__VCA_POINT_F_._fields_ = [
-    ('x', c_float),
-    ('y', c_float),
+    ("x", c_float),
+    ("y", c_float),
 ]
 
-VCA_POINT_F = struct__VCA_POINT_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 245
+VCA_POINT_F = struct__VCA_POINT_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 245
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 250
 class struct__VCA_POLYGON_F_(Structure):
     pass
 
+
 struct__VCA_POLYGON_F_.__slots__ = [
-    'vertex_num',
-    'point',
+    "vertex_num",
+    "point",
 ]
 struct__VCA_POLYGON_F_._fields_ = [
-    ('vertex_num', c_uint),
-    ('point', VCA_POINT_F * int(10)),
+    ("vertex_num", c_uint),
+    ("point", VCA_POINT_F * int(10)),
 ]
 
-VCA_POLYGON_F = struct__VCA_POLYGON_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 250
+VCA_POLYGON_F = struct__VCA_POLYGON_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 250
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 258
 class struct__VCA_ROTATE_RECT_F_(Structure):
     pass
 
+
 struct__VCA_ROTATE_RECT_F_.__slots__ = [
-    'cx',
-    'cy',
-    'width',
-    'height',
-    'theta',
+    "cx",
+    "cy",
+    "width",
+    "height",
+    "theta",
 ]
 struct__VCA_ROTATE_RECT_F_._fields_ = [
-    ('cx', c_float),
-    ('cy', c_float),
-    ('width', c_float),
-    ('height', c_float),
-    ('theta', c_float),
+    ("cx", c_float),
+    ("cy", c_float),
+    ("width", c_float),
+    ("height", c_float),
+    ("theta", c_float),
 ]
 
-VCA_ROTATE_RECT_F = struct__VCA_ROTATE_RECT_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 258
+VCA_ROTATE_RECT_F = struct__VCA_ROTATE_RECT_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 258
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 263
 class union_anon_403(Union):
     pass
 
+
 union_anon_403.__slots__ = [
-    'size',
-    'polygon',
-    'rect',
-    'rotate_rect',
+    "size",
+    "polygon",
+    "rect",
+    "rotate_rect",
 ]
 union_anon_403._fields_ = [
-    ('size', c_ubyte * int(84)),
-    ('polygon', VCA_POLYGON_F),
-    ('rect', VCA_RECT_F),
-    ('rotate_rect', VCA_ROTATE_RECT_F),
+    ("size", c_ubyte * int(84)),
+    ("polygon", VCA_POLYGON_F),
+    ("rect", VCA_RECT_F),
+    ("rotate_rect", VCA_ROTATE_RECT_F),
 ]
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 270
 class struct__VCA_REGION_(Structure):
     pass
 
+
 struct__VCA_REGION_.__slots__ = [
-    'region_type',
-    'reserved',
-    'unnamed_1',
+    "region_type",
+    "reserved",
+    "unnamed_1",
 ]
 struct__VCA_REGION_._anonymous_ = [
-    'unnamed_1',
+    "unnamed_1",
 ]
 struct__VCA_REGION_._fields_ = [
-    ('region_type', c_uint),
-    ('reserved', c_char * int(12)),
-    ('unnamed_1', union_anon_403),
+    ("region_type", c_uint),
+    ("reserved", c_char * int(12)),
+    ("unnamed_1", union_anon_403),
 ]
 
-VCA_REGION = struct__VCA_REGION_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 270
+VCA_REGION = struct__VCA_REGION_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 270
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 279
 class struct_anon_404(Structure):
     pass
 
+
 struct_anon_404.__slots__ = [
-    'id',
-    'blob_type',
-    'confidence',
-    'reserved',
-    'region',
-    'privt_info',
+    "id",
+    "blob_type",
+    "confidence",
+    "reserved",
+    "region",
+    "privt_info",
 ]
 struct_anon_404._fields_ = [
-    ('id', c_uint),
-    ('blob_type', c_uint),
-    ('confidence', c_short),
-    ('reserved', c_char * int(14)),
-    ('region', VCA_REGION),
-    ('privt_info', c_ubyte * int(40)),
+    ("id", c_uint),
+    ("blob_type", c_uint),
+    ("confidence", c_short),
+    ("reserved", c_char * int(14)),
+    ("region", VCA_REGION),
+    ("privt_info", c_ubyte * int(40)),
 ]
 
-HIK_TARGET_BLOB_EX = struct_anon_404# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 279
+HIK_TARGET_BLOB_EX = struct_anon_404  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 279
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 285
 class struct__VCA_TARGET_LIST_V1_EX_(Structure):
     pass
 
+
 struct__VCA_TARGET_LIST_V1_EX_.__slots__ = [
-    'LineType',
-    'target_num',
-    'pstTarget',
+    "LineType",
+    "target_num",
+    "pstTarget",
 ]
 struct__VCA_TARGET_LIST_V1_EX_._fields_ = [
-    ('LineType', c_uint),
-    ('target_num', c_uint),
-    ('pstTarget', POINTER(HIK_TARGET_BLOB_EX)),
+    ("LineType", c_uint),
+    ("target_num", c_uint),
+    ("pstTarget", POINTER(HIK_TARGET_BLOB_EX)),
 ]
 
-VCA_TARGET_LIST_V1_EX = struct__VCA_TARGET_LIST_V1_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 285
+VCA_TARGET_LIST_V1_EX = struct__VCA_TARGET_LIST_V1_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 285
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 292
 class struct__VCA_RULE_EX(Structure):
     pass
 
+
 struct__VCA_RULE_EX.__slots__ = [
-    'ID',
-    'reserved',
-    'polygon',
-    'privt_info',
+    "ID",
+    "reserved",
+    "polygon",
+    "privt_info",
 ]
 struct__VCA_RULE_EX._fields_ = [
-    ('ID', c_ubyte),
-    ('reserved', c_ubyte * int(15)),
-    ('polygon', VCA_POLYGON_F),
-    ('privt_info', c_ubyte * int(40)),
+    ("ID", c_ubyte),
+    ("reserved", c_ubyte * int(15)),
+    ("polygon", VCA_POLYGON_F),
+    ("privt_info", c_ubyte * int(40)),
 ]
 
-VCA_RULE_EX = struct__VCA_RULE_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 292
+VCA_RULE_EX = struct__VCA_RULE_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 292
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 298
 class struct__VCA_RULE_LIST_V3_EX_(Structure):
     pass
 
+
 struct__VCA_RULE_LIST_V3_EX_.__slots__ = [
-    'LineType',
-    'rule_num',
-    'pstRule',
+    "LineType",
+    "rule_num",
+    "pstRule",
 ]
 struct__VCA_RULE_LIST_V3_EX_._fields_ = [
-    ('LineType', c_uint),
-    ('rule_num', c_uint),
-    ('pstRule', POINTER(VCA_RULE_EX)),
+    ("LineType", c_uint),
+    ("rule_num", c_uint),
+    ("pstRule", POINTER(VCA_RULE_EX)),
 ]
 
-VCA_RULE_LIST_V3_EX = struct__VCA_RULE_LIST_V3_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 298
+VCA_RULE_LIST_V3_EX = struct__VCA_RULE_LIST_V3_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 298
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 306
 class struct__VCA_ALERT_EX_(Structure):
     pass
 
+
 struct__VCA_ALERT_EX_.__slots__ = [
-    'alert',
-    'reserved',
-    'rule_info',
-    'target',
-    'privt_info',
+    "alert",
+    "reserved",
+    "rule_info",
+    "target",
+    "privt_info",
 ]
 struct__VCA_ALERT_EX_._fields_ = [
-    ('alert', c_ubyte),
-    ('reserved', c_ubyte * int(7)),
-    ('rule_info', VCA_RULE_EX),
-    ('target', VCA_TARGET_EX),
-    ('privt_info', c_ubyte * int(40)),
+    ("alert", c_ubyte),
+    ("reserved", c_ubyte * int(7)),
+    ("rule_info", VCA_RULE_EX),
+    ("target", VCA_TARGET_EX),
+    ("privt_info", c_ubyte * int(40)),
 ]
 
-VCA_ALERT_EX = struct__VCA_ALERT_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 306
+VCA_ALERT_EX = struct__VCA_ALERT_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 306
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 311
 class struct__VCA_ALERT_LIST_EX_(Structure):
     pass
 
+
 struct__VCA_ALERT_LIST_EX_.__slots__ = [
-    'alert_num',
-    'pstAlert',
+    "alert_num",
+    "pstAlert",
 ]
 struct__VCA_ALERT_LIST_EX_._fields_ = [
-    ('alert_num', c_uint),
-    ('pstAlert', POINTER(VCA_ALERT_EX)),
+    ("alert_num", c_uint),
+    ("pstAlert", POINTER(VCA_ALERT_EX)),
 ]
 
-VCA_ALERT_LIST_EX = struct__VCA_ALERT_LIST_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 311
+VCA_ALERT_LIST_EX = struct__VCA_ALERT_LIST_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 311
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 320
 class struct__PRIVATE_INFO_(Structure):
     pass
 
+
 struct__PRIVATE_INFO_.__slots__ = [
-    'type',
-    'stTarget',
-    'stTarget_EX',
-    'stRule',
-    'stRule_EX',
-    'stAlert',
+    "type",
+    "stTarget",
+    "stTarget_EX",
+    "stRule",
+    "stRule_EX",
+    "stAlert",
 ]
 struct__PRIVATE_INFO_._fields_ = [
-    ('type', c_uint),
-    ('stTarget', VCA_TARGET_LIST_V1_EX),
-    ('stTarget_EX', VCA_TARGET_LIST_V1_EX),
-    ('stRule', VCA_RULE_LIST_V3_EX),
-    ('stRule_EX', VCA_RULE_LIST_V3_EX),
-    ('stAlert', VCA_ALERT_LIST_EX),
+    ("type", c_uint),
+    ("stTarget", VCA_TARGET_LIST_V1_EX),
+    ("stTarget_EX", VCA_TARGET_LIST_V1_EX),
+    ("stRule", VCA_RULE_LIST_V3_EX),
+    ("stRule_EX", VCA_RULE_LIST_V3_EX),
+    ("stAlert", VCA_ALERT_LIST_EX),
 ]
 
-PRIVATE_INFO = struct__PRIVATE_INFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 320
+PRIVATE_INFO = struct__PRIVATE_INFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 320
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 336
 class struct__HIK_MEDIAINFO_(Structure):
     pass
 
+
 struct__HIK_MEDIAINFO_.__slots__ = [
-    'media_fourcc',
-    'media_version',
-    'device_id',
-    'system_format',
-    'video_format',
-    'audio_format',
-    'audio_channels',
-    'audio_bits_per_sample',
-    'audio_samplesrate',
-    'audio_bitrate',
-    'reserved',
+    "media_fourcc",
+    "media_version",
+    "device_id",
+    "system_format",
+    "video_format",
+    "audio_format",
+    "audio_channels",
+    "audio_bits_per_sample",
+    "audio_samplesrate",
+    "audio_bitrate",
+    "reserved",
 ]
 struct__HIK_MEDIAINFO_._fields_ = [
-    ('media_fourcc', c_uint),
-    ('media_version', c_ushort),
-    ('device_id', c_ushort),
-    ('system_format', c_ushort),
-    ('video_format', c_ushort),
-    ('audio_format', c_ushort),
-    ('audio_channels', c_ubyte),
-    ('audio_bits_per_sample', c_ubyte),
-    ('audio_samplesrate', c_uint),
-    ('audio_bitrate', c_uint),
-    ('reserved', c_uint * int(4)),
+    ("media_fourcc", c_uint),
+    ("media_version", c_ushort),
+    ("device_id", c_ushort),
+    ("system_format", c_ushort),
+    ("video_format", c_ushort),
+    ("audio_format", c_ushort),
+    ("audio_channels", c_ubyte),
+    ("audio_bits_per_sample", c_ubyte),
+    ("audio_samplesrate", c_uint),
+    ("audio_bitrate", c_uint),
+    ("reserved", c_uint * int(4)),
 ]
 
-HIK_MEDIAINFO = struct__HIK_MEDIAINFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 336
+HIK_MEDIAINFO = struct__HIK_MEDIAINFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 336
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 348
 class struct_anon_405(Structure):
     pass
 
+
 struct_anon_405.__slots__ = [
-    'nPort',
-    'pBuf',
-    'nBufLen',
-    'nWidth',
-    'nHeight',
-    'nStamp',
-    'nType',
-    'nUser',
+    "nPort",
+    "pBuf",
+    "nBufLen",
+    "nWidth",
+    "nHeight",
+    "nStamp",
+    "nType",
+    "nUser",
 ]
 struct_anon_405._fields_ = [
-    ('nPort', c_long),
-    ('pBuf', String),
-    ('nBufLen', c_long),
-    ('nWidth', c_long),
-    ('nHeight', c_long),
-    ('nStamp', c_long),
-    ('nType', c_long),
-    ('nUser', POINTER(None)),
+    ("nPort", c_long),
+    ("pBuf", String),
+    ("nBufLen", c_long),
+    ("nWidth", c_long),
+    ("nHeight", c_long),
+    ("nStamp", c_long),
+    ("nType", c_long),
+    ("nUser", POINTER(None)),
 ]
 
-DISPLAY_INFO = struct_anon_405# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 348
+DISPLAY_INFO = struct_anon_405  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 348
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 361
 class struct_anon_406(Structure):
     pass
 
+
 struct_anon_406.__slots__ = [
-    'nPort',
-    'pVideoBuf',
-    'nVideoBufLen',
-    'pPriBuf',
-    'nPriBufLen',
-    'nWidth',
-    'nHeight',
-    'nStamp',
-    'nType',
-    'nUser',
+    "nPort",
+    "pVideoBuf",
+    "nVideoBufLen",
+    "pPriBuf",
+    "nPriBufLen",
+    "nWidth",
+    "nHeight",
+    "nStamp",
+    "nType",
+    "nUser",
 ]
 struct_anon_406._fields_ = [
-    ('nPort', c_long),
-    ('pVideoBuf', String),
-    ('nVideoBufLen', c_long),
-    ('pPriBuf', String),
-    ('nPriBufLen', c_long),
-    ('nWidth', c_long),
-    ('nHeight', c_long),
-    ('nStamp', c_long),
-    ('nType', c_long),
-    ('nUser', POINTER(None)),
+    ("nPort", c_long),
+    ("pVideoBuf", String),
+    ("nVideoBufLen", c_long),
+    ("pPriBuf", String),
+    ("nPriBufLen", c_long),
+    ("nWidth", c_long),
+    ("nHeight", c_long),
+    ("nStamp", c_long),
+    ("nType", c_long),
+    ("nUser", POINTER(None)),
 ]
 
-DISPLAY_INFOEX = struct_anon_406# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 361
+DISPLAY_INFOEX = struct_anon_406  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 361
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 377
 class struct_anon_407(Structure):
     pass
 
+
 struct_anon_407.__slots__ = [
-    'nPort',
-    'pBuf',
-    'nBufLen',
-    'pBuf1',
-    'nBufLen1',
-    'pBuf2',
-    'nBufLen2',
-    'nWidth',
-    'nHeight',
-    'nStamp',
-    'nType',
-    'pUser',
-    'reserved',
+    "nPort",
+    "pBuf",
+    "nBufLen",
+    "pBuf1",
+    "nBufLen1",
+    "pBuf2",
+    "nBufLen2",
+    "nWidth",
+    "nHeight",
+    "nStamp",
+    "nType",
+    "pUser",
+    "reserved",
 ]
 struct_anon_407._fields_ = [
-    ('nPort', c_long),
-    ('pBuf', String),
-    ('nBufLen', c_uint),
-    ('pBuf1', String),
-    ('nBufLen1', c_uint),
-    ('pBuf2', String),
-    ('nBufLen2', c_uint),
-    ('nWidth', c_uint),
-    ('nHeight', c_uint),
-    ('nStamp', c_uint),
-    ('nType', c_uint),
-    ('pUser', POINTER(None)),
-    ('reserved', c_uint * int(4)),
+    ("nPort", c_long),
+    ("pBuf", String),
+    ("nBufLen", c_uint),
+    ("pBuf1", String),
+    ("nBufLen1", c_uint),
+    ("pBuf2", String),
+    ("nBufLen2", c_uint),
+    ("nWidth", c_uint),
+    ("nHeight", c_uint),
+    ("nStamp", c_uint),
+    ("nType", c_uint),
+    ("pUser", POINTER(None)),
+    ("reserved", c_uint * int(4)),
 ]
 
-DISPLAY_INFO_YUV = struct_anon_407# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 377
+DISPLAY_INFO_YUV = struct_anon_407  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 377
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 387
 class struct_PLAYM4_SYSTEM_TIME(Structure):
     pass
 
+
 struct_PLAYM4_SYSTEM_TIME.__slots__ = [
-    'dwYear',
-    'dwMon',
-    'dwDay',
-    'dwHour',
-    'dwMin',
-    'dwSec',
-    'dwMs',
+    "dwYear",
+    "dwMon",
+    "dwDay",
+    "dwHour",
+    "dwMin",
+    "dwSec",
+    "dwMs",
 ]
 struct_PLAYM4_SYSTEM_TIME._fields_ = [
-    ('dwYear', DWORD),
-    ('dwMon', DWORD),
-    ('dwDay', DWORD),
-    ('dwHour', DWORD),
-    ('dwMin', DWORD),
-    ('dwSec', DWORD),
-    ('dwMs', DWORD),
+    ("dwYear", DWORD),
+    ("dwMon", DWORD),
+    ("dwDay", DWORD),
+    ("dwHour", DWORD),
+    ("dwMin", DWORD),
+    ("dwSec", DWORD),
+    ("dwMs", DWORD),
 ]
 
-PLAYM4_SYSTEM_TIME = struct_PLAYM4_SYSTEM_TIME# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 387
+PLAYM4_SYSTEM_TIME = struct_PLAYM4_SYSTEM_TIME  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 387
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 399
 class struct_anon_408(Structure):
     pass
 
+
 struct_anon_408.__slots__ = [
-    'pDataBuf',
-    'dwPicSize',
-    'dwBufSize',
-    'dwPicWidth',
-    'dwPicHeight',
-    'dwReserve',
-    'pCropRect',
+    "pDataBuf",
+    "dwPicSize",
+    "dwBufSize",
+    "dwPicWidth",
+    "dwPicHeight",
+    "dwReserve",
+    "pCropRect",
 ]
 struct_anon_408._fields_ = [
-    ('pDataBuf', POINTER(BYTE)),
-    ('dwPicSize', DWORD),
-    ('dwBufSize', DWORD),
-    ('dwPicWidth', DWORD),
-    ('dwPicHeight', DWORD),
-    ('dwReserve', DWORD),
-    ('pCropRect', POINTER(RECT)),
+    ("pDataBuf", POINTER(BYTE)),
+    ("dwPicSize", DWORD),
+    ("dwBufSize", DWORD),
+    ("dwPicWidth", DWORD),
+    ("dwPicHeight", DWORD),
+    ("dwReserve", DWORD),
+    ("pCropRect", POINTER(RECT)),
 ]
 
-CROP_PIC_INFO = struct_anon_408# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 399
+CROP_PIC_INFO = struct_anon_408  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 399
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 406
 class struct_anon_409(Structure):
     pass
 
+
 struct_anon_409.__slots__ = [
-    'nVideoEncryptType',
-    'nAudioEncryptType',
-    'nSetSecretKey',
+    "nVideoEncryptType",
+    "nAudioEncryptType",
+    "nSetSecretKey",
 ]
 struct_anon_409._fields_ = [
-    ('nVideoEncryptType', c_long),
-    ('nAudioEncryptType', c_long),
-    ('nSetSecretKey', c_long),
+    ("nVideoEncryptType", c_long),
+    ("nAudioEncryptType", c_long),
+    ("nSetSecretKey", c_long),
 ]
 
-ENCRYPT_INFO = struct_anon_409# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 406
+ENCRYPT_INFO = struct_anon_409  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 406
 
-enum__PLAYM4_PRIDATA_RENDER = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+enum__PLAYM4_PRIDATA_RENDER = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_ANA_INTEL_DATA = 0x00000001# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_ANA_INTEL_DATA = 0x00000001  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_MD = 0x00000002# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_MD = 0x00000002  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_ADD_POS = 0x00000004# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_ADD_POS = 0x00000004  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_ADD_PIC = 0x00000008# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_ADD_PIC = 0x00000008  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_FIRE_DETCET = 0x00000010# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_FIRE_DETCET = 0x00000010  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_TEM = 0x00000020# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_TEM = 0x00000020  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_TRACK_TEM = 0x00000040# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_TRACK_TEM = 0x00000040  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_RENDER_THERMAL = 0x00000080# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_RENDER_THERMAL = 0x00000080  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-PLAYM4_PRIDATA_RENDER = enum__PLAYM4_PRIDATA_RENDER# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
+PLAYM4_PRIDATA_RENDER = enum__PLAYM4_PRIDATA_RENDER  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 417
 
-enum__PLAYM4_THERMAL_FLAG = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
+enum__PLAYM4_THERMAL_FLAG = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
 
-PLAYM4_THERMAL_FIREMASK = 0x00000001# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
+PLAYM4_THERMAL_FIREMASK = 0x00000001  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
 
-PLAYM4_THERMAL_RULEGAS = 0x00000002# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
+PLAYM4_THERMAL_RULEGAS = 0x00000002  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
 
-PLAYM4_THERMAL_TARGETGAS = 0x00000004# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
+PLAYM4_THERMAL_TARGETGAS = 0x00000004  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
 
-PLAYM4_THERMAL_FLAG = enum__PLAYM4_THERMAL_FLAG# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
+PLAYM4_THERMAL_FLAG = enum__PLAYM4_THERMAL_FLAG  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 423
 
-enum__PLAYM4_FIRE_ALARM = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
+enum__PLAYM4_FIRE_ALARM = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
 
-PLAYM4_FIRE_FRAME_DIS = 0x00000001# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
+PLAYM4_FIRE_FRAME_DIS = 0x00000001  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
 
-PLAYM4_FIRE_MAX_TEMP = 0x00000002# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
+PLAYM4_FIRE_MAX_TEMP = 0x00000002  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
 
-PLAYM4_FIRE_MAX_TEMP_POSITION = 0x00000004# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
+PLAYM4_FIRE_MAX_TEMP_POSITION = 0x00000004  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
 
-PLAYM4_FIRE_DISTANCE = 0x00000008# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
+PLAYM4_FIRE_DISTANCE = 0x00000008  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
 
-PLAYM4_FIRE_ALARM = enum__PLAYM4_FIRE_ALARM# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
+PLAYM4_FIRE_ALARM = enum__PLAYM4_FIRE_ALARM  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 430
 
-enum__PLAYM4_TEM_FLAG = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
+enum__PLAYM4_TEM_FLAG = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
 
-PLAYM4_TEM_REGION_BOX = 0x00000001# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
+PLAYM4_TEM_REGION_BOX = 0x00000001  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
 
-PLAYM4_TEM_REGION_LINE = 0x00000002# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
+PLAYM4_TEM_REGION_LINE = 0x00000002  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
 
-PLAYM4_TEM_REGION_POINT = 0x00000004# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
+PLAYM4_TEM_REGION_POINT = 0x00000004  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
 
-PLAYM4_TEM_FLAG = enum__PLAYM4_TEM_FLAG# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
+PLAYM4_TEM_FLAG = enum__PLAYM4_TEM_FLAG  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 436
 
-enum__PLAYM4_TRACK_FLAG = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
+enum__PLAYM4_TRACK_FLAG = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
 
-PLAYM4_TRACK_PEOPLE = 0x00000001# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
+PLAYM4_TRACK_PEOPLE = 0x00000001  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
 
-PLAYM4_TRACK_VEHICLE = 0x00000002# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
+PLAYM4_TRACK_VEHICLE = 0x00000002  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
 
-PLAYM4_TRACK_FLAG = enum__PLAYM4_TRACK_FLAG# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
+PLAYM4_TRACK_FLAG = enum__PLAYM4_TRACK_FLAG  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 441
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 442
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPort", "cdecl"):
@@ -1721,7 +1809,9 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_OpenStream", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 447
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_CloseStream", "cdecl"):
-    PlayM4_CloseStream = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_CloseStream", "cdecl")
+    PlayM4_CloseStream = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_CloseStream", "cdecl"
+    )
     PlayM4_CloseStream.argtypes = [LONG]
     PlayM4_CloseStream.restype = BOOL
 
@@ -1733,49 +1823,69 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_InputData", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 449
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetStreamOpenMode", "cdecl"):
-    PlayM4_SetStreamOpenMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetStreamOpenMode", "cdecl")
+    PlayM4_SetStreamOpenMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetStreamOpenMode", "cdecl"
+    )
     PlayM4_SetStreamOpenMode.argtypes = [LONG, DWORD]
     PlayM4_SetStreamOpenMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 450
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetStreamOpenMode", "cdecl"):
-    PlayM4_GetStreamOpenMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetStreamOpenMode", "cdecl")
+    PlayM4_GetStreamOpenMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetStreamOpenMode", "cdecl"
+    )
     PlayM4_GetStreamOpenMode.argtypes = [LONG]
     PlayM4_GetStreamOpenMode.restype = LONG
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 451
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetFileRefCallBack", "cdecl"):
-    PlayM4_SetFileRefCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetFileRefCallBack", "cdecl")
-    PlayM4_SetFileRefCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), DWORD, POINTER(None)), POINTER(None)]
+    PlayM4_SetFileRefCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetFileRefCallBack", "cdecl"
+    )
+    PlayM4_SetFileRefCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), DWORD, POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetFileRefCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 452
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetRefValue", "cdecl"):
-    PlayM4_GetRefValue = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetRefValue", "cdecl")
+    PlayM4_GetRefValue = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetRefValue", "cdecl"
+    )
     PlayM4_GetRefValue.argtypes = [LONG, POINTER(BYTE), POINTER(DWORD)]
     PlayM4_GetRefValue.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 453
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetRefValue", "cdecl"):
-    PlayM4_SetRefValue = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetRefValue", "cdecl")
+    PlayM4_SetRefValue = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetRefValue", "cdecl"
+    )
     PlayM4_SetRefValue.argtypes = [LONG, POINTER(BYTE), DWORD]
     PlayM4_SetRefValue.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 454
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetRefValueEx", "cdecl"):
-    PlayM4_GetRefValueEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetRefValueEx", "cdecl")
+    PlayM4_GetRefValueEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetRefValueEx", "cdecl"
+    )
     PlayM4_GetRefValueEx.argtypes = [LONG, POINTER(BYTE), POINTER(DWORD)]
     PlayM4_GetRefValueEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 455
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetKeyFramePos", "cdecl"):
-    PlayM4_GetKeyFramePos = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetKeyFramePos", "cdecl")
+    PlayM4_GetKeyFramePos = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetKeyFramePos", "cdecl"
+    )
     PlayM4_GetKeyFramePos.argtypes = [LONG, DWORD, DWORD, PFRAME_POS]
     PlayM4_GetKeyFramePos.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 456
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetNextKeyFramePos", "cdecl"):
-    PlayM4_GetNextKeyFramePos = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetNextKeyFramePos", "cdecl")
+    PlayM4_GetNextKeyFramePos = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetNextKeyFramePos", "cdecl"
+    )
     PlayM4_GetNextKeyFramePos.argtypes = [LONG, DWORD, DWORD, PFRAME_POS]
     PlayM4_GetNextKeyFramePos.restype = BOOL
 
@@ -1817,25 +1927,33 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_OneByOne", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 463
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_OneByOneBack", "cdecl"):
-    PlayM4_OneByOneBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_OneByOneBack", "cdecl")
+    PlayM4_OneByOneBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_OneByOneBack", "cdecl"
+    )
     PlayM4_OneByOneBack.argtypes = [LONG]
     PlayM4_OneByOneBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 464
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ReversePlay", "cdecl"):
-    PlayM4_ReversePlay = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ReversePlay", "cdecl")
+    PlayM4_ReversePlay = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ReversePlay", "cdecl"
+    )
     PlayM4_ReversePlay.argtypes = [LONG]
     PlayM4_ReversePlay.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 465
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RefreshPlay", "cdecl"):
-    PlayM4_RefreshPlay = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RefreshPlay", "cdecl")
+    PlayM4_RefreshPlay = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RefreshPlay", "cdecl"
+    )
     PlayM4_RefreshPlay.argtypes = [LONG]
     PlayM4_RefreshPlay.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 466
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RefreshPlayEx", "cdecl"):
-    PlayM4_RefreshPlayEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RefreshPlayEx", "cdecl")
+    PlayM4_RefreshPlayEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RefreshPlayEx", "cdecl"
+    )
     PlayM4_RefreshPlayEx.argtypes = [LONG, DWORD]
     PlayM4_RefreshPlayEx.restype = BOOL
 
@@ -1853,13 +1971,17 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_StopSound", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 469
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_PlaySoundShare", "cdecl"):
-    PlayM4_PlaySoundShare = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_PlaySoundShare", "cdecl")
+    PlayM4_PlaySoundShare = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_PlaySoundShare", "cdecl"
+    )
     PlayM4_PlaySoundShare.argtypes = [LONG]
     PlayM4_PlaySoundShare.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 470
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_StopSoundShare", "cdecl"):
-    PlayM4_StopSoundShare = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_StopSoundShare", "cdecl")
+    PlayM4_StopSoundShare = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_StopSoundShare", "cdecl"
+    )
     PlayM4_StopSoundShare.argtypes = [LONG]
     PlayM4_StopSoundShare.restype = BOOL
 
@@ -1877,13 +1999,17 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetVolume", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 473
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_AdjustWaveAudio", "cdecl"):
-    PlayM4_AdjustWaveAudio = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_AdjustWaveAudio", "cdecl")
+    PlayM4_AdjustWaveAudio = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_AdjustWaveAudio", "cdecl"
+    )
     PlayM4_AdjustWaveAudio.argtypes = [LONG, LONG]
     PlayM4_AdjustWaveAudio.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 474
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetANRParam", "cdecl"):
-    PlayM4_SetANRParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetANRParam", "cdecl")
+    PlayM4_SetANRParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetANRParam", "cdecl"
+    )
     PlayM4_SetANRParam.argtypes = [LONG, BOOL, c_int]
     PlayM4_SetANRParam.restype = BOOL
 
@@ -1901,163 +2027,231 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPlayPos", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 477
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetFileTime", "cdecl"):
-    PlayM4_GetFileTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetFileTime", "cdecl")
+    PlayM4_GetFileTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetFileTime", "cdecl"
+    )
     PlayM4_GetFileTime.argtypes = [LONG]
     PlayM4_GetFileTime.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 478
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPlayedTime", "cdecl"):
-    PlayM4_GetPlayedTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetPlayedTime", "cdecl")
+    PlayM4_GetPlayedTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetPlayedTime", "cdecl"
+    )
     PlayM4_GetPlayedTime.argtypes = [LONG]
     PlayM4_GetPlayedTime.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 479
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPlayedFrames", "cdecl"):
-    PlayM4_GetPlayedFrames = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetPlayedFrames", "cdecl")
+    PlayM4_GetPlayedFrames = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetPlayedFrames", "cdecl"
+    )
     PlayM4_GetPlayedFrames.argtypes = [LONG]
     PlayM4_GetPlayedFrames.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 480
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetFileTotalFrames", "cdecl"):
-    PlayM4_GetFileTotalFrames = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetFileTotalFrames", "cdecl")
+    PlayM4_GetFileTotalFrames = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetFileTotalFrames", "cdecl"
+    )
     PlayM4_GetFileTotalFrames.argtypes = [LONG]
     PlayM4_GetFileTotalFrames.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 481
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetCurrentFrameRate", "cdecl"):
-    PlayM4_GetCurrentFrameRate = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetCurrentFrameRate", "cdecl")
+    PlayM4_GetCurrentFrameRate = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetCurrentFrameRate", "cdecl"
+    )
     PlayM4_GetCurrentFrameRate.argtypes = [LONG]
     PlayM4_GetCurrentFrameRate.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 482
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPlayedTimeEx", "cdecl"):
-    PlayM4_GetPlayedTimeEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetPlayedTimeEx", "cdecl")
+    PlayM4_GetPlayedTimeEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetPlayedTimeEx", "cdecl"
+    )
     PlayM4_GetPlayedTimeEx.argtypes = [LONG]
     PlayM4_GetPlayedTimeEx.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 483
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetPlayedTimeEx", "cdecl"):
-    PlayM4_SetPlayedTimeEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetPlayedTimeEx", "cdecl")
+    PlayM4_SetPlayedTimeEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetPlayedTimeEx", "cdecl"
+    )
     PlayM4_SetPlayedTimeEx.argtypes = [LONG, DWORD]
     PlayM4_SetPlayedTimeEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 484
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetCurrentFrameNum", "cdecl"):
-    PlayM4_GetCurrentFrameNum = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetCurrentFrameNum", "cdecl")
+    PlayM4_GetCurrentFrameNum = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetCurrentFrameNum", "cdecl"
+    )
     PlayM4_GetCurrentFrameNum.argtypes = [LONG]
     PlayM4_GetCurrentFrameNum.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 485
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetCurrentFrameNum", "cdecl"):
-    PlayM4_SetCurrentFrameNum = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetCurrentFrameNum", "cdecl")
+    PlayM4_SetCurrentFrameNum = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetCurrentFrameNum", "cdecl"
+    )
     PlayM4_SetCurrentFrameNum.argtypes = [LONG, DWORD]
     PlayM4_SetCurrentFrameNum.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 486
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetSystemTime", "cdecl"):
-    PlayM4_GetSystemTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetSystemTime", "cdecl")
+    PlayM4_GetSystemTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetSystemTime", "cdecl"
+    )
     PlayM4_GetSystemTime.argtypes = [LONG, POINTER(PLAYM4_SYSTEM_TIME)]
     PlayM4_GetSystemTime.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 487
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetSpecialData", "cdecl"):
-    PlayM4_GetSpecialData = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetSpecialData", "cdecl")
+    PlayM4_GetSpecialData = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetSpecialData", "cdecl"
+    )
     PlayM4_GetSpecialData.argtypes = [LONG]
     PlayM4_GetSpecialData.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 488
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPictureSize", "cdecl"):
-    PlayM4_GetPictureSize = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetPictureSize", "cdecl")
+    PlayM4_GetPictureSize = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetPictureSize", "cdecl"
+    )
     PlayM4_GetPictureSize.argtypes = [LONG, POINTER(LONG), POINTER(LONG)]
     PlayM4_GetPictureSize.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 489
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetFileEndCallback", "cdecl"):
-    PlayM4_SetFileEndCallback = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetFileEndCallback", "cdecl")
-    PlayM4_SetFileEndCallback.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(None)), POINTER(None)]
+    PlayM4_SetFileEndCallback = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetFileEndCallback", "cdecl"
+    )
+    PlayM4_SetFileEndCallback.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetFileEndCallback.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 490
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetFileTotalTime", "cdecl"):
-    PlayM4_GetFileTotalTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetFileTotalTime", "cdecl")
-    PlayM4_GetFileTotalTime.argtypes = [LONG, POINTER(PLAYM4_SYSTEM_TIME), POINTER(PLAYM4_SYSTEM_TIME)]
+    PlayM4_GetFileTotalTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetFileTotalTime", "cdecl"
+    )
+    PlayM4_GetFileTotalTime.argtypes = [
+        LONG,
+        POINTER(PLAYM4_SYSTEM_TIME),
+        POINTER(PLAYM4_SYSTEM_TIME),
+    ]
     PlayM4_GetFileTotalTime.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 491
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetSupplementaryTimeZone", "cdecl"):
-    PlayM4_SetSupplementaryTimeZone = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetSupplementaryTimeZone", "cdecl")
+    PlayM4_SetSupplementaryTimeZone = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetSupplementaryTimeZone", "cdecl"
+    )
     PlayM4_SetSupplementaryTimeZone.argtypes = [c_int, c_int]
     PlayM4_SetSupplementaryTimeZone.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 492
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetSupplementaryTimeZone", "cdecl"):
-    PlayM4_GetSupplementaryTimeZone = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetSupplementaryTimeZone", "cdecl")
+    PlayM4_GetSupplementaryTimeZone = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetSupplementaryTimeZone", "cdecl"
+    )
     PlayM4_GetSupplementaryTimeZone.argtypes = [c_int, POINTER(c_int)]
     PlayM4_GetSupplementaryTimeZone.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 493
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetTimeZoneInfo", "cdecl"):
-    PlayM4_GetTimeZoneInfo = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetTimeZoneInfo", "cdecl")
+    PlayM4_GetTimeZoneInfo = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetTimeZoneInfo", "cdecl"
+    )
     PlayM4_GetTimeZoneInfo.argtypes = [c_long, POINTER(c_int)]
     PlayM4_GetTimeZoneInfo.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 494
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetStreamInfo", "cdecl"):
-    PlayM4_GetStreamInfo = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetStreamInfo", "cdecl")
+    PlayM4_GetStreamInfo = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetStreamInfo", "cdecl"
+    )
     PlayM4_GetStreamInfo.argtypes = [c_long, POINTER(c_int), POINTER(c_int)]
     PlayM4_GetStreamInfo.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 495
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetSourceBufferRemain", "cdecl"):
-    PlayM4_GetSourceBufferRemain = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetSourceBufferRemain", "cdecl")
+    PlayM4_GetSourceBufferRemain = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetSourceBufferRemain", "cdecl"
+    )
     PlayM4_GetSourceBufferRemain.argtypes = [LONG]
     PlayM4_GetSourceBufferRemain.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 496
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ResetSourceBuffer", "cdecl"):
-    PlayM4_ResetSourceBuffer = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ResetSourceBuffer", "cdecl")
+    PlayM4_ResetSourceBuffer = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ResetSourceBuffer", "cdecl"
+    )
     PlayM4_ResetSourceBuffer.argtypes = [LONG]
     PlayM4_ResetSourceBuffer.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 497
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetSourceBufCallBack", "cdecl"):
-    PlayM4_SetSourceBufCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetSourceBufCallBack", "cdecl")
-    PlayM4_SetSourceBufCallBack.argtypes = [LONG, DWORD, CFUNCTYPE(UNCHECKED(None), c_long, DWORD, POINTER(None), POINTER(None)), POINTER(None), POINTER(None)]
+    PlayM4_SetSourceBufCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetSourceBufCallBack", "cdecl"
+    )
+    PlayM4_SetSourceBufCallBack.argtypes = [
+        LONG,
+        DWORD,
+        CFUNCTYPE(UNCHECKED(None), c_long, DWORD, POINTER(None), POINTER(None)),
+        POINTER(None),
+        POINTER(None),
+    ]
     PlayM4_SetSourceBufCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 498
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ResetSourceBufFlag", "cdecl"):
-    PlayM4_ResetSourceBufFlag = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ResetSourceBufFlag", "cdecl")
+    PlayM4_ResetSourceBufFlag = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ResetSourceBufFlag", "cdecl"
+    )
     PlayM4_ResetSourceBufFlag.argtypes = [LONG]
     PlayM4_ResetSourceBufFlag.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 499
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ResetBuffer", "cdecl"):
-    PlayM4_ResetBuffer = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ResetBuffer", "cdecl")
+    PlayM4_ResetBuffer = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ResetBuffer", "cdecl"
+    )
     PlayM4_ResetBuffer.argtypes = [LONG, DWORD]
     PlayM4_ResetBuffer.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 500
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetBufferValue", "cdecl"):
-    PlayM4_GetBufferValue = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetBufferValue", "cdecl")
+    PlayM4_GetBufferValue = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetBufferValue", "cdecl"
+    )
     PlayM4_GetBufferValue.argtypes = [LONG, DWORD]
     PlayM4_GetBufferValue.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 501
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDisplayBuf", "cdecl"):
-    PlayM4_SetDisplayBuf = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDisplayBuf", "cdecl")
+    PlayM4_SetDisplayBuf = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDisplayBuf", "cdecl"
+    )
     PlayM4_SetDisplayBuf.argtypes = [LONG, DWORD]
     PlayM4_SetDisplayBuf.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 502
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetDisplayBuf", "cdecl"):
-    PlayM4_GetDisplayBuf = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetDisplayBuf", "cdecl")
+    PlayM4_GetDisplayBuf = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetDisplayBuf", "cdecl"
+    )
     PlayM4_GetDisplayBuf.argtypes = [LONG]
     PlayM4_GetDisplayBuf.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 503
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetJpegQuality", "cdecl"):
-    PlayM4_SetJpegQuality = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetJpegQuality", "cdecl")
+    PlayM4_SetJpegQuality = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetJpegQuality", "cdecl"
+    )
     PlayM4_SetJpegQuality.argtypes = [c_long]
     PlayM4_SetJpegQuality.restype = BOOL
 
@@ -2075,169 +2269,299 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetJPEG", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 506
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ConvertToBmpFile", "cdecl"):
-    PlayM4_ConvertToBmpFile = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ConvertToBmpFile", "cdecl")
+    PlayM4_ConvertToBmpFile = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ConvertToBmpFile", "cdecl"
+    )
     PlayM4_ConvertToBmpFile.argtypes = [String, c_long, c_long, c_long, c_long, String]
     PlayM4_ConvertToBmpFile.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 507
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ConvertToJpegFile", "cdecl"):
-    PlayM4_ConvertToJpegFile = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ConvertToJpegFile", "cdecl")
+    PlayM4_ConvertToJpegFile = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ConvertToJpegFile", "cdecl"
+    )
     PlayM4_ConvertToJpegFile.argtypes = [String, c_long, c_long, c_long, c_long, String]
     PlayM4_ConvertToJpegFile.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 508
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetIdemuxPara", "cdecl"):
-    PlayM4_SetIdemuxPara = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetIdemuxPara", "cdecl")
+    PlayM4_SetIdemuxPara = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetIdemuxPara", "cdecl"
+    )
     PlayM4_SetIdemuxPara.argtypes = [LONG, c_int]
     PlayM4_SetIdemuxPara.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 509
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetSecretKey", "cdecl"):
-    PlayM4_SetSecretKey = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetSecretKey", "cdecl")
+    PlayM4_SetSecretKey = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetSecretKey", "cdecl"
+    )
     PlayM4_SetSecretKey.argtypes = [LONG, LONG, String, LONG]
     PlayM4_SetSecretKey.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 510
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ThrowBFrameNum", "cdecl"):
-    PlayM4_ThrowBFrameNum = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ThrowBFrameNum", "cdecl")
+    PlayM4_ThrowBFrameNum = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ThrowBFrameNum", "cdecl"
+    )
     PlayM4_ThrowBFrameNum.argtypes = [LONG, DWORD]
     PlayM4_ThrowBFrameNum.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 511
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecCBStream", "cdecl"):
-    PlayM4_SetDecCBStream = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecCBStream", "cdecl")
+    PlayM4_SetDecCBStream = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecCBStream", "cdecl"
+    )
     PlayM4_SetDecCBStream.argtypes = [LONG, DWORD]
     PlayM4_SetDecCBStream.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 512
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecodeFrameType", "cdecl"):
-    PlayM4_SetDecodeFrameType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecodeFrameType", "cdecl")
+    PlayM4_SetDecodeFrameType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecodeFrameType", "cdecl"
+    )
     PlayM4_SetDecodeFrameType.argtypes = [LONG, DWORD]
     PlayM4_SetDecodeFrameType.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 513
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_CheckDiscontinuousFrameNum", "cdecl"):
-    PlayM4_CheckDiscontinuousFrameNum = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_CheckDiscontinuousFrameNum", "cdecl")
+    PlayM4_CheckDiscontinuousFrameNum = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_CheckDiscontinuousFrameNum", "cdecl"
+    )
     PlayM4_CheckDiscontinuousFrameNum.argtypes = [LONG, BOOL]
     PlayM4_CheckDiscontinuousFrameNum.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 514
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SkipErrorData", "cdecl"):
-    PlayM4_SkipErrorData = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SkipErrorData", "cdecl")
+    PlayM4_SkipErrorData = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SkipErrorData", "cdecl"
+    )
     PlayM4_SkipErrorData.argtypes = [LONG, BOOL]
     PlayM4_SkipErrorData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 515
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecCallBackMend", "cdecl"):
-    PlayM4_SetDecCallBackMend = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecCallBackMend", "cdecl")
-    PlayM4_SetDecCallBackMend.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, POINTER(FRAME_INFO), POINTER(None), POINTER(None)), POINTER(None)]
+    PlayM4_SetDecCallBackMend = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecCallBackMend", "cdecl"
+    )
+    PlayM4_SetDecCallBackMend.argtypes = [
+        LONG,
+        CFUNCTYPE(
+            UNCHECKED(None),
+            c_long,
+            String,
+            c_long,
+            POINTER(FRAME_INFO),
+            POINTER(None),
+            POINTER(None),
+        ),
+        POINTER(None),
+    ]
     PlayM4_SetDecCallBackMend.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 516
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecCallBackExMend", "cdecl"):
-    PlayM4_SetDecCallBackExMend = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecCallBackExMend", "cdecl")
-    PlayM4_SetDecCallBackExMend.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, POINTER(FRAME_INFO), POINTER(None), POINTER(None)), String, c_long, POINTER(None)]
+    PlayM4_SetDecCallBackExMend = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecCallBackExMend", "cdecl"
+    )
+    PlayM4_SetDecCallBackExMend.argtypes = [
+        LONG,
+        CFUNCTYPE(
+            UNCHECKED(None),
+            c_long,
+            String,
+            c_long,
+            POINTER(FRAME_INFO),
+            POINTER(None),
+            POINTER(None),
+        ),
+        String,
+        c_long,
+        POINTER(None),
+    ]
     PlayM4_SetDecCallBackExMend.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 517
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetEncryptTypeCallBack", "cdecl"):
-    PlayM4_SetEncryptTypeCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetEncryptTypeCallBack", "cdecl")
-    PlayM4_SetEncryptTypeCallBack.argtypes = [LONG, DWORD, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(ENCRYPT_INFO), POINTER(None), c_long), POINTER(None)]
+    PlayM4_SetEncryptTypeCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetEncryptTypeCallBack", "cdecl"
+    )
+    PlayM4_SetEncryptTypeCallBack.argtypes = [
+        LONG,
+        DWORD,
+        CFUNCTYPE(
+            UNCHECKED(None), c_long, POINTER(ENCRYPT_INFO), POINTER(None), c_long
+        ),
+        POINTER(None),
+    ]
     PlayM4_SetEncryptTypeCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 518
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecOrDisplayCallbackType", "cdecl"):
-    PlayM4_SetDecOrDisplayCallbackType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecOrDisplayCallbackType", "cdecl")
+    PlayM4_SetDecOrDisplayCallbackType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecOrDisplayCallbackType", "cdecl"
+    )
     PlayM4_SetDecOrDisplayCallbackType.argtypes = [c_int, c_int, c_int]
     PlayM4_SetDecOrDisplayCallbackType.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 519
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDisplayRegion", "cdecl"):
-    PlayM4_SetDisplayRegion = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDisplayRegion", "cdecl")
+    PlayM4_SetDisplayRegion = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDisplayRegion", "cdecl"
+    )
     PlayM4_SetDisplayRegion.argtypes = [LONG, DWORD, POINTER(RECT), HWND, BOOL]
     PlayM4_SetDisplayRegion.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 520
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDisplayRegionOnWnd", "cdecl"):
-    PlayM4_SetDisplayRegionOnWnd = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDisplayRegionOnWnd", "cdecl")
+    PlayM4_SetDisplayRegionOnWnd = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDisplayRegionOnWnd", "cdecl"
+    )
     PlayM4_SetDisplayRegionOnWnd.argtypes = [LONG, DWORD, POINTER(RECT), BOOL]
     PlayM4_SetDisplayRegionOnWnd.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 521
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDisplayType", "cdecl"):
-    PlayM4_SetDisplayType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDisplayType", "cdecl")
+    PlayM4_SetDisplayType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDisplayType", "cdecl"
+    )
     PlayM4_SetDisplayType.argtypes = [LONG, LONG]
     PlayM4_SetDisplayType.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 522
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetDisplayType", "cdecl"):
-    PlayM4_GetDisplayType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetDisplayType", "cdecl")
+    PlayM4_GetDisplayType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetDisplayType", "cdecl"
+    )
     PlayM4_GetDisplayType.argtypes = [LONG]
     PlayM4_GetDisplayType.restype = c_long
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 523
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDisplayCallBack", "cdecl"):
-    PlayM4_SetDisplayCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDisplayCallBack", "cdecl")
-    PlayM4_SetDisplayCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, c_long, c_long, c_long, c_long, POINTER(None))]
+    PlayM4_SetDisplayCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDisplayCallBack", "cdecl"
+    )
+    PlayM4_SetDisplayCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(
+            UNCHECKED(None),
+            c_long,
+            String,
+            c_long,
+            c_long,
+            c_long,
+            c_long,
+            c_long,
+            POINTER(None),
+        ),
+    ]
     PlayM4_SetDisplayCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 524
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDisplayCallBackEx", "cdecl"):
-    PlayM4_SetDisplayCallBackEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDisplayCallBackEx", "cdecl")
-    PlayM4_SetDisplayCallBackEx.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), POINTER(DISPLAY_INFO)), POINTER(None)]
+    PlayM4_SetDisplayCallBackEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDisplayCallBackEx", "cdecl"
+    )
+    PlayM4_SetDisplayCallBackEx.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), POINTER(DISPLAY_INFO)),
+        POINTER(None),
+    ]
     PlayM4_SetDisplayCallBackEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 525
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RegisterDrawFun", "cdecl"):
-    PlayM4_RegisterDrawFun = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RegisterDrawFun", "cdecl")
-    PlayM4_RegisterDrawFun.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, HDC, POINTER(None)), POINTER(None)]
+    PlayM4_RegisterDrawFun = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RegisterDrawFun", "cdecl"
+    )
+    PlayM4_RegisterDrawFun.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, HDC, POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_RegisterDrawFun.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 526
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetEncTypeChangeCallBack", "cdecl"):
-    PlayM4_SetEncTypeChangeCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetEncTypeChangeCallBack", "cdecl")
-    PlayM4_SetEncTypeChangeCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(None)), POINTER(None)]
+    PlayM4_SetEncTypeChangeCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetEncTypeChangeCallBack", "cdecl"
+    )
+    PlayM4_SetEncTypeChangeCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetEncTypeChangeCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 527
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetCheckWatermarkCallBack", "cdecl"):
-    PlayM4_SetCheckWatermarkCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetCheckWatermarkCallBack", "cdecl")
-    PlayM4_SetCheckWatermarkCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(WATERMARK_INFO), POINTER(None)), POINTER(None)]
+    PlayM4_SetCheckWatermarkCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetCheckWatermarkCallBack", "cdecl"
+    )
+    PlayM4_SetCheckWatermarkCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(WATERMARK_INFO), POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetCheckWatermarkCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 528
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RenderPrivateData", "cdecl"):
-    PlayM4_RenderPrivateData = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RenderPrivateData", "cdecl")
+    PlayM4_RenderPrivateData = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RenderPrivateData", "cdecl"
+    )
     PlayM4_RenderPrivateData.argtypes = [LONG, c_int, BOOL]
     PlayM4_RenderPrivateData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 529
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RenderPrivateDataEx", "cdecl"):
-    PlayM4_RenderPrivateDataEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RenderPrivateDataEx", "cdecl")
+    PlayM4_RenderPrivateDataEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RenderPrivateDataEx", "cdecl"
+    )
     PlayM4_RenderPrivateDataEx.argtypes = [LONG, c_int, c_int, BOOL]
     PlayM4_RenderPrivateDataEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 530
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetOverlayPriInfoFlag", "cdecl"):
-    PlayM4_SetOverlayPriInfoFlag = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetOverlayPriInfoFlag", "cdecl")
+    PlayM4_SetOverlayPriInfoFlag = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetOverlayPriInfoFlag", "cdecl"
+    )
     PlayM4_SetOverlayPriInfoFlag.argtypes = [LONG, c_int, BOOL]
     PlayM4_SetOverlayPriInfoFlag.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 531
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetTrackDurationTime", "cdecl"):
-    PlayM4_SetTrackDurationTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetTrackDurationTime", "cdecl")
+    PlayM4_SetTrackDurationTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetTrackDurationTime", "cdecl"
+    )
     PlayM4_SetTrackDurationTime.argtypes = [LONG, c_int]
     PlayM4_SetTrackDurationTime.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 532
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RegisterIVSDrawFunCB_EX", "cdecl"):
-    PlayM4_RegisterIVSDrawFunCB_EX = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RegisterIVSDrawFunCB_EX", "cdecl")
-    PlayM4_RegisterIVSDrawFunCB_EX.argtypes = [c_long, CFUNCTYPE(UNCHECKED(None), c_long, HDC, POINTER(FRAME_INFO), POINTER(INTEL_INFO_EX), POINTER(None)), POINTER(None), c_uint]
+    PlayM4_RegisterIVSDrawFunCB_EX = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RegisterIVSDrawFunCB_EX", "cdecl"
+    )
+    PlayM4_RegisterIVSDrawFunCB_EX.argtypes = [
+        c_long,
+        CFUNCTYPE(
+            UNCHECKED(None),
+            c_long,
+            HDC,
+            POINTER(FRAME_INFO),
+            POINTER(INTEL_INFO_EX),
+            POINTER(None),
+        ),
+        POINTER(None),
+        c_uint,
+    ]
     PlayM4_RegisterIVSDrawFunCB_EX.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 533
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetStreamAdditionalInfo", "cdecl"):
-    PlayM4_GetStreamAdditionalInfo = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetStreamAdditionalInfo", "cdecl")
+    PlayM4_GetStreamAdditionalInfo = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetStreamAdditionalInfo", "cdecl"
+    )
     PlayM4_GetStreamAdditionalInfo.argtypes = [LONG, LONG, POINTER(BYTE), POINTER(LONG)]
     PlayM4_GetStreamAdditionalInfo.restype = BOOL
 
@@ -2250,42 +2574,61 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetColor", "cdecl"):
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 535
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetColor", "cdecl"):
     PlayM4_GetColor = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetColor", "cdecl")
-    PlayM4_GetColor.argtypes = [LONG, DWORD, POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+    PlayM4_GetColor.argtypes = [
+        LONG,
+        DWORD,
+        POINTER(c_int),
+        POINTER(c_int),
+        POINTER(c_int),
+        POINTER(c_int),
+    ]
     PlayM4_GetColor.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 536
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetImageSharpen", "cdecl"):
-    PlayM4_SetImageSharpen = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetImageSharpen", "cdecl")
+    PlayM4_SetImageSharpen = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetImageSharpen", "cdecl"
+    )
     PlayM4_SetImageSharpen.argtypes = [LONG, DWORD]
     PlayM4_SetImageSharpen.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 537
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetRotateAngle", "cdecl"):
-    PlayM4_SetRotateAngle = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetRotateAngle", "cdecl")
+    PlayM4_SetRotateAngle = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetRotateAngle", "cdecl"
+    )
     PlayM4_SetRotateAngle.argtypes = [LONG, DWORD, DWORD]
     PlayM4_SetRotateAngle.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 538
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetFileHeadLength", "cdecl"):
-    PlayM4_GetFileHeadLength = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetFileHeadLength", "cdecl")
+    PlayM4_GetFileHeadLength = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetFileHeadLength", "cdecl"
+    )
     PlayM4_GetFileHeadLength.argtypes = []
     PlayM4_GetFileHeadLength.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 539
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetSdkVersion", "cdecl"):
-    PlayM4_GetSdkVersion = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetSdkVersion", "cdecl")
+    PlayM4_GetSdkVersion = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetSdkVersion", "cdecl"
+    )
     PlayM4_GetSdkVersion.argtypes = []
     PlayM4_GetSdkVersion.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 540
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetLastError", "cdecl"):
-    PlayM4_GetLastError = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetLastError", "cdecl")
+    PlayM4_GetLastError = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetLastError", "cdecl"
+    )
     PlayM4_GetLastError.argtypes = [LONG]
     PlayM4_GetLastError.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 541
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetSycGroup", "cdecl"):
-    PlayM4_SetSycGroup = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetSycGroup", "cdecl")
+    PlayM4_SetSycGroup = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetSycGroup", "cdecl"
+    )
     PlayM4_SetSycGroup.argtypes = [LONG, DWORD]
     PlayM4_SetSycGroup.restype = BOOL
 
@@ -2297,404 +2640,465 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_MotionFlow", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 543
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RegisterIVSIntelInfoCB", "cdecl"):
-    PlayM4_RegisterIVSIntelInfoCB = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RegisterIVSIntelInfoCB", "cdecl")
-    PlayM4_RegisterIVSIntelInfoCB.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), LONG, HDC, LONG, POINTER(PRIVATE_INFO), POINTER(None)), POINTER(None), DWORD, DWORD]
+    PlayM4_RegisterIVSIntelInfoCB = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RegisterIVSIntelInfoCB", "cdecl"
+    )
+    PlayM4_RegisterIVSIntelInfoCB.argtypes = [
+        LONG,
+        CFUNCTYPE(
+            UNCHECKED(None), LONG, HDC, LONG, POINTER(PRIVATE_INFO), POINTER(None)
+        ),
+        POINTER(None),
+        DWORD,
+        DWORD,
+    ]
     PlayM4_RegisterIVSIntelInfoCB.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 544
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetMpOffset", "cdecl"):
-    PlayM4_GetMpOffset = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetMpOffset", "cdecl")
+    PlayM4_GetMpOffset = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetMpOffset", "cdecl"
+    )
     PlayM4_GetMpOffset.argtypes = [c_int, c_int, POINTER(c_int)]
     PlayM4_GetMpOffset.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 545
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetHLogFlag", "cdecl"):
-    PlayM4_SetHLogFlag = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetHLogFlag", "cdecl")
+    PlayM4_SetHLogFlag = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetHLogFlag", "cdecl"
+    )
     PlayM4_SetHLogFlag.argtypes = [c_int, BOOL, String]
     PlayM4_SetHLogFlag.restype = BOOL
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 569
 class struct__tagHDECODESUPPORT_(Structure):
     pass
 
+
 struct__tagHDECODESUPPORT_.__slots__ = [
-    'chGPUType',
-    'bDXVA_D3D9',
-    'bCUVID_D3D11',
-    'chDXVAH264_Max_Resolution',
-    'chDXVAH265_Max_Resolution',
-    'chCUVIDH264_Max_Resolution',
-    'chCUVIDH265_Max_Resolution',
-    'chValidFlag',
-    'bD3D11VA',
-    'chD3D11VAH264_Max_Resolution',
-    'chD3D11VAH265_Max_Resolution',
-    'nReserved',
+    "chGPUType",
+    "bDXVA_D3D9",
+    "bCUVID_D3D11",
+    "chDXVAH264_Max_Resolution",
+    "chDXVAH265_Max_Resolution",
+    "chCUVIDH264_Max_Resolution",
+    "chCUVIDH265_Max_Resolution",
+    "chValidFlag",
+    "bD3D11VA",
+    "chD3D11VAH264_Max_Resolution",
+    "chD3D11VAH265_Max_Resolution",
+    "nReserved",
 ]
 struct__tagHDECODESUPPORT_._fields_ = [
-    ('chGPUType', c_ubyte),
-    ('bDXVA_D3D9', c_ubyte),
-    ('bCUVID_D3D11', c_ubyte),
-    ('chDXVAH264_Max_Resolution', c_ubyte),
-    ('chDXVAH265_Max_Resolution', c_ubyte),
-    ('chCUVIDH264_Max_Resolution', c_ubyte),
-    ('chCUVIDH265_Max_Resolution', c_ubyte),
-    ('chValidFlag', c_ubyte),
-    ('bD3D11VA', c_ubyte),
-    ('chD3D11VAH264_Max_Resolution', c_ubyte),
-    ('chD3D11VAH265_Max_Resolution', c_ubyte),
-    ('nReserved', c_ubyte * int(9)),
+    ("chGPUType", c_ubyte),
+    ("bDXVA_D3D9", c_ubyte),
+    ("bCUVID_D3D11", c_ubyte),
+    ("chDXVAH264_Max_Resolution", c_ubyte),
+    ("chDXVAH265_Max_Resolution", c_ubyte),
+    ("chCUVIDH264_Max_Resolution", c_ubyte),
+    ("chCUVIDH265_Max_Resolution", c_ubyte),
+    ("chValidFlag", c_ubyte),
+    ("bD3D11VA", c_ubyte),
+    ("chD3D11VAH264_Max_Resolution", c_ubyte),
+    ("chD3D11VAH265_Max_Resolution", c_ubyte),
+    ("nReserved", c_ubyte * int(9)),
 ]
 
-HDECODESUPPORT = struct__tagHDECODESUPPORT_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 569
+HDECODESUPPORT = struct__tagHDECODESUPPORT_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 569
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 579
 class struct__tagRENDERSUPPORT_(Structure):
     pass
 
+
 struct__tagRENDERSUPPORT_.__slots__ = [
-    'bDDraw',
-    'bD3D9Surface',
-    'bD3D9Texture',
-    'bD3D11',
-    'chValidFlag',
-    'nGPUType',
-    'nReserved',
+    "bDDraw",
+    "bD3D9Surface",
+    "bD3D9Texture",
+    "bD3D11",
+    "chValidFlag",
+    "nGPUType",
+    "nReserved",
 ]
 struct__tagRENDERSUPPORT_._fields_ = [
-    ('bDDraw', c_ubyte),
-    ('bD3D9Surface', c_ubyte),
-    ('bD3D9Texture', c_ubyte),
-    ('bD3D11', c_ubyte),
-    ('chValidFlag', c_ubyte),
-    ('nGPUType', c_ubyte),
-    ('nReserved', c_ubyte * int(10)),
+    ("bDDraw", c_ubyte),
+    ("bD3D9Surface", c_ubyte),
+    ("bD3D9Texture", c_ubyte),
+    ("bD3D11", c_ubyte),
+    ("chValidFlag", c_ubyte),
+    ("nGPUType", c_ubyte),
+    ("nReserved", c_ubyte * int(10)),
 ]
 
-RENDERSUPPORT = struct__tagRENDERSUPPORT_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 579
+RENDERSUPPORT = struct__tagRENDERSUPPORT_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 579
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 585
 class struct__tagENGINESUPPORT_(Structure):
     pass
 
+
 struct__tagENGINESUPPORT_.__slots__ = [
-    'stHDecodeSupport',
-    'stRenderSupport',
-    'chReserved',
+    "stHDecodeSupport",
+    "stRenderSupport",
+    "chReserved",
 ]
 struct__tagENGINESUPPORT_._fields_ = [
-    ('stHDecodeSupport', HDECODESUPPORT),
-    ('stRenderSupport', RENDERSUPPORT),
-    ('chReserved', c_uint * int(4)),
+    ("stHDecodeSupport", HDECODESUPPORT),
+    ("stRenderSupport", RENDERSUPPORT),
+    ("chReserved", c_uint * int(4)),
 ]
 
-ENGINESUPPORT = struct__tagENGINESUPPORT_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 585
+ENGINESUPPORT = struct__tagENGINESUPPORT_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 585
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 595
 class struct__tagENGINESUPPORT_EX_(Structure):
     pass
 
+
 struct__tagENGINESUPPORT_EX_.__slots__ = [
-    'stHDecodeSupportD3D9',
-    'stHDecodeSupportD3D11',
-    'stRenderSupport',
-    'chD3D9DeviceCount',
-    'chD3D11DeviceCount',
-    'chRenderDeviceCount',
-    'chReserved',
+    "stHDecodeSupportD3D9",
+    "stHDecodeSupportD3D11",
+    "stRenderSupport",
+    "chD3D9DeviceCount",
+    "chD3D11DeviceCount",
+    "chRenderDeviceCount",
+    "chReserved",
 ]
 struct__tagENGINESUPPORT_EX_._fields_ = [
-    ('stHDecodeSupportD3D9', HDECODESUPPORT * int(8)),
-    ('stHDecodeSupportD3D11', HDECODESUPPORT * int(8)),
-    ('stRenderSupport', RENDERSUPPORT * int(8)),
-    ('chD3D9DeviceCount', c_ubyte),
-    ('chD3D11DeviceCount', c_ubyte),
-    ('chRenderDeviceCount', c_ubyte),
-    ('chReserved', c_ubyte * int(13)),
+    ("stHDecodeSupportD3D9", HDECODESUPPORT * int(8)),
+    ("stHDecodeSupportD3D11", HDECODESUPPORT * int(8)),
+    ("stRenderSupport", RENDERSUPPORT * int(8)),
+    ("chD3D9DeviceCount", c_ubyte),
+    ("chD3D11DeviceCount", c_ubyte),
+    ("chRenderDeviceCount", c_ubyte),
+    ("chReserved", c_ubyte * int(13)),
 ]
 
-ENGINESUPPORT_EX = struct__tagENGINESUPPORT_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 595
+ENGINESUPPORT_EX = struct__tagENGINESUPPORT_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 595
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 605
 class struct__tagD3D11_PIC_INFO_(Structure):
     pass
 
+
 struct__tagD3D11_PIC_INFO_.__slots__ = [
-    'nPicMode',
-    'pBuf',
-    'nBufSize',
-    'pPicSize',
-    'nPicWidth',
-    'nPicHeight',
-    'chReserve',
+    "nPicMode",
+    "pBuf",
+    "nBufSize",
+    "pPicSize",
+    "nPicWidth",
+    "nPicHeight",
+    "chReserve",
 ]
 struct__tagD3D11_PIC_INFO_._fields_ = [
-    ('nPicMode', c_uint),
-    ('pBuf', POINTER(c_ubyte)),
-    ('nBufSize', c_uint),
-    ('pPicSize', POINTER(c_uint)),
-    ('nPicWidth', c_uint),
-    ('nPicHeight', c_uint),
-    ('chReserve', c_ubyte * int(8)),
+    ("nPicMode", c_uint),
+    ("pBuf", POINTER(c_ubyte)),
+    ("nBufSize", c_uint),
+    ("pPicSize", POINTER(c_uint)),
+    ("nPicWidth", c_uint),
+    ("nPicHeight", c_uint),
+    ("chReserve", c_ubyte * int(8)),
 ]
 
-D3D_PIC_INFO = struct__tagD3D11_PIC_INFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 605
+D3D_PIC_INFO = struct__tagD3D11_PIC_INFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 605
 
-enum_tagPLAYM4PostProcType = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+enum_tagPLAYM4PostProcType = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
-PLAYM4_PPT_BRIGHTNESS = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+PLAYM4_PPT_BRIGHTNESS = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
-PLAYM4_PPT_HUE = 0x2# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+PLAYM4_PPT_HUE = 0x2  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
-PLAYM4_PPT_SATURATION = 0x3# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+PLAYM4_PPT_SATURATION = 0x3  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
-PLAYM4_PPT_CONTRAST = 0x4# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+PLAYM4_PPT_CONTRAST = 0x4  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
-PLAYM4_PPT_SHARPNESS = 0x5# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+PLAYM4_PPT_SHARPNESS = 0x5  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
-PLAYM4PostProcType = enum_tagPLAYM4PostProcType# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
+PLAYM4PostProcType = enum_tagPLAYM4PostProcType  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 613
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 615
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetEngineSupport", "cdecl"):
-    PlayM4_GetEngineSupport = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetEngineSupport", "cdecl")
+    PlayM4_GetEngineSupport = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetEngineSupport", "cdecl"
+    )
     PlayM4_GetEngineSupport.argtypes = [c_long, POINTER(ENGINESUPPORT)]
     PlayM4_GetEngineSupport.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 616
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetD3DCapture", "cdecl"):
-    PlayM4_GetD3DCapture = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetD3DCapture", "cdecl")
+    PlayM4_GetD3DCapture = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetD3DCapture", "cdecl"
+    )
     PlayM4_GetD3DCapture.argtypes = [c_long, c_uint, POINTER(D3D_PIC_INFO)]
     PlayM4_GetD3DCapture.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 617
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetD3DPostProcess", "cdecl"):
-    PlayM4_SetD3DPostProcess = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetD3DPostProcess", "cdecl")
+    PlayM4_SetD3DPostProcess = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetD3DPostProcess", "cdecl"
+    )
     PlayM4_SetD3DPostProcess.argtypes = [c_long, PLAYM4PostProcType, c_float]
     PlayM4_SetD3DPostProcess.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 618
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetD3DPostProcess", "cdecl"):
-    PlayM4_GetD3DPostProcess = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetD3DPostProcess", "cdecl")
+    PlayM4_GetD3DPostProcess = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetD3DPostProcess", "cdecl"
+    )
     PlayM4_GetD3DPostProcess.argtypes = [c_long, PLAYM4PostProcType, POINTER(c_float)]
     PlayM4_GetD3DPostProcess.restype = c_int
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 619
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetConfigFontPath", "cdecl"):
-    PlayM4_SetConfigFontPath = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetConfigFontPath", "cdecl")
+    PlayM4_SetConfigFontPath = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetConfigFontPath", "cdecl"
+    )
     PlayM4_SetConfigFontPath.argtypes = [c_int, String]
     PlayM4_SetConfigFontPath.restype = c_int
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 629
 class struct__PLAYM4_SESSION_INFO_(Structure):
     pass
 
+
 struct__PLAYM4_SESSION_INFO_.__slots__ = [
-    'nSessionInfoType',
-    'nSessionInfoLen',
-    'pSessionInfoData',
+    "nSessionInfoType",
+    "nSessionInfoLen",
+    "pSessionInfoData",
 ]
 struct__PLAYM4_SESSION_INFO_._fields_ = [
-    ('nSessionInfoType', c_int),
-    ('nSessionInfoLen', c_int),
-    ('pSessionInfoData', POINTER(c_ubyte)),
+    ("nSessionInfoType", c_int),
+    ("nSessionInfoLen", c_int),
+    ("pSessionInfoData", POINTER(c_ubyte)),
 ]
 
-PLAYM4_SESSION_INFO = struct__PLAYM4_SESSION_INFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 629
+PLAYM4_SESSION_INFO = struct__PLAYM4_SESSION_INFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 629
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 631
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_OpenStreamAdvanced", "cdecl"):
-    PlayM4_OpenStreamAdvanced = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_OpenStreamAdvanced", "cdecl")
-    PlayM4_OpenStreamAdvanced.argtypes = [LONG, c_int, POINTER(PLAYM4_SESSION_INFO), DWORD]
+    PlayM4_OpenStreamAdvanced = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_OpenStreamAdvanced", "cdecl"
+    )
+    PlayM4_OpenStreamAdvanced.argtypes = [
+        LONG,
+        c_int,
+        POINTER(PLAYM4_SESSION_INFO),
+        DWORD,
+    ]
     PlayM4_OpenStreamAdvanced.restype = BOOL
 
-enum_tagFECPlaceType = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
+enum_tagFECPlaceType = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
 
-FEC_PLACE_WALL = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
+FEC_PLACE_WALL = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
 
-FEC_PLACE_FLOOR = 0x2# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
+FEC_PLACE_FLOOR = 0x2  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
 
-FEC_PLACE_CEILING = 0x3# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
+FEC_PLACE_CEILING = 0x3  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
 
-FECPLACETYPE = enum_tagFECPlaceType# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
+FECPLACETYPE = enum_tagFECPlaceType  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 639
 
-enum_tagFECCorrectType = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+enum_tagFECCorrectType = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_NULL = 0x0000# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_NULL = 0x0000  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_PTZ = 0x0100# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_PTZ = 0x0100  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_180 = 0x0200# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_180 = 0x0200  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_360 = 0x0300# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_360 = 0x0300  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_LAT = 0x0400# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_LAT = 0x0400  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_SEMISPHERE = 0x0500# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_SEMISPHERE = 0x0500  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_CYLINDER = 0x0600# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_CYLINDER = 0x0600  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_CYLINDER_SPLIT = 0x0700# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_CYLINDER_SPLIT = 0x0700  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_PLANET = 0x0800# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_PLANET = 0x0800  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_ARCSPHERE_HORIZONTAL = 0x0900# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_ARCSPHERE_HORIZONTAL = 0x0900  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FEC_CORRECT_ARCSPHERE_VERTICAL = 0x0A00# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FEC_CORRECT_ARCSPHERE_VERTICAL = 0x0A00  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-FECCORRECTTYPE = enum_tagFECCorrectType# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
+FECCORRECTTYPE = enum_tagFECCorrectType  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 653
 
-enum_tagFECCorrectEffect = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 657
+enum_tagFECCorrectEffect = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 657
 
-FEC_CORRECT_EFFECT_BACK_FACE_CULLING = 0x100# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 657
+FEC_CORRECT_EFFECT_BACK_FACE_CULLING = 0x100  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 657
 
-FECCORRECTEFFECT = enum_tagFECCorrectEffect# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 657
+FECCORRECTEFFECT = enum_tagFECCorrectEffect  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 657
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 664
 class struct_tagCycleParam(Structure):
     pass
 
+
 struct_tagCycleParam.__slots__ = [
-    'fRadiusLeft',
-    'fRadiusRight',
-    'fRadiusTop',
-    'fRadiusBottom',
+    "fRadiusLeft",
+    "fRadiusRight",
+    "fRadiusTop",
+    "fRadiusBottom",
 ]
 struct_tagCycleParam._fields_ = [
-    ('fRadiusLeft', c_float),
-    ('fRadiusRight', c_float),
-    ('fRadiusTop', c_float),
-    ('fRadiusBottom', c_float),
+    ("fRadiusLeft", c_float),
+    ("fRadiusRight", c_float),
+    ("fRadiusTop", c_float),
+    ("fRadiusBottom", c_float),
 ]
 
-CYCLEPARAM = struct_tagCycleParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 664
+CYCLEPARAM = struct_tagCycleParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 664
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 669
 class struct_tagPTZParam(Structure):
     pass
 
+
 struct_tagPTZParam.__slots__ = [
-    'fPTZPositionX',
-    'fPTZPositionY',
+    "fPTZPositionX",
+    "fPTZPositionY",
 ]
 struct_tagPTZParam._fields_ = [
-    ('fPTZPositionX', c_float),
-    ('fPTZPositionY', c_float),
+    ("fPTZPositionX", c_float),
+    ("fPTZPositionY", c_float),
 ]
 
-PTZPARAM = struct_tagPTZParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 669
+PTZPARAM = struct_tagPTZParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 669
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 682
 class struct_tagFECColor(Structure):
     pass
 
+
 struct_tagFECColor.__slots__ = [
-    'nR',
-    'nG',
-    'nB',
-    'nAlpha',
+    "nR",
+    "nG",
+    "nB",
+    "nAlpha",
 ]
 struct_tagFECColor._fields_ = [
-    ('nR', c_ubyte),
-    ('nG', c_ubyte),
-    ('nB', c_ubyte),
-    ('nAlpha', c_ubyte),
+    ("nR", c_ubyte),
+    ("nG", c_ubyte),
+    ("nB", c_ubyte),
+    ("nAlpha", c_ubyte),
 ]
 
-FECCOLOR = struct_tagFECColor# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 682
+FECCOLOR = struct_tagFECColor  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 682
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 689
 class struct_tagFECRectF(Structure):
     pass
 
+
 struct_tagFECRectF.__slots__ = [
-    'fTop',
-    'fBottom',
-    'fLeft',
-    'fRight',
+    "fTop",
+    "fBottom",
+    "fLeft",
+    "fRight",
 ]
 struct_tagFECRectF._fields_ = [
-    ('fTop', c_float),
-    ('fBottom', c_float),
-    ('fLeft', c_float),
-    ('fRight', c_float),
+    ("fTop", c_float),
+    ("fBottom", c_float),
+    ("fLeft", c_float),
+    ("fRight", c_float),
 ]
 
-FECRECTF = struct_tagFECRectF# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 689
+FECRECTF = struct_tagFECRectF  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 689
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 702
 class struct_tagFECParam(Structure):
     pass
 
+
 struct_tagFECParam.__slots__ = [
-    'nUpDateType',
-    'nPlaceAndCorrect',
-    'stPTZParam',
-    'stCycleParam',
-    'fZoom',
-    'fWideScanOffset',
-    'stPTZColor',
-    'stPTZSelct',
-    'nCut',
-    'nResver',
+    "nUpDateType",
+    "nPlaceAndCorrect",
+    "stPTZParam",
+    "stCycleParam",
+    "fZoom",
+    "fWideScanOffset",
+    "stPTZColor",
+    "stPTZSelct",
+    "nCut",
+    "nResver",
 ]
 struct_tagFECParam._fields_ = [
-    ('nUpDateType', c_uint),
-    ('nPlaceAndCorrect', c_uint),
-    ('stPTZParam', PTZPARAM),
-    ('stCycleParam', CYCLEPARAM),
-    ('fZoom', c_float),
-    ('fWideScanOffset', c_float),
-    ('stPTZColor', FECCOLOR),
-    ('stPTZSelct', FECRECTF),
-    ('nCut', c_uint),
-    ('nResver', c_int * int(10)),
+    ("nUpDateType", c_uint),
+    ("nPlaceAndCorrect", c_uint),
+    ("stPTZParam", PTZPARAM),
+    ("stCycleParam", CYCLEPARAM),
+    ("fZoom", c_float),
+    ("fWideScanOffset", c_float),
+    ("stPTZColor", FECCOLOR),
+    ("stPTZSelct", FECRECTF),
+    ("nCut", c_uint),
+    ("nResver", c_int * int(10)),
 ]
 
-FISHEYEPARAM = struct_tagFECParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 702
+FISHEYEPARAM = struct_tagFECParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 702
 
-enum_tagFECShowMode = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
+enum_tagFECShowMode = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
 
-FEC_PTZ_OUTLINE_NULL = 0# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
+FEC_PTZ_OUTLINE_NULL = 0  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
 
-FEC_PTZ_OUTLINE_RECT = (FEC_PTZ_OUTLINE_NULL + 1)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
+FEC_PTZ_OUTLINE_RECT = (
+    FEC_PTZ_OUTLINE_NULL + 1
+)  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
 
-FEC_PTZ_OUTLINE_RANGE = (FEC_PTZ_OUTLINE_RECT + 1)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
+FEC_PTZ_OUTLINE_RANGE = (
+    FEC_PTZ_OUTLINE_RECT + 1
+)  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
 
-FECSHOWMODE = enum_tagFECShowMode# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
+FECSHOWMODE = enum_tagFECShowMode  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 708
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 718
 class struct_tagPLAYM4SRTransformElement(Structure):
     pass
 
+
 struct_tagPLAYM4SRTransformElement.__slots__ = [
-    'fAxisX',
-    'fAxisY',
-    'fAxisZ',
-    'fValue',
+    "fAxisX",
+    "fAxisY",
+    "fAxisZ",
+    "fValue",
 ]
 struct_tagPLAYM4SRTransformElement._fields_ = [
-    ('fAxisX', c_float),
-    ('fAxisY', c_float),
-    ('fAxisZ', c_float),
-    ('fValue', c_float),
+    ("fAxisX", c_float),
+    ("fAxisY", c_float),
+    ("fAxisZ", c_float),
+    ("fValue", c_float),
 ]
 
-PLAYM4SRTRANSFERELEMENT = struct_tagPLAYM4SRTransformElement# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 718
+PLAYM4SRTRANSFERELEMENT = struct_tagPLAYM4SRTransformElement  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 718
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 723
 class struct_tagPLAYM4SRTransformParam(Structure):
     pass
 
+
 struct_tagPLAYM4SRTransformParam.__slots__ = [
-    'pTransformElement',
-    'nTransformCount',
+    "pTransformElement",
+    "nTransformCount",
 ]
 struct_tagPLAYM4SRTransformParam._fields_ = [
-    ('pTransformElement', POINTER(PLAYM4SRTRANSFERELEMENT)),
-    ('nTransformCount', c_uint),
+    ("pTransformElement", POINTER(PLAYM4SRTRANSFERELEMENT)),
+    ("nTransformCount", c_uint),
 ]
 
-PLAYM4SRTRANSFERPARAM = struct_tagPLAYM4SRTransformParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 723
+PLAYM4SRTRANSFERPARAM = struct_tagPLAYM4SRTransformParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 723
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 725
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Rotate", "cdecl"):
@@ -2702,31 +3106,33 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Rotate", "cdecl"):
     PlayM4_FEC_Rotate.argtypes = [LONG, POINTER(PLAYM4SRTRANSFERPARAM)]
     PlayM4_FEC_Rotate.restype = BOOL
 
-enum_tagPLAYM4HRViewParamType = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
+enum_tagPLAYM4HRViewParamType = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
 
-PLAYM4_HR_VPT_ROTATION_X = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
+PLAYM4_HR_VPT_ROTATION_X = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
 
-PLAYM4_HR_VPT_ROTATION_Y = 0x2# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
+PLAYM4_HR_VPT_ROTATION_Y = 0x2  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
 
-PLAYM4_HR_VPT_SCALE = 0x3# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
+PLAYM4_HR_VPT_SCALE = 0x3  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
 
-PLAYM4HRVIEWPARAMTYPE = enum_tagPLAYM4HRViewParamType# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
+PLAYM4HRVIEWPARAMTYPE = enum_tagPLAYM4HRViewParamType  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 731
 
-enum_tagPLAYM4FEC3DModelParam = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
+enum_tagPLAYM4FEC3DModelParam = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
 
-PLAYM4_FEC_3DMP_CYLINDER_HEIGHT = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
+PLAYM4_FEC_3DMP_CYLINDER_HEIGHT = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
 
-PLAYM4_FEC_3DMP_CYLINDER_RADIUS = 0x2# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
+PLAYM4_FEC_3DMP_CYLINDER_RADIUS = 0x2  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
 
-PLAYM4FEC3DMODELPARAM = enum_tagPLAYM4FEC3DModelParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
+PLAYM4FEC3DMODELPARAM = enum_tagPLAYM4FEC3DModelParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 736
 
-enum_tagPLAYM4FECSpecialViewType = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 740
+enum_tagPLAYM4FECSpecialViewType = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 740
 
-PLAYM4_FEC_SVT_EDGE = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 740
+PLAYM4_FEC_SVT_EDGE = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 740
 
-PLAYM4FECSPECIALVIEWTYPE = enum_tagPLAYM4FECSpecialViewType# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 740
+PLAYM4FECSPECIALVIEWTYPE = enum_tagPLAYM4FECSpecialViewType  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 740
 
-FISHEYE_CallBack = CFUNCTYPE(UNCHECKED(None), POINTER(None), c_uint, c_uint, POINTER(None), c_uint, c_uint)# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 741
+FISHEYE_CallBack = CFUNCTYPE(
+    UNCHECKED(None), POINTER(None), c_uint, c_uint, POINTER(None), c_uint, c_uint
+)  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 741
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 743
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Enable", "cdecl"):
@@ -2736,31 +3142,41 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Enable", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 744
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Disable", "cdecl"):
-    PlayM4_FEC_Disable = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_Disable", "cdecl")
+    PlayM4_FEC_Disable = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_Disable", "cdecl"
+    )
     PlayM4_FEC_Disable.argtypes = [LONG]
     PlayM4_FEC_Disable.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 745
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_GetPort", "cdecl"):
-    PlayM4_FEC_GetPort = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_GetPort", "cdecl")
+    PlayM4_FEC_GetPort = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_GetPort", "cdecl"
+    )
     PlayM4_FEC_GetPort.argtypes = [LONG, POINTER(c_uint), FECPLACETYPE, FECCORRECTTYPE]
     PlayM4_FEC_GetPort.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 746
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_DelPort", "cdecl"):
-    PlayM4_FEC_DelPort = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_DelPort", "cdecl")
+    PlayM4_FEC_DelPort = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_DelPort", "cdecl"
+    )
     PlayM4_FEC_DelPort.argtypes = [LONG, c_uint]
     PlayM4_FEC_DelPort.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 747
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetParam", "cdecl"):
-    PlayM4_FEC_SetParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetParam", "cdecl")
+    PlayM4_FEC_SetParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetParam", "cdecl"
+    )
     PlayM4_FEC_SetParam.argtypes = [LONG, c_uint, POINTER(FISHEYEPARAM)]
     PlayM4_FEC_SetParam.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 748
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_GetParam", "cdecl"):
-    PlayM4_FEC_GetParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_GetParam", "cdecl")
+    PlayM4_FEC_GetParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_GetParam", "cdecl"
+    )
     PlayM4_FEC_GetParam.argtypes = [LONG, c_uint, POINTER(FISHEYEPARAM)]
     PlayM4_FEC_GetParam.restype = BOOL
 
@@ -2772,270 +3188,356 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetWnd", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 750
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetCallBack", "cdecl"):
-    PlayM4_FEC_SetCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetCallBack", "cdecl")
+    PlayM4_FEC_SetCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetCallBack", "cdecl"
+    )
     PlayM4_FEC_SetCallBack.argtypes = [LONG, c_uint, FISHEYE_CallBack, POINTER(None)]
     PlayM4_FEC_SetCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 751
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Capture", "cdecl"):
-    PlayM4_FEC_Capture = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_Capture", "cdecl")
+    PlayM4_FEC_Capture = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_Capture", "cdecl"
+    )
     PlayM4_FEC_Capture.argtypes = [LONG, c_uint, c_uint, String]
     PlayM4_FEC_Capture.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 752
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetConfig", "cdecl"):
-    PlayM4_FEC_SetConfig = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetConfig", "cdecl")
+    PlayM4_FEC_SetConfig = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetConfig", "cdecl"
+    )
     PlayM4_FEC_SetConfig.argtypes = [LONG, c_uint]
     PlayM4_FEC_SetConfig.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 753
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_GetCurrentPTZPort", "cdecl"):
-    PlayM4_FEC_GetCurrentPTZPort = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_GetCurrentPTZPort", "cdecl")
+    PlayM4_FEC_GetCurrentPTZPort = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_GetCurrentPTZPort", "cdecl"
+    )
     PlayM4_FEC_GetCurrentPTZPort.argtypes = [LONG, c_float, c_float, POINTER(c_uint)]
     PlayM4_FEC_GetCurrentPTZPort.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 754
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetCurrentPTZPort", "cdecl"):
-    PlayM4_FEC_SetCurrentPTZPort = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetCurrentPTZPort", "cdecl")
+    PlayM4_FEC_SetCurrentPTZPort = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetCurrentPTZPort", "cdecl"
+    )
     PlayM4_FEC_SetCurrentPTZPort.argtypes = [LONG, c_uint]
     PlayM4_FEC_SetCurrentPTZPort.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 755
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetPTZOutLineShowMode", "cdecl"):
-    PlayM4_FEC_SetPTZOutLineShowMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetPTZOutLineShowMode", "cdecl")
+    PlayM4_FEC_SetPTZOutLineShowMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetPTZOutLineShowMode", "cdecl"
+    )
     PlayM4_FEC_SetPTZOutLineShowMode.argtypes = [LONG, FECSHOWMODE]
     PlayM4_FEC_SetPTZOutLineShowMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 756
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_GetViewParam", "cdecl"):
-    PlayM4_FEC_GetViewParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_GetViewParam", "cdecl")
-    PlayM4_FEC_GetViewParam.argtypes = [LONG, c_uint, PLAYM4HRVIEWPARAMTYPE, POINTER(c_float)]
+    PlayM4_FEC_GetViewParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_GetViewParam", "cdecl"
+    )
+    PlayM4_FEC_GetViewParam.argtypes = [
+        LONG,
+        c_uint,
+        PLAYM4HRVIEWPARAMTYPE,
+        POINTER(c_float),
+    ]
     PlayM4_FEC_GetViewParam.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 757
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetViewParam", "cdecl"):
-    PlayM4_FEC_SetViewParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetViewParam", "cdecl")
+    PlayM4_FEC_SetViewParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetViewParam", "cdecl"
+    )
     PlayM4_FEC_SetViewParam.argtypes = [LONG, c_uint, PLAYM4HRVIEWPARAMTYPE, c_float]
     PlayM4_FEC_SetViewParam.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 758
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetDisplayRegion", "cdecl"):
-    PlayM4_FEC_SetDisplayRegion = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetDisplayRegion", "cdecl")
-    PlayM4_FEC_SetDisplayRegion.argtypes = [LONG, c_uint, c_uint, DWORD, POINTER(RECT), HWND, BOOL]
+    PlayM4_FEC_SetDisplayRegion = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetDisplayRegion", "cdecl"
+    )
+    PlayM4_FEC_SetDisplayRegion.argtypes = [
+        LONG,
+        c_uint,
+        c_uint,
+        DWORD,
+        POINTER(RECT),
+        HWND,
+        BOOL,
+    ]
     PlayM4_FEC_SetDisplayRegion.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 759
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_SetCorrectEffect", "cdecl"):
-    PlayM4_FEC_SetCorrectEffect = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_SetCorrectEffect", "cdecl")
+    PlayM4_FEC_SetCorrectEffect = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_SetCorrectEffect", "cdecl"
+    )
     PlayM4_FEC_SetCorrectEffect.argtypes = [LONG, c_uint, FECCORRECTEFFECT, c_float]
     PlayM4_FEC_SetCorrectEffect.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 760
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_Set3DModelParam", "cdecl"):
-    PlayM4_FEC_Set3DModelParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_Set3DModelParam", "cdecl")
-    PlayM4_FEC_Set3DModelParam.argtypes = [c_int, c_uint, PLAYM4FEC3DMODELPARAM, c_float]
+    PlayM4_FEC_Set3DModelParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_Set3DModelParam", "cdecl"
+    )
+    PlayM4_FEC_Set3DModelParam.argtypes = [
+        c_int,
+        c_uint,
+        PLAYM4FEC3DMODELPARAM,
+        c_float,
+    ]
     PlayM4_FEC_Set3DModelParam.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 761
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_FEC_GetSpecialViewParam", "cdecl"):
-    PlayM4_FEC_GetSpecialViewParam = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_FEC_GetSpecialViewParam", "cdecl")
-    PlayM4_FEC_GetSpecialViewParam.argtypes = [c_int, c_uint, PLAYM4FECSPECIALVIEWTYPE, PLAYM4HRVIEWPARAMTYPE, POINTER(c_float)]
+    PlayM4_FEC_GetSpecialViewParam = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_FEC_GetSpecialViewParam", "cdecl"
+    )
+    PlayM4_FEC_GetSpecialViewParam.argtypes = [
+        c_int,
+        c_uint,
+        PLAYM4FECSPECIALVIEWTYPE,
+        PLAYM4HRVIEWPARAMTYPE,
+        POINTER(c_float),
+    ]
     PlayM4_FEC_GetSpecialViewParam.restype = BOOL
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 784
 class struct__PLAYM4_VIE_DYNPARAM_(Structure):
     pass
 
+
 struct__PLAYM4_VIE_DYNPARAM_.__slots__ = [
-    'moduFlag',
-    'brightVal',
-    'contrastVal',
-    'colorVal',
-    'toneScale',
-    'toneGain',
-    'toneOffset',
-    'toneColor',
-    'dehazeLevel',
-    'dehazeTrans',
-    'dehazeBright',
-    'denoiseLevel',
-    'usmAmount',
-    'usmRadius',
-    'usmThreshold',
-    'deblockLevel',
-    'lensWarp',
-    'lensZoom',
+    "moduFlag",
+    "brightVal",
+    "contrastVal",
+    "colorVal",
+    "toneScale",
+    "toneGain",
+    "toneOffset",
+    "toneColor",
+    "dehazeLevel",
+    "dehazeTrans",
+    "dehazeBright",
+    "denoiseLevel",
+    "usmAmount",
+    "usmRadius",
+    "usmThreshold",
+    "deblockLevel",
+    "lensWarp",
+    "lensZoom",
 ]
 struct__PLAYM4_VIE_DYNPARAM_._fields_ = [
-    ('moduFlag', c_int),
-    ('brightVal', c_int),
-    ('contrastVal', c_int),
-    ('colorVal', c_int),
-    ('toneScale', c_int),
-    ('toneGain', c_int),
-    ('toneOffset', c_int),
-    ('toneColor', c_int),
-    ('dehazeLevel', c_int),
-    ('dehazeTrans', c_int),
-    ('dehazeBright', c_int),
-    ('denoiseLevel', c_int),
-    ('usmAmount', c_int),
-    ('usmRadius', c_int),
-    ('usmThreshold', c_int),
-    ('deblockLevel', c_int),
-    ('lensWarp', c_int),
-    ('lensZoom', c_int),
+    ("moduFlag", c_int),
+    ("brightVal", c_int),
+    ("contrastVal", c_int),
+    ("colorVal", c_int),
+    ("toneScale", c_int),
+    ("toneGain", c_int),
+    ("toneOffset", c_int),
+    ("toneColor", c_int),
+    ("dehazeLevel", c_int),
+    ("dehazeTrans", c_int),
+    ("dehazeBright", c_int),
+    ("denoiseLevel", c_int),
+    ("usmAmount", c_int),
+    ("usmRadius", c_int),
+    ("usmThreshold", c_int),
+    ("deblockLevel", c_int),
+    ("lensWarp", c_int),
+    ("lensZoom", c_int),
 ]
 
-PLAYM4_VIE_PARACONFIG = struct__PLAYM4_VIE_DYNPARAM_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 784
+PLAYM4_VIE_PARACONFIG = struct__PLAYM4_VIE_DYNPARAM_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 784
 
-enum__PLAYM4_VIE_MODULES = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+enum__PLAYM4_VIE_MODULES = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_ADJ = 0x00000001# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_ADJ = 0x00000001  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_EHAN = 0x00000002# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_EHAN = 0x00000002  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_DEHAZE = 0x00000004# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_DEHAZE = 0x00000004  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_DENOISE = 0x00000008# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_DENOISE = 0x00000008  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_SHARPEN = 0x00000010# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_SHARPEN = 0x00000010  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_DEBLOCK = 0x00000020# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_DEBLOCK = 0x00000020  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_CRB = 0x00000040# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_CRB = 0x00000040  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODU_LENS = 0x00000080# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODU_LENS = 0x00000080  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
-PLAYM4_VIE_MODULES = enum__PLAYM4_VIE_MODULES# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
+PLAYM4_VIE_MODULES = enum__PLAYM4_VIE_MODULES  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 795
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 797
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_VIE_SetModuConfig", "cdecl"):
-    PlayM4_VIE_SetModuConfig = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_VIE_SetModuConfig", "cdecl")
+    PlayM4_VIE_SetModuConfig = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_VIE_SetModuConfig", "cdecl"
+    )
     PlayM4_VIE_SetModuConfig.argtypes = [LONG, c_int, BOOL]
     PlayM4_VIE_SetModuConfig.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 798
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_VIE_SetRegion", "cdecl"):
-    PlayM4_VIE_SetRegion = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_VIE_SetRegion", "cdecl")
+    PlayM4_VIE_SetRegion = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_VIE_SetRegion", "cdecl"
+    )
     PlayM4_VIE_SetRegion.argtypes = [LONG, LONG, POINTER(RECT)]
     PlayM4_VIE_SetRegion.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 799
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_VIE_GetModuConfig", "cdecl"):
-    PlayM4_VIE_GetModuConfig = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_VIE_GetModuConfig", "cdecl")
+    PlayM4_VIE_GetModuConfig = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_VIE_GetModuConfig", "cdecl"
+    )
     PlayM4_VIE_GetModuConfig.argtypes = [LONG, POINTER(c_int)]
     PlayM4_VIE_GetModuConfig.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 800
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_VIE_SetParaConfig", "cdecl"):
-    PlayM4_VIE_SetParaConfig = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_VIE_SetParaConfig", "cdecl")
+    PlayM4_VIE_SetParaConfig = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_VIE_SetParaConfig", "cdecl"
+    )
     PlayM4_VIE_SetParaConfig.argtypes = [LONG, POINTER(PLAYM4_VIE_PARACONFIG)]
     PlayM4_VIE_SetParaConfig.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 801
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_VIE_GetParaConfig", "cdecl"):
-    PlayM4_VIE_GetParaConfig = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_VIE_GetParaConfig", "cdecl")
+    PlayM4_VIE_GetParaConfig = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_VIE_GetParaConfig", "cdecl"
+    )
     PlayM4_VIE_GetParaConfig.argtypes = [LONG, POINTER(PLAYM4_VIE_PARACONFIG)]
     PlayM4_VIE_GetParaConfig.restype = BOOL
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 809
 class struct_anon_410(Structure):
     pass
 
+
 struct_anon_410.__slots__ = [
-    'lDataType',
-    'lDataStrVersion',
-    'lDataTimeStamp',
-    'lDataLength',
-    'pData',
+    "lDataType",
+    "lDataStrVersion",
+    "lDataTimeStamp",
+    "lDataLength",
+    "pData",
 ]
 struct_anon_410._fields_ = [
-    ('lDataType', c_long),
-    ('lDataStrVersion', c_long),
-    ('lDataTimeStamp', c_long),
-    ('lDataLength', c_long),
-    ('pData', String),
+    ("lDataType", c_long),
+    ("lDataStrVersion", c_long),
+    ("lDataTimeStamp", c_long),
+    ("lDataLength", c_long),
+    ("pData", String),
 ]
 
-AdditionDataInfo = struct_anon_410# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 809
+AdditionDataInfo = struct_anon_410  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 809
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 810
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetAdditionDataCallBack", "cdecl"):
-    PlayM4_SetAdditionDataCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetAdditionDataCallBack", "cdecl")
-    PlayM4_SetAdditionDataCallBack.argtypes = [LONG, DWORD, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(AdditionDataInfo), POINTER(None)), POINTER(None)]
+    PlayM4_SetAdditionDataCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetAdditionDataCallBack", "cdecl"
+    )
+    PlayM4_SetAdditionDataCallBack.argtypes = [
+        LONG,
+        DWORD,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(AdditionDataInfo), POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetAdditionDataCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 813
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecodeEngineEx", "cdecl"):
-    PlayM4_SetDecodeEngineEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecodeEngineEx", "cdecl")
+    PlayM4_SetDecodeEngineEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecodeEngineEx", "cdecl"
+    )
     PlayM4_SetDecodeEngineEx.argtypes = [LONG, DWORD]
     PlayM4_SetDecodeEngineEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 814
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetDecodeEngine", "cdecl"):
-    PlayM4_GetDecodeEngine = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetDecodeEngine", "cdecl")
+    PlayM4_GetDecodeEngine = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetDecodeEngine", "cdecl"
+    )
     PlayM4_GetDecodeEngine.argtypes = [LONG]
     PlayM4_GetDecodeEngine.restype = DWORD
+
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 848
 class struct_anon_411(Structure):
     pass
 
+
 struct_anon_411.__slots__ = [
-    'nRunTimeModule',
-    'nStrVersion',
-    'nFrameTimeStamp',
-    'nFrameNum',
-    'nErrorCode',
-    'reserved',
+    "nRunTimeModule",
+    "nStrVersion",
+    "nFrameTimeStamp",
+    "nFrameNum",
+    "nErrorCode",
+    "reserved",
 ]
 struct_anon_411._fields_ = [
-    ('nRunTimeModule', c_int),
-    ('nStrVersion', c_int),
-    ('nFrameTimeStamp', c_int),
-    ('nFrameNum', c_int),
-    ('nErrorCode', c_int),
-    ('reserved', c_ubyte * int(12)),
+    ("nRunTimeModule", c_int),
+    ("nStrVersion", c_int),
+    ("nFrameTimeStamp", c_int),
+    ("nFrameNum", c_int),
+    ("nErrorCode", c_int),
+    ("reserved", c_ubyte * int(12)),
 ]
 
-RunTimeInfo = struct_anon_411# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 848
+RunTimeInfo = struct_anon_411  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 848
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 849
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetRunTimeInfoCallBackEx", "cdecl"):
-    PlayM4_SetRunTimeInfoCallBackEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetRunTimeInfoCallBackEx", "cdecl")
-    PlayM4_SetRunTimeInfoCallBackEx.argtypes = [LONG, c_int, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(RunTimeInfo), POINTER(None)), POINTER(None)]
+    PlayM4_SetRunTimeInfoCallBackEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetRunTimeInfoCallBackEx", "cdecl"
+    )
+    PlayM4_SetRunTimeInfoCallBackEx.argtypes = [
+        LONG,
+        c_int,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(RunTimeInfo), POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetRunTimeInfoCallBackEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 850
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetRunTimeInfoCallbackType", "cdecl"):
-    PlayM4_SetRunTimeInfoCallbackType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetRunTimeInfoCallbackType", "cdecl")
+    PlayM4_SetRunTimeInfoCallbackType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetRunTimeInfoCallbackType", "cdecl"
+    )
     PlayM4_SetRunTimeInfoCallbackType.argtypes = [c_int, c_int, c_uint, c_int]
     PlayM4_SetRunTimeInfoCallbackType.restype = c_int
 
-enum_tagPLAYM4SRTextureMode = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
+enum_tagPLAYM4SRTextureMode = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
 
-PLAYM4_TEXTURE_DOUBLE = 0x0# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
+PLAYM4_TEXTURE_DOUBLE = 0x0  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
 
-PLAYM4_TEXTURE_OUTER = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
+PLAYM4_TEXTURE_OUTER = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
 
-PLAYM4_TEXTURE_INNER = 0x2# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
+PLAYM4_TEXTURE_INNER = 0x2  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
 
-PLAYM4SRTEXTUREMODE = enum_tagPLAYM4SRTextureMode# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
+PLAYM4SRTEXTUREMODE = enum_tagPLAYM4SRTextureMode  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 859
 
-enum_tagPLAYM4SRModelType = c_int# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
+enum_tagPLAYM4SRModelType = c_int  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
 
-PLAYM4_MODELTYPE_HEMISPHERE = 0x0# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
+PLAYM4_MODELTYPE_HEMISPHERE = 0x0  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
 
-PLAYM4_MODELTYPE_EAGLE_EYE = 0x1# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
+PLAYM4_MODELTYPE_EAGLE_EYE = 0x1  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
 
-PLAYM4_MODELTYPE_CUBE = 0x2# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
+PLAYM4_MODELTYPE_CUBE = 0x2  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
 
-PLAYM4SRMODELTYPE = enum_tagPLAYM4SRModelType# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
+PLAYM4SRMODELTYPE = enum_tagPLAYM4SRModelType  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 865
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 880
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SR_SetConfig", "cdecl"):
-    PlayM4_SR_SetConfig = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SR_SetConfig", "cdecl")
+    PlayM4_SR_SetConfig = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SR_SetConfig", "cdecl"
+    )
     PlayM4_SR_SetConfig.argtypes = [LONG, c_int, POINTER(None)]
     PlayM4_SR_SetConfig.restype = BOOL
 
@@ -3051,81 +3553,137 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SR_Capture", "cdecl"):
     PlayM4_SR_Capture.argtypes = [LONG, c_uint, String]
     PlayM4_SR_Capture.restype = BOOL
 
+
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 895
 class struct_anon_412(Structure):
     pass
 
+
 struct_anon_412.__slots__ = [
-    'nType',
-    'nStamp',
-    'nFrameNum',
-    'nBufLen',
-    'pBuf',
-    'stSysTime',
+    "nType",
+    "nStamp",
+    "nFrameNum",
+    "nBufLen",
+    "pBuf",
+    "stSysTime",
 ]
 struct_anon_412._fields_ = [
-    ('nType', c_long),
-    ('nStamp', c_long),
-    ('nFrameNum', c_long),
-    ('nBufLen', c_long),
-    ('pBuf', String),
-    ('stSysTime', PLAYM4_SYSTEM_TIME),
+    ("nType", c_long),
+    ("nStamp", c_long),
+    ("nFrameNum", c_long),
+    ("nBufLen", c_long),
+    ("pBuf", String),
+    ("stSysTime", PLAYM4_SYSTEM_TIME),
 ]
 
-RECORD_DATA_INFO = struct_anon_412# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 895
+RECORD_DATA_INFO = struct_anon_412  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 895
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 896
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RigisterDrawFun", "cdecl"):
-    PlayM4_RigisterDrawFun = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RigisterDrawFun", "cdecl")
-    PlayM4_RigisterDrawFun.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, HDC, POINTER(None)), POINTER(None)]
+    PlayM4_RigisterDrawFun = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RigisterDrawFun", "cdecl"
+    )
+    PlayM4_RigisterDrawFun.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, HDC, POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_RigisterDrawFun.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 897
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecCallBack", "cdecl"):
-    PlayM4_SetDecCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecCallBack", "cdecl")
-    PlayM4_SetDecCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, POINTER(FRAME_INFO), POINTER(None), POINTER(None))]
+    PlayM4_SetDecCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecCallBack", "cdecl"
+    )
+    PlayM4_SetDecCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(
+            UNCHECKED(None),
+            c_long,
+            String,
+            c_long,
+            POINTER(FRAME_INFO),
+            POINTER(None),
+            POINTER(None),
+        ),
+    ]
     PlayM4_SetDecCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 898
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecCallBackEx", "cdecl"):
-    PlayM4_SetDecCallBackEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecCallBackEx", "cdecl")
-    PlayM4_SetDecCallBackEx.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, POINTER(FRAME_INFO), POINTER(None), POINTER(None)), String, c_long]
+    PlayM4_SetDecCallBackEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecCallBackEx", "cdecl"
+    )
+    PlayM4_SetDecCallBackEx.argtypes = [
+        LONG,
+        CFUNCTYPE(
+            UNCHECKED(None),
+            c_long,
+            String,
+            c_long,
+            POINTER(FRAME_INFO),
+            POINTER(None),
+            POINTER(None),
+        ),
+        String,
+        c_long,
+    ]
     PlayM4_SetDecCallBackEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 899
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetSycStartTime", "cdecl"):
-    PlayM4_SetSycStartTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetSycStartTime", "cdecl")
+    PlayM4_SetSycStartTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetSycStartTime", "cdecl"
+    )
     PlayM4_SetSycStartTime.argtypes = [LONG, POINTER(PLAYM4_SYSTEM_TIME)]
     PlayM4_SetSycStartTime.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 900
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SyncToAudio", "cdecl"):
-    PlayM4_SyncToAudio = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SyncToAudio", "cdecl")
+    PlayM4_SyncToAudio = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SyncToAudio", "cdecl"
+    )
     PlayM4_SyncToAudio.argtypes = [LONG, BOOL]
     PlayM4_SyncToAudio.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 901
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDecodeEngine", "cdecl"):
-    PlayM4_SetDecodeEngine = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDecodeEngine", "cdecl")
+    PlayM4_SetDecodeEngine = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDecodeEngine", "cdecl"
+    )
     PlayM4_SetDecodeEngine.argtypes = [LONG, DWORD]
     PlayM4_SetDecodeEngine.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 902
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetRunTimeInfoCallBack", "cdecl"):
-    PlayM4_SetRunTimeInfoCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetRunTimeInfoCallBack", "cdecl")
-    PlayM4_SetRunTimeInfoCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(RunTimeInfo), POINTER(None)), POINTER(None)]
+    PlayM4_SetRunTimeInfoCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetRunTimeInfoCallBack", "cdecl"
+    )
+    PlayM4_SetRunTimeInfoCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(RunTimeInfo), POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetRunTimeInfoCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 903
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetPreRecordFlag", "cdecl"):
-    PlayM4_SetPreRecordFlag = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetPreRecordFlag", "cdecl")
+    PlayM4_SetPreRecordFlag = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetPreRecordFlag", "cdecl"
+    )
     PlayM4_SetPreRecordFlag.argtypes = [LONG, BOOL]
     PlayM4_SetPreRecordFlag.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 904
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetPreRecordCallBack", "cdecl"):
-    PlayM4_SetPreRecordCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetPreRecordCallBack", "cdecl")
-    PlayM4_SetPreRecordCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(RECORD_DATA_INFO), POINTER(None)), POINTER(None)]
+    PlayM4_SetPreRecordCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetPreRecordCallBack", "cdecl"
+    )
+    PlayM4_SetPreRecordCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(RECORD_DATA_INFO), POINTER(None)),
+        POINTER(None),
+    ]
     PlayM4_SetPreRecordCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 905
@@ -3136,13 +3694,17 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_InitDDraw", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 906
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_RealeseDDraw", "cdecl"):
-    PlayM4_RealeseDDraw = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_RealeseDDraw", "cdecl")
+    PlayM4_RealeseDDraw = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_RealeseDDraw", "cdecl"
+    )
     PlayM4_RealeseDDraw.argtypes = []
     PlayM4_RealeseDDraw.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 907
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetFileEndMsg", "cdecl"):
-    PlayM4_SetFileEndMsg = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetFileEndMsg", "cdecl")
+    PlayM4_SetFileEndMsg = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetFileEndMsg", "cdecl"
+    )
     PlayM4_SetFileEndMsg.argtypes = [LONG, HWND, UINT]
     PlayM4_SetFileEndMsg.restype = BOOL
 
@@ -3154,50 +3716,73 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetCaps", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 909
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetOverlayMode", "cdecl"):
-    PlayM4_SetOverlayMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetOverlayMode", "cdecl")
+    PlayM4_SetOverlayMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetOverlayMode", "cdecl"
+    )
     PlayM4_SetOverlayMode.argtypes = [LONG, BOOL, COLORREF]
     PlayM4_SetOverlayMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 910
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetOverlayMode", "cdecl"):
-    PlayM4_GetOverlayMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetOverlayMode", "cdecl")
+    PlayM4_GetOverlayMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetOverlayMode", "cdecl"
+    )
     PlayM4_GetOverlayMode.argtypes = [LONG]
     PlayM4_GetOverlayMode.restype = LONG
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 911
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetColorKey", "cdecl"):
-    PlayM4_GetColorKey = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetColorKey", "cdecl")
+    PlayM4_GetColorKey = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetColorKey", "cdecl"
+    )
     PlayM4_GetColorKey.argtypes = [LONG]
     PlayM4_GetColorKey.restype = COLORREF
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 912
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_InitDDrawDevice", "cdecl"):
-    PlayM4_InitDDrawDevice = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_InitDDrawDevice", "cdecl")
+    PlayM4_InitDDrawDevice = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_InitDDrawDevice", "cdecl"
+    )
     PlayM4_InitDDrawDevice.argtypes = []
     PlayM4_InitDDrawDevice.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 913
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_ReleaseDDrawDevice", "cdecl"):
-    PlayM4_ReleaseDDrawDevice = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_ReleaseDDrawDevice", "cdecl")
+    PlayM4_ReleaseDDrawDevice = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_ReleaseDDrawDevice", "cdecl"
+    )
     PlayM4_ReleaseDDrawDevice.argtypes = []
     PlayM4_ReleaseDDrawDevice.restype = None
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 914
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetDDrawDeviceTotalNums", "cdecl"):
-    PlayM4_GetDDrawDeviceTotalNums = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetDDrawDeviceTotalNums", "cdecl")
+    PlayM4_GetDDrawDeviceTotalNums = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetDDrawDeviceTotalNums", "cdecl"
+    )
     PlayM4_GetDDrawDeviceTotalNums.argtypes = []
     PlayM4_GetDDrawDeviceTotalNums.restype = DWORD
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 915
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDDrawDevice", "cdecl"):
-    PlayM4_SetDDrawDevice = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDDrawDevice", "cdecl")
+    PlayM4_SetDDrawDevice = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDDrawDevice", "cdecl"
+    )
     PlayM4_SetDDrawDevice.argtypes = [LONG, DWORD]
     PlayM4_SetDDrawDevice.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 916
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetDDrawDeviceInfo", "cdecl"):
-    PlayM4_GetDDrawDeviceInfo = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetDDrawDeviceInfo", "cdecl")
-    PlayM4_GetDDrawDeviceInfo.argtypes = [DWORD, LPSTR, DWORD, LPSTR, DWORD, POINTER(HMONITOR)]
+    PlayM4_GetDDrawDeviceInfo = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetDDrawDeviceInfo", "cdecl"
+    )
+    PlayM4_GetDDrawDeviceInfo.argtypes = [
+        DWORD,
+        LPSTR,
+        DWORD,
+        LPSTR,
+        DWORD,
+        POINTER(HMONITOR),
+    ]
     PlayM4_GetDDrawDeviceInfo.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 917
@@ -3208,85 +3793,137 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetCapsEx", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 918
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDDrawDeviceEx", "cdecl"):
-    PlayM4_SetDDrawDeviceEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetDDrawDeviceEx", "cdecl")
+    PlayM4_SetDDrawDeviceEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetDDrawDeviceEx", "cdecl"
+    )
     PlayM4_SetDDrawDeviceEx.argtypes = [LONG, DWORD, DWORD]
     PlayM4_SetDDrawDeviceEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 919
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_OpenStreamEx", "cdecl"):
-    PlayM4_OpenStreamEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_OpenStreamEx", "cdecl")
+    PlayM4_OpenStreamEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_OpenStreamEx", "cdecl"
+    )
     PlayM4_OpenStreamEx.argtypes = [LONG, PBYTE, DWORD, DWORD]
     PlayM4_OpenStreamEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 920
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_CloseStreamEx", "cdecl"):
-    PlayM4_CloseStreamEx = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_CloseStreamEx", "cdecl")
+    PlayM4_CloseStreamEx = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_CloseStreamEx", "cdecl"
+    )
     PlayM4_CloseStreamEx.argtypes = [LONG]
     PlayM4_CloseStreamEx.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 921
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_InputVideoData", "cdecl"):
-    PlayM4_InputVideoData = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_InputVideoData", "cdecl")
+    PlayM4_InputVideoData = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_InputVideoData", "cdecl"
+    )
     PlayM4_InputVideoData.argtypes = [LONG, PBYTE, DWORD]
     PlayM4_InputVideoData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 922
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_InputAudioData", "cdecl"):
-    PlayM4_InputAudioData = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_InputAudioData", "cdecl")
+    PlayM4_InputAudioData = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_InputAudioData", "cdecl"
+    )
     PlayM4_InputAudioData.argtypes = [LONG, PBYTE, DWORD]
     PlayM4_InputAudioData.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 923
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetTimerType", "cdecl"):
-    PlayM4_SetTimerType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetTimerType", "cdecl")
+    PlayM4_SetTimerType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetTimerType", "cdecl"
+    )
     PlayM4_SetTimerType.argtypes = [LONG, DWORD, DWORD]
     PlayM4_SetTimerType.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 924
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetTimerType", "cdecl"):
-    PlayM4_GetTimerType = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetTimerType", "cdecl")
+    PlayM4_GetTimerType = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetTimerType", "cdecl"
+    )
     PlayM4_GetTimerType.argtypes = [LONG, POINTER(DWORD), POINTER(DWORD)]
     PlayM4_GetTimerType.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 925
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetVerifyCallBack", "cdecl"):
-    PlayM4_SetVerifyCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetVerifyCallBack", "cdecl")
-    PlayM4_SetVerifyCallBack.argtypes = [LONG, DWORD, DWORD, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(FRAME_POS), DWORD, DWORD), DWORD]
+    PlayM4_SetVerifyCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetVerifyCallBack", "cdecl"
+    )
+    PlayM4_SetVerifyCallBack.argtypes = [
+        LONG,
+        DWORD,
+        DWORD,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(FRAME_POS), DWORD, DWORD),
+        DWORD,
+    ]
     PlayM4_SetVerifyCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 926
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetAudioCallBack", "cdecl"):
-    PlayM4_SetAudioCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetAudioCallBack", "cdecl")
-    PlayM4_SetAudioCallBack.argtypes = [LONG, CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, c_long, c_long, c_long), c_long]
+    PlayM4_SetAudioCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetAudioCallBack", "cdecl"
+    )
+    PlayM4_SetAudioCallBack.argtypes = [
+        LONG,
+        CFUNCTYPE(UNCHECKED(None), c_long, String, c_long, c_long, c_long, c_long),
+        c_long,
+    ]
     PlayM4_SetAudioCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 927
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetEncChangeMsg", "cdecl"):
-    PlayM4_SetEncChangeMsg = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetEncChangeMsg", "cdecl")
+    PlayM4_SetEncChangeMsg = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetEncChangeMsg", "cdecl"
+    )
     PlayM4_SetEncChangeMsg.argtypes = [LONG, HWND, UINT]
     PlayM4_SetEncChangeMsg.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 928
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetOriginalFrameCallBack", "cdecl"):
-    PlayM4_GetOriginalFrameCallBack = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetOriginalFrameCallBack", "cdecl")
-    PlayM4_GetOriginalFrameCallBack.argtypes = [LONG, BOOL, BOOL, c_long, c_long, c_long, CFUNCTYPE(UNCHECKED(None), c_long, POINTER(FRAME_TYPE), c_long), c_long]
+    PlayM4_GetOriginalFrameCallBack = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetOriginalFrameCallBack", "cdecl"
+    )
+    PlayM4_GetOriginalFrameCallBack.argtypes = [
+        LONG,
+        BOOL,
+        BOOL,
+        c_long,
+        c_long,
+        c_long,
+        CFUNCTYPE(UNCHECKED(None), c_long, POINTER(FRAME_TYPE), c_long),
+        c_long,
+    ]
     PlayM4_GetOriginalFrameCallBack.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 929
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetFileSpecialAttr", "cdecl"):
-    PlayM4_GetFileSpecialAttr = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetFileSpecialAttr", "cdecl")
-    PlayM4_GetFileSpecialAttr.argtypes = [LONG, POINTER(DWORD), POINTER(DWORD), POINTER(DWORD)]
+    PlayM4_GetFileSpecialAttr = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetFileSpecialAttr", "cdecl"
+    )
+    PlayM4_GetFileSpecialAttr.argtypes = [
+        LONG,
+        POINTER(DWORD),
+        POINTER(DWORD),
+        POINTER(DWORD),
+    ]
     PlayM4_GetFileSpecialAttr.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 930
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetPlayMode", "cdecl"):
-    PlayM4_SetPlayMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetPlayMode", "cdecl")
+    PlayM4_SetPlayMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetPlayMode", "cdecl"
+    )
     PlayM4_SetPlayMode.argtypes = [LONG, BOOL]
     PlayM4_SetPlayMode.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 931
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetOverlayFlipMode", "cdecl"):
-    PlayM4_SetOverlayFlipMode = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetOverlayFlipMode", "cdecl")
+    PlayM4_SetOverlayFlipMode = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetOverlayFlipMode", "cdecl"
+    )
     PlayM4_SetOverlayFlipMode.argtypes = [LONG, BOOL]
     PlayM4_SetOverlayFlipMode.restype = BOOL
 
@@ -3298,19 +3935,25 @@ if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetDeflash", "cdecl"):
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 933
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetPicQuality", "cdecl"):
-    PlayM4_SetPicQuality = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetPicQuality", "cdecl")
+    PlayM4_SetPicQuality = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetPicQuality", "cdecl"
+    )
     PlayM4_SetPicQuality.argtypes = [LONG, BOOL]
     PlayM4_SetPicQuality.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 934
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_GetPictureQuality", "cdecl"):
-    PlayM4_GetPictureQuality = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_GetPictureQuality", "cdecl")
+    PlayM4_GetPictureQuality = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_GetPictureQuality", "cdecl"
+    )
     PlayM4_GetPictureQuality.argtypes = [LONG, POINTER(BOOL)]
     PlayM4_GetPictureQuality.restype = BOOL
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 935
 if _libs["lib/win/PlayCtrl.dll"].has("PlayM4_SetGlobalBaseTime", "cdecl"):
-    PlayM4_SetGlobalBaseTime = _libs["lib/win/PlayCtrl.dll"].get("PlayM4_SetGlobalBaseTime", "cdecl")
+    PlayM4_SetGlobalBaseTime = _libs["lib/win/PlayCtrl.dll"].get(
+        "PlayM4_SetGlobalBaseTime", "cdecl"
+    )
     PlayM4_SetGlobalBaseTime.argtypes = [c_long, PLAYM4_SYSTEM_TIME]
     PlayM4_SetGlobalBaseTime.restype = BOOL
 
@@ -3322,7 +3965,7 @@ except:
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 10
 try:
-    MIN_WAVE_COEF = (-100)
+    MIN_WAVE_COEF = -100
 except:
     pass
 
@@ -3784,13 +4427,13 @@ except:
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 87
 try:
-    SOURCE_BUF_MAX = (1024 * 100000)
+    SOURCE_BUF_MAX = 1024 * 100000
 except:
     pass
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 88
 try:
-    SOURCE_BUF_MIN = (1024 * 50)
+    SOURCE_BUF_MIN = 1024 * 50
 except:
     pass
 
@@ -4018,7 +4661,7 @@ except:
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 126
 try:
-    AUDIO_AAC = 0X2001
+    AUDIO_AAC = 0x2001
 except:
     pass
 
@@ -4156,7 +4799,7 @@ except:
 
 # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 149
 try:
-    R_ANGLE_0 = (-1)
+    R_ANGLE_0 = -1
 except:
     pass
 
@@ -4514,69 +5157,68 @@ try:
 except:
     pass
 
-SYNCDATA_INFO = struct_SYNCDATA_INFO# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 193
+SYNCDATA_INFO = struct_SYNCDATA_INFO  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 193
 
-_VCA_RECT_F_ = struct__VCA_RECT_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 200
+_VCA_RECT_F_ = struct__VCA_RECT_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 200
 
-_VCA_TARGET_EX = struct__VCA_TARGET_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 229
+_VCA_TARGET_EX = struct__VCA_TARGET_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 229
 
-_VCA_TARGET_LIST_EX = struct__VCA_TARGET_LIST_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 234
+_VCA_TARGET_LIST_EX = struct__VCA_TARGET_LIST_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 234
 
-_INTEL_INFO_EX = struct__INTEL_INFO_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 240
+_INTEL_INFO_EX = struct__INTEL_INFO_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 240
 
-_VCA_POINT_F_ = struct__VCA_POINT_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 245
+_VCA_POINT_F_ = struct__VCA_POINT_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 245
 
-_VCA_POLYGON_F_ = struct__VCA_POLYGON_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 250
+_VCA_POLYGON_F_ = struct__VCA_POLYGON_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 250
 
-_VCA_ROTATE_RECT_F_ = struct__VCA_ROTATE_RECT_F_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 258
+_VCA_ROTATE_RECT_F_ = struct__VCA_ROTATE_RECT_F_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 258
 
-_VCA_REGION_ = struct__VCA_REGION_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 270
+_VCA_REGION_ = struct__VCA_REGION_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 270
 
-_VCA_TARGET_LIST_V1_EX_ = struct__VCA_TARGET_LIST_V1_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 285
+_VCA_TARGET_LIST_V1_EX_ = struct__VCA_TARGET_LIST_V1_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 285
 
-_VCA_RULE_EX = struct__VCA_RULE_EX# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 292
+_VCA_RULE_EX = struct__VCA_RULE_EX  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 292
 
-_VCA_RULE_LIST_V3_EX_ = struct__VCA_RULE_LIST_V3_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 298
+_VCA_RULE_LIST_V3_EX_ = struct__VCA_RULE_LIST_V3_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 298
 
-_VCA_ALERT_EX_ = struct__VCA_ALERT_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 306
+_VCA_ALERT_EX_ = struct__VCA_ALERT_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 306
 
-_VCA_ALERT_LIST_EX_ = struct__VCA_ALERT_LIST_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 311
+_VCA_ALERT_LIST_EX_ = struct__VCA_ALERT_LIST_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 311
 
-_PRIVATE_INFO_ = struct__PRIVATE_INFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 320
+_PRIVATE_INFO_ = struct__PRIVATE_INFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 320
 
-_HIK_MEDIAINFO_ = struct__HIK_MEDIAINFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 336
+_HIK_MEDIAINFO_ = struct__HIK_MEDIAINFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 336
 
-PLAYM4_SYSTEM_TIME = struct_PLAYM4_SYSTEM_TIME# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 387
+PLAYM4_SYSTEM_TIME = struct_PLAYM4_SYSTEM_TIME  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 387
 
-_tagHDECODESUPPORT_ = struct__tagHDECODESUPPORT_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 569
+_tagHDECODESUPPORT_ = struct__tagHDECODESUPPORT_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 569
 
-_tagRENDERSUPPORT_ = struct__tagRENDERSUPPORT_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 579
+_tagRENDERSUPPORT_ = struct__tagRENDERSUPPORT_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 579
 
-_tagENGINESUPPORT_ = struct__tagENGINESUPPORT_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 585
+_tagENGINESUPPORT_ = struct__tagENGINESUPPORT_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 585
 
-_tagENGINESUPPORT_EX_ = struct__tagENGINESUPPORT_EX_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 595
+_tagENGINESUPPORT_EX_ = struct__tagENGINESUPPORT_EX_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 595
 
-_tagD3D11_PIC_INFO_ = struct__tagD3D11_PIC_INFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 605
+_tagD3D11_PIC_INFO_ = struct__tagD3D11_PIC_INFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 605
 
-_PLAYM4_SESSION_INFO_ = struct__PLAYM4_SESSION_INFO_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 629
+_PLAYM4_SESSION_INFO_ = struct__PLAYM4_SESSION_INFO_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 629
 
-tagCycleParam = struct_tagCycleParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 664
+tagCycleParam = struct_tagCycleParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 664
 
-tagPTZParam = struct_tagPTZParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 669
+tagPTZParam = struct_tagPTZParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 669
 
-tagFECColor = struct_tagFECColor# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 682
+tagFECColor = struct_tagFECColor  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 682
 
-tagFECRectF = struct_tagFECRectF# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 689
+tagFECRectF = struct_tagFECRectF  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 689
 
-tagFECParam = struct_tagFECParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 702
+tagFECParam = struct_tagFECParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 702
 
-tagPLAYM4SRTransformElement = struct_tagPLAYM4SRTransformElement# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 718
+tagPLAYM4SRTransformElement = struct_tagPLAYM4SRTransformElement  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 718
 
-tagPLAYM4SRTransformParam = struct_tagPLAYM4SRTransformParam# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 723
+tagPLAYM4SRTransformParam = struct_tagPLAYM4SRTransformParam  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 723
 
-_PLAYM4_VIE_DYNPARAM_ = struct__PLAYM4_VIE_DYNPARAM_# C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 784
+_PLAYM4_VIE_DYNPARAM_ = struct__PLAYM4_VIE_DYNPARAM_  # C:\\Users\\Administrator\\Documents\\CodeProject\\headfile\\UnifyNetSDK\\gen_ctypes_file\\_3_replace\\HK_PlaySDK.h: 784
 
 # No inserted files
 
 # No prefix-stripping
-

@@ -12,6 +12,7 @@ from UnifyNetSDK.define import AbsPlaySDK
 
 # TODO playsdk的日志应该没必要开
 
+
 class DaHuaPlaySDK(AbsPlaySDK):
     playDll = playsdk_wrapper
 
@@ -56,11 +57,13 @@ class DaHuaPlaySDK(AbsPlaySDK):
         那海康那边也需要同步一下，只能有这四种选项
         """
         quality = 70 if quality is None else quality
-        qualityDict = {100: cls.playDll.PicFormat_JPEG,
-                       70: cls.playDll.PicFormat_JPEG_70,
-                       50: cls.playDll.PicFormat_JPEG_50,
-                       30: cls.playDll.PicFormat_JPEG_30,
-                       10: cls.playDll.PicFormat_JPEG_10}
+        qualityDict = {
+            100: cls.playDll.PicFormat_JPEG,
+            70: cls.playDll.PicFormat_JPEG_70,
+            50: cls.playDll.PicFormat_JPEG_50,
+            30: cls.playDll.PicFormat_JPEG_30,
+            10: cls.playDll.PicFormat_JPEG_10,
+        }
         quality = qualityDict[quality]
 
         absPicName = create_string_buffer(str(absPicName).encode("gbk"))
@@ -83,7 +86,9 @@ class DaHuaPlaySDK(AbsPlaySDK):
         return bool(closeResult)
 
     @classmethod
-    def getLastError(cls, methodName: str, methodResult: typing.Union[int, bool]) -> NoReturn:
+    def getLastError(
+        cls, methodName: str, methodResult: typing.Union[int, bool]
+    ) -> NoReturn:
         # 获取错误码，就算没有错误也会被 raise NO_ERROR
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:

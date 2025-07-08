@@ -42,13 +42,28 @@ def main():
     waittime = 500
 
     try:
-        result = dahuaClient.netDll.CLIENT_GetDevConfig(userID, DH.DH_DEV_TIMECFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, byref(lpBytesReturned), waittime)
+        result = dahuaClient.netDll.CLIENT_GetDevConfig(
+            userID,
+            DH.DH_DEV_TIMECFG,
+            lChannel,
+            byref(lpOutBuffer),
+            dwOutBufferSize,
+            byref(lpBytesReturned),
+            waittime,
+        )
     except DHNetSDKException as e:
         print(str(e))
     else:
         if result:
             print("获取时间成功")
-            print(lpOutBuffer.dwYear, lpOutBuffer.dwMonth, lpOutBuffer.dwDay, lpOutBuffer.dwHour, lpOutBuffer.dwMinute, lpOutBuffer.dwSecond)
+            print(
+                lpOutBuffer.dwYear,
+                lpOutBuffer.dwMonth,
+                lpOutBuffer.dwDay,
+                lpOutBuffer.dwHour,
+                lpOutBuffer.dwMinute,
+                lpOutBuffer.dwSecond,
+            )
         else:
             print("获取时间失败")
     finally:
@@ -62,9 +77,8 @@ def main():
     #     CLIENT_GetDevConfig.argtypes = [c_longlong, c_uint, c_int, POINTER(None), c_uint, POINTER(c_uint), c_int]
     #     CLIENT_GetDevConfig.restype = c_int
 
-
     # ################ 业务代码
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -42,7 +42,15 @@ def main():
     waittime = 500
 
     try:
-        result = dahuaClient.netDll.CLIENT_GetDevConfig(userID, DH.DH_DEV_NTP_CFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, byref(lpBytesReturned), waittime)
+        result = dahuaClient.netDll.CLIENT_GetDevConfig(
+            userID,
+            DH.DH_DEV_NTP_CFG,
+            lChannel,
+            byref(lpOutBuffer),
+            dwOutBufferSize,
+            byref(lpBytesReturned),
+            waittime,
+        )
     except DHNetSDKException as e:
         print(str(e))
     else:
@@ -69,5 +77,5 @@ def main():
     # ################ 业务代码
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

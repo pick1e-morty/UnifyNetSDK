@@ -1211,7 +1211,7 @@ ErrorCode = {
     8525: "NET_ERR_CANCEL_CURRENT_LED_AREA",
     8526: "NET_ERR_LED_OUT_ASSOCIATED_AREA",
     8527: "NET_ERR_MAX_VIRTUAL_LED_PICTURE_SIZE",
-    8528: "NET_ERR_DEVICE_CTRLED_BY_REMOTER"
+    8528: "NET_ERR_DEVICE_CTRLED_BY_REMOTER",
 }
 
 
@@ -1231,7 +1231,11 @@ class HKNetSDKException(Exception):
 
 from gen_exception_file.utils import genrateExceptionDict, genrateException
 
-AppendErrorInfo = {11: "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这可能是当前错误的原因之一"}
-if __name__ == '__main__':
+AppendErrorInfo = {
+    11: "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这可能是当前错误的原因之一"
+}
+if __name__ == "__main__":
     genrateException(HKNetSDKException, ErrorCode, AppendErrorInfo)
-    genrateExceptionDict("HKNetSDKExceptionDict", ErrorCode, fileName="HKNetSDKException")
+    genrateExceptionDict(
+        "HKNetSDKExceptionDict", ErrorCode, fileName="HKNetSDKException"
+    )
