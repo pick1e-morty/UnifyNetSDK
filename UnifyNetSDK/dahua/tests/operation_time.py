@@ -49,5 +49,5 @@ def main():
     # ################ 业务代码
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

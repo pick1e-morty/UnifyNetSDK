@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+
 # sys.path.append(str(Path(__file__).resolve().parent.parent.parent.parent))
 from ctypes import *
 from datetime import timedelta, datetime
@@ -7,7 +8,11 @@ from datetime import timedelta, datetime
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QApplication, QGridLayout
 from UnifyNetSDK.dahua.dh_netsdk import DaHuaNetSDK
-from UnifyNetSDK.parameter import UnifyLoginArg, UnifyDownLoadByTimeArg, UnifyPlayBackByTimeArg
+from UnifyNetSDK.parameter import (
+    UnifyLoginArg,
+    UnifyDownLoadByTimeArg,
+    UnifyPlayBackByTimeArg,
+)
 import UnifyNetSDK.dahua.dh_netsdk_wrapper as DH
 from tests._testLoginConfig import getTestUserConfig
 
@@ -87,9 +92,15 @@ class testForm(QWidget):
 
         filePath = Path(__file__).with_name("percent70.jpeg")
         savedFileName = create_string_buffer(str(filePath).encode("gbk"))
-        lPlayHandle = self.playBackHandle if self.playBackHandle is not None else self.realPlayHandle
+        lPlayHandle = (
+            self.playBackHandle
+            if self.playBackHandle is not None
+            else self.realPlayHandle
+        )
         try:
-            catchResult = self.dahuaClient.netDll.CLIENT_CapturePictureEx(lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70)
+            catchResult = self.dahuaClient.netDll.CLIENT_CapturePictureEx(
+                lPlayHandle, savedFileName, DH.NET_CAPTURE_JPEG_70
+            )
             self.dahuaClient.getLastError("CLIENT_CapturePictureEx", bool(catchResult))
         except Exception as e:
             print(e)
@@ -132,7 +143,9 @@ class testForm(QWidget):
             playBackArg.dataCallBack = DownLoadDataCallBack
             playBackArg.downLoadPosCallBack = DownLoadPosCallBack
             # try:
-            self.playBackHandle = self.dahuaClient.playBackByTime(self.userID, playBackArg)
+            self.playBackHandle = self.dahuaClient.playBackByTime(
+                self.userID, playBackArg
+            )
             # except Exception as e:
             #     print(e)
             self.PlayBackPB.setText("停止回放")

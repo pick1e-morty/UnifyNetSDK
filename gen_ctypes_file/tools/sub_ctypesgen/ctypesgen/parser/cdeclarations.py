@@ -210,7 +210,9 @@ class PragmaPack(object):
                     "#pragma pack(push, {id})".format(id=id),
                 )
             else:
-                return "#pragma pack(pop) encountered without matching #pragma pack(push)"
+                return (
+                    "#pragma pack(pop) encountered without matching #pragma pack(push)"
+                )
 
         item = None
         err = None

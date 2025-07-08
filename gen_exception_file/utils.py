@@ -33,9 +33,11 @@ def genrateException(baseException, errorCodeDict, appendErrorInfo):
             f.write(f"    def __init__(self, errorText=None):\n")
             f.write(f"        self.errorIndex = {key}\n")
             if errorInfoText:
-                f.write(f"        tempErrorInfo = \"{errorInfoText}\"\n")
+                f.write(f'        tempErrorInfo = "{errorInfoText}"\n')
                 # tempErrorInfo = "错误码索引重复了，该错误码所对应的另一个类型为NET_ERROR_FACE_RECOGNITION_SERVER_DELETE_GROUP_ERROR"
-                f.write(f"        self.errorInfo = tempErrorInfo + \"\\n\" + str(errorText) if errorText else tempErrorInfo\n")
+                f.write(
+                    f'        self.errorInfo = tempErrorInfo + "\\n" + str(errorText) if errorText else tempErrorInfo\n'
+                )
                 # self.errorInfo = tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
             else:
                 f.write(f"        self.errorInfo = errorText\n")
@@ -44,6 +46,7 @@ def genrateException(baseException, errorCodeDict, appendErrorInfo):
 
 # 就算已有errorInfo也要判断用户是否输入了errorText参数，
 # 然后追加用户的文本
+
 
 def genrateExceptionDict(dictName, errorCodeDict, fileName):
     # ErrorCode = {

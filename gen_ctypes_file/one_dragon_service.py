@@ -2,7 +2,9 @@ import re
 import sys
 from pathlib import Path
 
-from UnifyNetSDK.gen_ctypes_file.tools.clang_format.format import clangformat as _clangformat
+from UnifyNetSDK.gen_ctypes_file.tools.clang_format.format import (
+    clangformat as _clangformat,
+)
 
 curPyPath = Path(__file__).parent
 
@@ -51,7 +53,9 @@ def sanitizeText(fileName, copy2replaceDir: bool):
         output_headfile_path = str(curPyPath / Step_3_DirName / fileName)
         with open(output_headfile_path, "w", encoding="utf8") as fp:
             fp.write(text)
-        print("相同内容已同时复制到在第三步文件夹中")  # 其实是又开了一个文件指针而不是shutil.copyfile()
+        print(
+            "相同内容已同时复制到在第三步文件夹中"
+        )  # 其实是又开了一个文件指针而不是shutil.copyfile()
         print(f"sanitizeText {fileName} 结束，注释已删除")
 
 
@@ -73,17 +77,29 @@ def generateCtypesWrapper(fileName: str, log2file: bool = True):
     print("generateCtypesWrapper开始")
     readyToGenCtypesWrapperFile = str((curPyPath / Step_3_DirName / fileName).resolve())
     generatedCtypesWrapperFile = str((curPyPath / Step_4_DirName / fileName).resolve())
-    arg_list = [readyToGenCtypesWrapperFile, "-l", dllFile, "-o", generatedCtypesWrapperFile]
+    arg_list = [
+        readyToGenCtypesWrapperFile,
+        "-l",
+        dllFile,
+        "-o",
+        generatedCtypesWrapperFile,
+    ]
     print("指令列表为", arg_list)
 
     if log2file is True:  # 希望将错误报告输出到文件中
-        error_file = open('ctypesgen.log', 'w')
+        error_file = open("ctypesgen.log", "w")
         sys.stderr = error_file
-        from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
+        from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import (
+            main as ctypesgenscript,
+        )
+
         ctypesgenscript(arg_list)
         error_file.close()
     else:  # 希望将错误报告输出到标准错误输出流中（默认就是终端）中
-        from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import main as ctypesgenscript
+        from UnifyNetSDK.gen_ctypes_file.tools.sub_ctypesgen.run import (
+            main as ctypesgenscript,
+        )
+
         ctypesgenscript(arg_list)
     print("generateCtypesWrapper结束")
 
@@ -128,11 +144,17 @@ def remove_default_parameters(fileName):
     print(f"remove_default_parameters {fileName} 开始")
 
     if fileName == "DH_NetSDK.h":
-        pattern = dahua_pattern = r"^CLIENT_NET_API[^;]*=[^;]*;"  # 先拿到含有CLIENT_NET_API和=的整条语句,大华函数声明开头
+        pattern = dahua_pattern = (
+            r"^CLIENT_NET_API[^;]*=[^;]*;"  # 先拿到含有CLIENT_NET_API和=的整条语句,大华函数声明开头
+        )
     elif fileName == "DH_PlaySDK.h":
-        pattern = dahua_playsdk_pattern = r"^PLAYSDK_API[^;]*=[^;]*;"  # 先拿到含有NET_DVR_API和=的整条语句,海康函数声明开头
+        pattern = dahua_playsdk_pattern = (
+            r"^PLAYSDK_API[^;]*=[^;]*;"  # 先拿到含有NET_DVR_API和=的整条语句,海康函数声明开头
+        )
     elif fileName == "HK_NetSDK.h":
-        pattern = haikang_pattern = r"^NET_DVR_API[^;]*=[^;]*;"  # 先拿到含有NET_DVR_API和=的整条语句,海康函数声明开头
+        pattern = haikang_pattern = (
+            r"^NET_DVR_API[^;]*=[^;]*;"  # 先拿到含有NET_DVR_API和=的整条语句,海康函数声明开头
+        )
     elif fileName == "HK_PlaySDK.h":
         pattern = haikang_playsdk_pattern = r"^PLAYM4_API[^;]*=[^;]*;"
     else:
@@ -147,7 +169,9 @@ def remove_default_parameters(fileName):
     print(f"remove_default_parameters {fileName} 结束")
 
 
-if __name__ == "__main__":  # 一般情况下是，用clangformat格式化后放在第二步文件夹中，但是删除注释是修改第二步的源文件的，第三步就是需要我手动修改头文件的地方，第四步就是完成品
+if (
+    __name__ == "__main__"
+):  # 一般情况下是，用clangformat格式化后放在第二步文件夹中，但是删除注释是修改第二步的源文件的，第三步就是需要我手动修改头文件的地方，第四步就是完成品
 
     Step_1_DirName = Path("_1_original")  # 每一步的文件夹名称
     Step_2_DirName = Path("_2_formatted")

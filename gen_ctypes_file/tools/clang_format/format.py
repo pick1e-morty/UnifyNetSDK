@@ -36,11 +36,11 @@ def clangformat(input_file_path, output_file_path, notes):
         raise Exception(f"{clangformatStyleFilePath} 不存在")
 
     cmd = (
-            clangformatExecuteFilePath
-            + f" -style=file:{clangformatStyleFilePath} "
-            + input_file_path
-            + " > "
-            + output_file_path
+        clangformatExecuteFilePath
+        + f" -style=file:{clangformatStyleFilePath} "
+        + input_file_path
+        + " > "
+        + output_file_path
     )
     print("执行命令为：", cmd)
     subprocess.call(cmd, shell=True)

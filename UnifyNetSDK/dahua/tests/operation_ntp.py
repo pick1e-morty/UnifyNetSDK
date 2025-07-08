@@ -59,7 +59,6 @@ def main():
         logCloseResult = dahuaClient.logclose()
         releaseResult = dahuaClient.cleanup()
 
-
     except DHNetSDKException as e:
         print(e)
         if dahuaClient:
@@ -71,5 +70,5 @@ def main():
                 dahuaClient.cleanup()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

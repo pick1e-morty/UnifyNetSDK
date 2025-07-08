@@ -57,20 +57,30 @@ class HaikangPlaySDK(AbsPlaySDK):
 
         dwWidth = c_long(0)
         dwHeight = c_long(0)  # 获得码流中原始图像的大小
-        getResult = cls.playDll.PlayM4_GetPictureSize(nPort, byref(dwWidth), byref(dwHeight))
+        getResult = cls.playDll.PlayM4_GetPictureSize(
+            nPort, byref(dwWidth), byref(dwHeight)
+        )
         cls.getLastError(getResult, "PlayM4_GetPictureSize", bool(getResult))
 
         dwSize = dwWidth.value * dwHeight.value * 5  # 预计大小，4500kb
-        exPicBuf = (c_ubyte * dwSize)()  # m_pCapBuf 是一个 c_ubyte 数组的实例，而不是一个指针。你可以直接传递 m_pCapBuf，因为 ctypes 会自动将数组转换为指针。
+        exPicBuf = (
+            c_ubyte * dwSize
+        )()  # m_pCapBuf 是一个 c_ubyte 数组的实例，而不是一个指针。你可以直接传递 m_pCapBuf，因为 ctypes 会自动将数组转换为指针。
         dwCapSize = c_ulong(0)  # [out] 获取到的实际JPEG图像数据大小
 
-        catchResult = cls.playDll.PlayM4_GetJPEG(nPort, exPicBuf, dwSize, byref(dwCapSize))
+        catchResult = cls.playDll.PlayM4_GetJPEG(
+            nPort, exPicBuf, dwSize, byref(dwCapSize)
+        )
         cls.getLastError(nPort, "PlayM4_GetJPEG", bool(catchResult))  # 抓图
 
         acPicBuf = (c_ubyte * dwCapSize.value)()  # 真正需要用到的内存空间
-        memmove(acPicBuf, exPicBuf, sizeof(acPicBuf))  # 大数组内容移动到小数组中,去除多余的空白数据
+        memmove(
+            acPicBuf, exPicBuf, sizeof(acPicBuf)
+        )  # 大数组内容移动到小数组中,去除多余的空白数据
 
-        with open(absPicName, "wb") as f:  # 源数据就是一帧jpeg，直接以二进制写入就能用图像查看器打开了
+        with open(
+            absPicName, "wb"
+        ) as f:  # 源数据就是一帧jpeg，直接以二进制写入就能用图像查看器打开了
             f.write(acPicBuf)
 
         return catchResult
@@ -88,7 +98,9 @@ class HaikangPlaySDK(AbsPlaySDK):
         return closeResult
 
     @classmethod
-    def getLastError(cls, nPort: int, methodName: str, methodResult: typing.Union[int, bool]):
+    def getLastError(
+        cls, nPort: int, methodName: str, methodResult: typing.Union[int, bool]
+    ):
         logger.debug(f"{methodName}执行结果为 {type(methodResult)} {methodResult}")
         if methodResult == -1 or methodResult is False:
             cls._getLastError(nPort)

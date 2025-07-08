@@ -527,7 +527,7 @@ ErrorCode = {
     1341: "NET_ERROR_TEMPORARY_OUTDATED",
     1401: "NET_SUBBIZ_INVALID_SOCKET",
     1402: "NET_SUBBIZ_PAUSE_ERROR",
-    1403: "NET_SUBBIZ_GET_PORT_ERROR"
+    1403: "NET_SUBBIZ_GET_PORT_ERROR",
 }
 
 AppendErrorInfo = {  # 因为上面那个ErrorCode字典是很容易就拿到的，不能为了几个小小的错误信息的追加操作就改变上面那个字典的结构。暂时不值得
@@ -552,6 +552,8 @@ class DHNetSDKException(Exception):
 
 from gen_exception_file.utils import genrateExceptionDict, genrateException
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     genrateException(DHNetSDKException, ErrorCode, AppendErrorInfo)
-    genrateExceptionDict("DHNetSDKExceptionDict", ErrorCode, fileName="DHNetSDKException")
+    genrateExceptionDict(
+        "DHNetSDKExceptionDict", ErrorCode, fileName="DHNetSDKException"
+    )

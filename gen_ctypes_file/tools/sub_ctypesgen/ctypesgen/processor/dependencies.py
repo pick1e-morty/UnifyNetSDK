@@ -98,7 +98,11 @@ def find_dependencies(data, opts):
         unresolvables = []
 
         for cstruct in cstructs:
-            if kind == "struct" and desc.variety == cstruct.variety and desc.tag == cstruct.tag:
+            if (
+                kind == "struct"
+                and desc.variety == cstruct.variety
+                and desc.tag == cstruct.tag
+            ):
                 continue
             if not depend(desc, struct_names, (cstruct.variety, cstruct.tag)):
                 unresolvables.append('%s "%s"' % (cstruct.variety, cstruct.tag))
@@ -114,7 +118,11 @@ def find_dependencies(data, opts):
                 unresolvables.append('typedef "%s"' % ctypedef)
 
         for ident in identifiers:
-            if isinstance(desc, MacroDescription) and desc.params and ident in desc.params:
+            if (
+                isinstance(desc, MacroDescription)
+                and desc.params
+                and ident in desc.params
+            ):
                 continue
 
             elif opts.include_undefs and isinstance(desc, UndefDescription):
@@ -128,7 +136,9 @@ def find_dependencies(data, opts):
                 unresolvables.append('identifier "%s"' % ident)
 
         for u in unresolvables:
-            errors.append(("%s depends on an unknown %s." % (desc.casual_name(), u), None))
+            errors.append(
+                ("%s depends on an unknown %s." % (desc.casual_name(), u), None)
+            )
 
         for err, cls in errors:
             err += " %s will not be output" % desc.casual_name()

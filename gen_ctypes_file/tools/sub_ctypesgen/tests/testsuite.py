@@ -127,9 +127,7 @@ class StdlibTest(unittest.TestCase):
 
         if sys.platform == "win32":
             # Check a variable that is already set
-            env_var_name = (
-                "USERNAME"  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
-            )
+            env_var_name = "USERNAME"  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
             expect_result = os.environ[env_var_name]
             self.assertTrue(expect_result, "this should not be None or empty")
             # reason for using an existing OS variable is that unless the
@@ -171,7 +169,7 @@ class StdlibTest(unittest.TestCase):
 # on file system while still loaded to memory.
 @unittest.skipIf(
     sys.platform == "win32",
-    "Currently not working on Windows. See code comment for details."
+    "Currently not working on Windows. See code comment for details.",
 )
 class CommonHeaderTest(unittest.TestCase):
     @classmethod
@@ -231,7 +229,9 @@ struct foo
         """Test is bool is correctly parsed"""
         module = StdBoolTest.module
         struct_foo = module.struct_foo
-        self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
+        self.assertEqual(
+            struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)]
+        )
 
 
 class IntTypesTest(unittest.TestCase):
@@ -328,7 +328,12 @@ class SimpleMacrosTest(unittest.TestCase):
 
         self.assertEqual(
             json("B"),
-            {"args": ["x", "y"], "body": "(x + y)", "name": "B", "type": "macro_function"},
+            {
+                "args": ["x", "y"],
+                "body": "(x + y)",
+                "name": "B",
+                "type": "macro_function",
+            },
         )
 
     def test_macro_addition(self):
@@ -387,7 +392,12 @@ class SimpleMacrosTest(unittest.TestCase):
 
         self.assertEqual(
             json("funny"),
-            {"args": ["x"], "body": "('funny' + x)", "name": "funny", "type": "macro_function"},
+            {
+                "args": ["x"],
+                "body": "('funny' + x)",
+                "name": "funny",
+                "type": "macro_function",
+            },
         )
 
     def test_macro_math_multipler(self):
@@ -458,7 +468,12 @@ class SimpleMacrosTest(unittest.TestCase):
 
         self.assertEqual(
             json("mod_macro"),
-            {"args": ["x", "y"], "body": "(x % y)", "name": "mod_macro", "type": "macro_function"},
+            {
+                "args": ["x", "y"],
+                "body": "(x % y)",
+                "name": "mod_macro",
+                "type": "macro_function",
+            },
         )
 
     def test_macro_subcall_simple(self):
@@ -472,7 +487,12 @@ class SimpleMacrosTest(unittest.TestCase):
 
         self.assertEqual(
             json("subcall_macro_simple"),
-            {"args": ["x"], "body": "A", "name": "subcall_macro_simple", "type": "macro_function"},
+            {
+                "args": ["x"],
+                "body": "A",
+                "name": "subcall_macro_simple",
+                "type": "macro_function",
+            },
         )
 
     def test_macro_subcall_simple_plus(self):
@@ -2297,7 +2317,11 @@ class PrototypeTest(unittest.TestCase):
                 "name": "foo3",
                 "return": {
                     "Klass": "CtypesPointer",
-                    "destination": {"Klass": "CtypesSpecial", "errors": [], "name": "c_ubyte"},
+                    "destination": {
+                        "Klass": "CtypesSpecial",
+                        "errors": [],
+                        "name": "c_ubyte",
+                    },
                     "errors": [],
                     "qualifiers": [],
                 },
@@ -2408,9 +2432,7 @@ class MainTest(unittest.TestCase):
         """Test that script at least generates a help"""
         o, e, c = self._exec(["--help"])
         self.assertEqual(c, 0)
-        self.assertEqual(
-            o.decode().splitlines()[0].startswith("usage: run.py"), True
-        )
+        self.assertEqual(o.decode().splitlines()[0].startswith("usage: run.py"), True)
         self.assertGreater(len(o), 3000)  # its long, so it must be the generated help
         self.assertEqual(e.decode(), "")
 
@@ -2419,10 +2441,10 @@ class MainTest(unittest.TestCase):
         o, e, c = self._exec(["random_header.h", "--oh-what-a-goose-i-am"])
         self.assertEqual(c, 2)
         self.assertEqual(o.decode(), "")
-        self.assertEqual(
-            e.decode().splitlines()[0].startswith("usage: run.py"), True
+        self.assertEqual(e.decode().splitlines()[0].startswith("usage: run.py"), True)
+        self.assertIn(
+            "error: unrecognized arguments: --oh-what-a-goose-i-am", e.decode()
         )
-        self.assertIn("error: unrecognized arguments: --oh-what-a-goose-i-am", e.decode())
 
 
 class UncheckedTest(unittest.TestCase):
@@ -2505,7 +2527,9 @@ struct foo
         self.assertEqual(ConstantsTest.module.F_CONST_2, 35.2e0)
         self.assertEqual(ConstantsTest.module.F_CONST_3, 35.0e0)
         self.assertEqual(ConstantsTest.module.F_CONST_4, float.fromhex("0xAFp012"))
-        self.assertEqual(ConstantsTest.module.F_CONST_5, float.fromhex("0x1.fffffep+127"))
+        self.assertEqual(
+            ConstantsTest.module.F_CONST_5, float.fromhex("0x1.fffffep+127")
+        )
         self.assertEqual(ConstantsTest.module.F_CONST_6, float.fromhex("0xAFAF.p35"))
 
     def test_struct_fields(self):
