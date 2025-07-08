@@ -4,42 +4,52 @@
 
 def DaHuaNetSDK():
     from UnifyNetSDK.dahua.dh_netsdk import DaHuaNetSDK
+
     return DaHuaNetSDK
 
 
 def DHNetSDKException():
     from UnifyNetSDK.dahua.dh_netsdk_exception import DHNetSDKException
+
     return DHNetSDKException
 
 
 def DaHuaPlaySDK():
     from UnifyNetSDK.dahua.dh_playsdk import DaHuaPlaySDK
+
     return DaHuaPlaySDK
 
 
 def DHPlaySDKException():
     from UnifyNetSDK.dahua.dh_playsdk_exception import DHPlaySDKException
+
     return DHPlaySDKException
 
 
 def HaikangNetSDK():
     from .haikang.hk_netsdk import HaikangNetSDK
+
     return HaikangNetSDK()
 
 
 def HKNetSDKException():
     from .haikang.hk_netsdk_exception import HKNetSDKException
+
     return HKNetSDKException()
 
 
 def HaikangPlaySDK():
     from .haikang.hk_playsdk import HaikangPlaySDK
+
     return HaikangPlaySDK()
 
 
 def HKPlaySDKException():
     from .haikang.hk_playsdk_exception import HKPlaySDKException
+
     return HKPlaySDKException()
+
+
 # 海康
 ## 海康没有下载视频时的回调函数功能
 ## 查询录像是否存在还必须用另一个时间结构体NET_DVR_TIME_SEARCH_COND

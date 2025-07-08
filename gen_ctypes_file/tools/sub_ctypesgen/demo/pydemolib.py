@@ -27,7 +27,6 @@ del t
 del _int_types
 
 
-
 class UserString:
     def __init__(self, seq):
         if isinstance(seq, bytes):
@@ -437,6 +436,7 @@ def ord_if_char(value):
     """
     return ord(value) if (isinstance(value, bytes) or isinstance(value, str)) else value
 
+
 # End preamble
 
 _libs = {}
@@ -572,7 +572,9 @@ class LibraryLoader:
             # then we search the directory where the generated python interface is stored
             if this_file is not None:
                 for fmt in self.name_formats:
-                    yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
+                    yield os.path.abspath(
+                        os.path.join(os.path.dirname(__file__), fmt % libname)
+                    )
 
             # now, use the ctypes tools to try to find the library
             for fmt in self.name_formats:
@@ -876,4 +878,3 @@ if _libs["demolib.so"].has("trivial_add", "cdecl"):
 # No inserted files
 
 # No prefix-stripping
-

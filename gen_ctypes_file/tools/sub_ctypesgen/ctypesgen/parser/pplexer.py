@@ -44,7 +44,9 @@ I_CONST_OCT = r"0" + r"(?P<p1>" + _O_ + r"*)" + _IS_ + r"?"
 I_CONST_BIN = r"(?P<p1>" + _BP_ + _B_ + "*" + r")" + _IS_ + "?"
 
 F_CONST_1 = r"(?P<sig>" + _D_ + r"+" + r")(?P<exp>" + _E_ + r")" + _FS_ + r"?"
-F_CONST_2 = r"(?P<sig>" + _D_ + r"*\." + _D_ + r"+" + r")(?P<exp>" + _E_ + r"?)" + _FS_ + r"?"
+F_CONST_2 = (
+    r"(?P<sig>" + _D_ + r"*\." + _D_ + r"+" + r")(?P<exp>" + _E_ + r"?)" + _FS_ + r"?"
+)
 F_CONST_3 = r"(?P<sig>" + _D_ + r"+\." + r")(?P<exp>" + _E_ + r"?)" + _FS_ + r"?"
 F_CONST_4 = r"(?P<hex>" + _HP_ + _H_ + r"+" + _P_ + r")" + _FS_ + r"?"
 F_CONST_5 = r"(?P<hex>" + _HP_ + _H_ + r"*\." + _H_ + r"+" + _P_ + r")" + _FS_ + r"?"
