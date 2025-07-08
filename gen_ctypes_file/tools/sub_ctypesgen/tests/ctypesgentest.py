@@ -39,7 +39,7 @@ def generate(header, **more_options):
 
     assert isinstance(header, str)
     with open("temp.h", "wb") as f:
-        f.write(header.encode('utf-8'))
+        f.write(header.encode("utf-8"))
 
     test_options = options.get_default_options()
     test_options.headers = ["temp.h"]
@@ -82,7 +82,9 @@ def generate(header, **more_options):
             JSON = json.loads(printer_output.getvalue())
             retval = JSON
     else:
-        raise RuntimeError("No such output language `" + test_options.output_language + "'")
+        raise RuntimeError(
+            "No such output language `" + test_options.output_language + "'"
+        )
 
     if redirect_stdout:
         # Un-redirect output
@@ -138,7 +140,7 @@ class JsonHelper:
             mapped_tags[i] = "anon_{0}".format(counter)
             counter += 1
 
-        for (old_tag, new_tag) in mapped_tags.items():
+        for old_tag, new_tag in mapped_tags.items():
             self._replace_anon_tag(json, old_tag, new_tag)
 
     def _replace_anon_tag(self, json, tag, new_tag):
@@ -275,6 +277,6 @@ void bar(struct mystruct *m) {
         os.mkdir(COMMON_DIR)
 
     names = {"a.h": a_h, "a.c": a_c, "b.h": b_h, "b.c": b_c, "common.h": common_h}
-    for (name, source) in names.items():
+    for name, source in names.items():
         with open(f"{COMMON_DIR}/{name}", "w") as f:
             f.write(source)

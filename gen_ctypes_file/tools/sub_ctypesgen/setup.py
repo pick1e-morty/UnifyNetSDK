@@ -2,8 +2,8 @@
 
 """Examples:
 
-        setup.py sdist
-        setup.py bdist_wininst
+setup.py sdist
+setup.py bdist_wininst
 
 """
 

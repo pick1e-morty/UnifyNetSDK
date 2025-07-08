@@ -11,7 +11,16 @@ class DescriptionCollection(object):
     """Represents a collection of Descriptions."""
 
     def __init__(
-        self, constants, typedefs, structs, enums, functions, variables, macros, all, output_order
+        self,
+        constants,
+        typedefs,
+        structs,
+        enums,
+        functions,
+        variables,
+        macros,
+        all,
+        output_order,
     ):
         self.constants = constants
         self.typedefs = typedefs

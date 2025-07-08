@@ -222,7 +222,11 @@ class DebugCParser(CParser):
 
     def handle_define_unparseable(self, name, params, value, filename, lineno):
         if params:
-            original_string = "#define %s(%s) %s" % (name, ",".join(params), " ".join(value))
+            original_string = "#define %s(%s) %s" % (
+                name,
+                ",".join(params),
+                " ".join(value),
+            )
         else:
             original_string = "#define %s %s" % (name, " ".join(value))
         print(original_string)

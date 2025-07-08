@@ -41,7 +41,10 @@ class WrapperPrinter:
         self.file = open(outpath, "w") if outpath else sys.stdout
         self.options = options
 
-        if self.options.strip_build_path and self.options.strip_build_path[-1] != os.path.sep:
+        if (
+            self.options.strip_build_path
+            and self.options.strip_build_path[-1] != os.path.sep
+        ):
             self.options.strip_build_path += os.path.sep
 
         self.print_group(self.options.libraries, "libraries", self.print_library)
@@ -78,7 +81,11 @@ class WrapperPrinter:
         return {"load_library": library}
 
     def print_constant(self, constant):
-        return {"type": "constant", "name": constant.name, "value": constant.value.py_string(False)}
+        return {
+            "type": "constant",
+            "name": constant.name,
+            "value": constant.value.py_string(False),
+        }
 
     def print_undef(self, undef):
         return {"type": "undef", "value": undef.macro.py_string(False)}
@@ -124,7 +131,11 @@ class WrapperPrinter:
         return res
 
     def print_variable(self, variable):
-        res = {"type": "variable", "ctype": todict(variable.ctype), "name": variable.c_name()}
+        res = {
+            "type": "variable",
+            "ctype": todict(variable.ctype),
+            "name": variable.c_name(),
+        }
         if variable.source_library:
             res["source"] = variable.source_library
         return res
@@ -140,4 +151,8 @@ class WrapperPrinter:
         else:
             # The macro translator makes heroic efforts but it occasionally fails.
             # Beware the contents of the value!
-            return {"type": "macro", "name": macro.name, "value": macro.expr.py_string(True)}
+            return {
+                "type": "macro",
+                "name": macro.name,
+                "value": macro.expr.py_string(True),
+            }

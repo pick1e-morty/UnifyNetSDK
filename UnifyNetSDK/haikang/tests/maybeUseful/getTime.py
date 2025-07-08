@@ -15,7 +15,7 @@ testUserConfig = getTestUserConfig("haikang")
 def main():
     haikangClient = HaikangNetSDK()
     haikangClient.init()
-    absLogPath = Path(__file__).absolute().with_name('hk_netsdk_log')
+    absLogPath = Path(__file__).absolute().with_name("hk_netsdk_log")
     haikangClient.logopen(absLogPath)
 
     easy_login_info = UnifyLoginArg()
@@ -43,13 +43,27 @@ def main():
     lpBytesReturned [out] 实际收到的数据长度指针，不能为NULL 
     """
     try:
-        result = haikangClient.netDll.NET_DVR_GetDVRConfig(userID, HK.NET_DVR_GET_TIMECFG, lChannel, byref(lpOutBuffer), dwOutBufferSize, byref(lpBytesReturned))
+        result = haikangClient.netDll.NET_DVR_GetDVRConfig(
+            userID,
+            HK.NET_DVR_GET_TIMECFG,
+            lChannel,
+            byref(lpOutBuffer),
+            dwOutBufferSize,
+            byref(lpBytesReturned),
+        )
     except HKNetSDKException as e:
         print(str(e))
     else:
         if result:
             print("获取时间成功", lpOutBuffer)
-            print(lpOutBuffer.dwYear, lpOutBuffer.dwMonth, lpOutBuffer.dwDay, lpOutBuffer.dwHour, lpOutBuffer.dwMinute, lpOutBuffer.dwSecond)
+            print(
+                lpOutBuffer.dwYear,
+                lpOutBuffer.dwMonth,
+                lpOutBuffer.dwDay,
+                lpOutBuffer.dwHour,
+                lpOutBuffer.dwMinute,
+                lpOutBuffer.dwSecond,
+            )
 
     finally:
         haikangClient.logout(userID)

@@ -82,7 +82,9 @@ class NET_DVR_NETWORK_ERRORDATA(HKNetSDKException):
     def __init__(self, errorText=None):
         self.errorIndex = 11
         tempErrorInfo = "如果你NET_DVR_SetSDKInitCfg传入错误的路径的话，SetSDKInitCfg也不会返回false的，这可能是当前错误的原因之一"
-        self.errorInfo = tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        self.errorInfo = (
+            tempErrorInfo + "\n" + str(errorText) if errorText else tempErrorInfo
+        )
 
 
 class NET_DVR_ORDER_ERROR(HKNetSDKException):
@@ -4165,7 +4167,9 @@ class NET_DVR_ERR_HTTP_BKN_EXCEED_ONE(HKNetSDKException):
         self.errorInfo = errorText
 
 
-class NET_DVR_ERR_DELETING_FAILED_TURN_OFF_HTTPS_ESDK_WEBSOCKETS_FIRST(HKNetSDKException):
+class NET_DVR_ERR_DELETING_FAILED_TURN_OFF_HTTPS_ESDK_WEBSOCKETS_FIRST(
+    HKNetSDKException
+):
     def __init__(self, errorText=None):
         self.errorIndex = 1126
         self.errorInfo = errorText
@@ -4525,13 +4529,17 @@ class NET_ERR_VIDEOWALL_OPTPORT_RESOLUTION_INCONSISTENT(HKNetSDKException):
         self.errorInfo = errorText
 
 
-class NET_ERR_VIDEOWALL_OPTPORT_RESOLUTION_INCONSISTENT_UNBIND_OPTPORT_FIRST(HKNetSDKException):
+class NET_ERR_VIDEOWALL_OPTPORT_RESOLUTION_INCONSISTENT_UNBIND_OPTPORT_FIRST(
+    HKNetSDKException
+):
     def __init__(self, errorText=None):
         self.errorIndex = 1318
         self.errorInfo = errorText
 
 
-class NET_ERR_FOUR_K_OUTPUT_RESOLUTION_UNSUPPORT_NINE_TO_SIXTEEN_SPLIT_SCREEN(HKNetSDKException):
+class NET_ERR_FOUR_K_OUTPUT_RESOLUTION_UNSUPPORT_NINE_TO_SIXTEEN_SPLIT_SCREEN(
+    HKNetSDKException
+):
     def __init__(self, errorText=None):
         self.errorIndex = 1319
         self.errorInfo = errorText
@@ -5425,13 +5433,17 @@ class NET_DVR_ERR_YELLOWLIGHTTIME_INVALID(HKNetSDKException):
         self.errorInfo = errorText
 
 
-class NET_DVR_ERR_TRIGGERLINE1_FOR_NOT_YIELD_TO_PEDESTRIAN_CANNOT_EXCEED_TRIGGERLINE2(HKNetSDKException):
+class NET_DVR_ERR_TRIGGERLINE1_FOR_NOT_YIELD_TO_PEDESTRIAN_CANNOT_EXCEED_TRIGGERLINE2(
+    HKNetSDKException
+):
     def __init__(self, errorText=None):
         self.errorIndex = 1622
         self.errorInfo = errorText
 
 
-class NET_DVR_ERR_TRIGGERLINE2_FOR_NOT_YIELD_TO_PEDESTRIAN_CANNOT_EXCEED_TRIGGERLINE1(HKNetSDKException):
+class NET_DVR_ERR_TRIGGERLINE2_FOR_NOT_YIELD_TO_PEDESTRIAN_CANNOT_EXCEED_TRIGGERLINE1(
+    HKNetSDKException
+):
     def __init__(self, errorText=None):
         self.errorIndex = 1623
         self.errorInfo = errorText

@@ -74,7 +74,9 @@ class PreprocessorParser(object):
 
         self.matches = []
         self.output = []
-        optimize = options.optimize_lexer if hasattr(options, "optimize_lexer") else False
+        optimize = (
+            options.optimize_lexer if hasattr(options, "optimize_lexer") else False
+        )
         self.lexer = lex.lex(
             cls=PreprocessorLexer,
             optimize=optimize,
@@ -180,7 +182,8 @@ class PreprocessorParser(object):
 
         if self.options.save_preprocessed_headers:
             self.cparser.handle_status(
-                "Saving preprocessed headers to %s." % self.options.save_preprocessed_headers
+                "Saving preprocessed headers to %s."
+                % self.options.save_preprocessed_headers
             )
             try:
                 with open(self.options.save_preprocessed_headers, "w") as f:
@@ -199,4 +202,6 @@ class PreprocessorParser(object):
                 else:
                     break
         except LexError as e:
-            self.cparser.handle_error("{}; {}".format(e, e.text.partition("\n")[0]), filename, 0)
+            self.cparser.handle_error(
+                "{}; {}".format(e, e.text.partition("\n")[0]), filename, 0
+            )
