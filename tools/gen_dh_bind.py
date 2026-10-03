@@ -70,6 +70,11 @@ TYPEDEF_NAME_RE = re.compile(r'typedef\s+(?!struct\b|union\b|enum\b)[^;{()]*?([A
 # 这些在 MSVC 下实际来自 windows.h，解析文本时只能靠 #define 认出来
 DEFINE_NAME_RE = re.compile(r'^\s*#\s*define\s+([A-Za-z_]\w*)\b', re.M)
 
+# 函数声明：CLIENT_NET_API <ret> CALL_METHOD CLIENT_Xxx(<args>);
+FUNC_RE = re.compile(
+    r'CLIENT_NET_API\s+([A-Za-z_][\w\s*]*?)\s+CALL_METHOD\s+(CLIENT_\w+)\s*\(([^)]*)\)\s*;',
+    re.S)
+
 ENUM_ITEM_RE = re.compile(r'([A-Za-z_]\w*)\s*(?:=\s*([^,\n]+?))?\s*(?=,|\n|$)', re.M)
 
 # C++ 关键字 / 无意义的"类型名"
@@ -79,6 +84,23 @@ RESERVED_WORDS = {'struct', 'union', 'enum', 'const', 'volatile', 'static', 'uns
 BASE_TYPES = {
     'void', 'bool', 'char', 'short', 'int', 'long', 'float', 'double',
     '__int8', '__int16', '__int32', '__int64', 'size_t', 'wchar_t',
+}
+
+# Windows 句柄 / 不透明指针：本质是 void* 的 typedef，参数里看不到 *，
+# 但必须当指针暴露成 uintptr_t，否则 nanobind 找不到 caster。
+OPAQUE_PTR = {
+    'HWND', 'HDC', 'HANDLE', 'HMODULE', 'HINSTANCE', 'LPVOID',
+    'LPARAM', 'WPARAM', 'HGLRC', 'HICON', 'HCURSOR', 'HBRUSH', 'HFONT', 'HPEN',
+}
+
+# 头文件里声明了、但 dhnetsdk.dll 实际没导出的函数（链接报 LNK2019）。
+# 绑定它们会在链接阶段失败，只能跳过。
+SKIP_FUNCS = {
+    'CLIENT_GetSecurityEncryptInfo',
+    'CLIENT_DelayReboot',
+    'CLIENT_PTZSetLockupStatus',
+    'CLIENT_SetTemporaryConfig',
+    'CLIENT_ModifyBroadcastPlan',
 }
 
 
@@ -171,6 +193,114 @@ def parse_header(path):
         structs.append((name, fields))
 
     return enums, enum_names, structs, struct_names, fp_types, stats, typedef_names
+
+
+# ------------------------------------------------------------ 函数解析
+
+def parse_param(part):
+    """解析单个参数文本：'const char *pName' / 'LLONG lLoginID' / 'unsigned char'。
+
+    返回 dict(type/name)，type 是完整类型（含 const/unsigned/指针），
+    name 可能为 None（有些函数只有类型没有参数名）。"""
+    part = re.sub(r'\s*=\s*.+$', '', part).strip()
+    if not part:
+        return None
+    m = re.match(
+        r'((?:const\s+)?(?:unsigned\s+|signed\s+|long\s+|short\s+)?'
+        r'[A-Za-z_]\w*\s*\**)\s*([A-Za-z_]\w*)?', part)
+    if not m or not m.group(1):
+        return None
+    return {'type': m.group(1).strip(), 'name': m.group(2) or None}
+
+
+def classify_param(p, struct_names, enum_names, fp_types):
+    """参数分类。返回 'skip'/'callback' 表示该函数不能直接绑。"""
+    t = p['type']
+    core = re.sub(r'^const\s+', '', t)
+    ptr = '*' in core
+    base = core.replace('*', '').strip()
+    if base in fp_types:
+        return 'funcptr'
+    if base in OPAQUE_PTR:
+        return 'uintptr'
+    if ptr:
+        if base in ('void', 'LPVOID', 'HWND', 'HDC'):
+            return 'uintptr'
+        if base == 'char':
+            return 'cstr' if t.startswith('const') else 'skip'
+        if base in struct_names or base in enum_names:
+            return 'objptr'
+        return 'skip'      # int* / DWORD* 等输出指针，先不绑
+    if base == 'void':
+        return 'skip'
+    return 'value'
+
+
+def parse_funcs(text):
+    """提取全部 CLIENT_ 函数签名。返回 [(name, ret, [param_dict, ...]), ...]"""
+    funcs = []
+    seen = set()
+    for m in FUNC_RE.finditer(text):
+        ret = m.group(1).strip()
+        name = m.group(2)
+        if name in seen:
+            continue
+        seen.add(name)
+        params = []
+        bad = False
+        args_s = m.group(3).strip()
+        if args_s and args_s not in ('void', 'VOID'):
+            for part in args_s.split(','):
+                p = parse_param(part)
+                if p is None:
+                    bad = True
+                    break
+                params.append(p)
+        if not bad:
+            funcs.append((name, ret, params))
+    return funcs
+
+
+def gen_func(name, ret, params, struct_names, enum_names, fp_types):
+    """生成单个函数的 m.def 代码；返回 (lines, None) 或 (None, 跳过原因)。"""
+    cpp_args, nb_args, call_args = [], [], []
+    for idx, p in enumerate(params):
+        kind = classify_param(p, struct_names, enum_names, fp_types)
+        if kind == 'skip':
+            return None, kind
+        t = p['type']
+        n = p['name'] or ('arg%d' % idx)   # 无名参数补一个占位名
+        if kind == 'value':
+            cpp_args.append('%s %s' % (t, n))
+            call_args.append(n)
+        elif kind == 'uintptr':
+            cpp_args.append('std::uintptr_t %s' % n)
+            # 转回原类型：HWND 是 HWND__*，不能统一转成 void*（C2664）
+            call_args.append('reinterpret_cast<%s>(%s)' % (t, n))
+        elif kind == 'funcptr':
+            # 回调函数指针：暴露成地址，可传 0 表示不注册回调
+            cpp_args.append('std::uintptr_t %s' % n)
+            call_args.append('reinterpret_cast<%s>(%s)' % (t, n))
+        elif kind == 'cstr':
+            cpp_args.append('const std::string &%s' % n)
+            call_args.append('%s.c_str()' % n)
+        elif kind == 'objptr':
+            # const T* 会破坏 nanobind 的 type_caster<T*>，转成 T*（非 const
+            # 指针可隐式转 const，不影响调用）
+            t_clean = re.sub(r'^const\s+', '', t)
+            cpp_args.append('%s %s' % (t_clean, n))
+            call_args.append(n)
+        nb_args.append('nb::arg("%s")' % n)
+
+    sig = ', '.join(cpp_args)
+    call = ', '.join(call_args)
+    ret_ann = '' if ret == 'void' else ' -> %s' % ret
+    tail = (', ' + ', '.join(nb_args)) if nb_args else ''
+    lines = [
+        '    m.def("%s",' % name,
+        '        [](%s)%s { return %s(%s); }%s)' % (sig, ret_ann, name, call, tail),
+    ]
+    return lines, None
 
 
 # ------------------------------------------------------------ 依赖与拓扑
@@ -296,6 +426,8 @@ def main():
                     help='每个结构体分片的字段数上限（默认 500）')
     ap.add_argument('--enums-per-tu', type=int, default=250,
                     help='每个枚举分片的枚举数上限（默认 250）')
+    ap.add_argument('--funcs-per-tu', type=int, default=200,
+                    help='每个函数分片的函数数上限（默认 200）')
     ap.add_argument('--limit', type=int, default=0,
                     help='只生成前 N 个字段（试编译用，0=全量）')
     ap.add_argument('--out-dir', default=OUT_DIR)
@@ -320,6 +452,25 @@ def main():
     if unknown:
         print('  未知类型 TOP: %s' % ', '.join('%s x%d' % kv for kv in unknown[:8]))
     print('  函数指针类型 %d 个（不参与结构体字段）' % len(fp_types))
+
+    # ---- 函数：先分类，能安全绑的才生成 ----
+    text = strip_comments(open(HEADER, encoding='latin-1', errors='replace').read())
+    funcs = parse_funcs(text)
+    func_stat = collections.Counter()
+    bindable_funcs = []
+    for fname, ret, params in funcs:
+        if fname in SKIP_FUNCS:
+            func_stat['skip_undefined'] += 1
+            continue
+        flines, reason = gen_func(fname, ret, params, struct_names, enum_names, fp_types)
+        if flines is None:
+            func_stat['skip_' + reason] += 1
+        else:
+            bindable_funcs.append((fname, flines))
+            func_stat['bound'] += 1
+    print('  函数      : %d 个（可绑 %d / 未导出跳过 %d / 其他跳过 %d）'
+          % (len(funcs), func_stat['bound'],
+             func_stat['skip_undefined'], func_stat['skip_skip']))
 
     deps = build_deps(structs, struct_names)
     n_dep = sum(1 for v in deps.values() if v)
@@ -379,6 +530,8 @@ def main():
     # （瓶颈是 nb::enum_ 的模板实例化次数本身，不是优化器）。拆片才能并行。
     enum_shards = [enums[i:i + args.enums_per_tu]
                    for i in range(0, len(enums), args.enums_per_tu)] or [[]]
+    func_shards = [bindable_funcs[i:i + args.funcs_per_tu]
+                   for i in range(0, len(bindable_funcs), args.funcs_per_tu)] or [[]]
 
     # ---- dh_bind.h ----
     lines = [BANNER, '#pragma once\n', '#include <nanobind/nanobind.h>\n\n']
@@ -386,6 +539,8 @@ def main():
         lines.append('void init_enums%03d(nanobind::module_ &m);\n' % i)
     for i in range(len(shards)):
         lines.append('void init_part%03d(nanobind::module_ &m);\n' % i)
+    for i in range(len(func_shards)):
+        lines.append('void init_funcs%03d(nanobind::module_ &m);\n' % i)
     keep.add('dh_bind.h')
     write_if_changed(os.path.join(out_dir, 'dh_bind.h'), ''.join(lines))
 
@@ -432,6 +587,17 @@ def main():
         keep.add(fname)
         write_if_changed(os.path.join(out_dir, fname), ''.join(lines))
 
+    # ---- 函数 ----
+    for i, chunk in enumerate(func_shards):
+        lines = [BANNER, INCLUDES, 'void init_funcs%03d(nb::module_ &m) {\n' % i]
+        for _fname, flines in chunk:
+            lines += flines
+            lines.append('        ;\n')
+        lines.append('}\n')
+        fname = 'dh_bind_funcs%03d.cpp' % i
+        keep.add(fname)
+        write_if_changed(os.path.join(out_dir, fname), ''.join(lines))
+
     # ---- main ----
     lines = [BANNER, '#include "dh_bind.h"\n\n',
              'NB_MODULE(unify_dh_gen, m) {\n',
@@ -440,6 +606,8 @@ def main():
         lines.append('    init_enums%03d(m);\n' % i)
     for i in range(len(shards)):
         lines.append('    init_part%03d(m);\n' % i)
+    for i in range(len(func_shards)):
+        lines.append('    init_funcs%03d(m);\n' % i)
     lines.append('}\n')
     keep.add('dh_bind_main.cpp')
     write_if_changed(os.path.join(out_dir, 'dh_bind_main.cpp'), ''.join(lines))
