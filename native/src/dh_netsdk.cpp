@@ -170,11 +170,15 @@ NB_MODULE(unify_dh, m) {
 
     m.def("login",
           [](const InLogin &in_param) {
-              InLogin in_copy = in_param;  // the API takes a non-const pointer
+              LLONG handle;
               OutLogin out;
-              std::memset(&out, 0, sizeof(out));
-              out.dwSize = sizeof(out);
-              LLONG handle = CLIENT_LoginWithHighLevelSecurity(&in_copy, &out);
+              {
+                  nb::gil_scoped_release release;  // 阻塞期间释放 GIL，避免饿死同进程其他线程
+                  InLogin in_copy = in_param;  // the API takes a non-const pointer
+                  std::memset(&out, 0, sizeof(out));
+                  out.dwSize = sizeof(out);
+                  handle = CLIENT_LoginWithHighLevelSecurity(&in_copy, &out);
+              }
               return nb::make_tuple(static_cast<long long>(handle), out);
           },
           nb::arg("in_param"),
@@ -182,7 +186,24 @@ NB_MODULE(unify_dh, m) {
 
     m.def("logout",
           [](long long handle) -> bool {
+              nb::gil_scoped_release release;  // 阻塞期间释放 GIL
               return CLIENT_Logout(static_cast<LLONG>(handle)) != FALSE;
           },
           nb::arg("handle"), "CLIENT_Logout");
+
+    m.def("log_open",
+          [](const std::string &path) -> bool {
+              LOG_SET_PRINT_INFO info;
+              std::memset(&info, 0, sizeof(info));
+              info.dwSize = sizeof(info);
+              info.bSetFilePath = TRUE;
+              std::strncpy(info.szLogFilePath, path.c_str(),
+                           sizeof(info.szLogFilePath) - 1);
+              info.bSetPrintStrategy = TRUE;
+              info.nPrintStrategy = 0;
+              return CLIENT_LogOpen(&info) != FALSE;
+          },
+          nb::arg("path"), "CLIENT_LogOpen (SDK log to file)");
+
+    m.def("log_close", []() { CLIENT_LogClose(); }, "CLIENT_LogClose");
 }
