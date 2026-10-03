@@ -6,9 +6,10 @@
 
   - 数据：`make_func_re(api_macro, callconv, func_prefix)` 由 config 提供的
     三个字段拼出函数正则；`parse_funcs(text, func_re)` 接受它作为参数。
-  - hook：厂商特有的坑（比如大华的多别名 typedef、海康的嵌套 union）通过
-    覆盖本模块里的默认函数实现。目前默认实现就是「大华验证过」的那套，
-    海康要覆盖时再在 config 里挂 hook。
+  - 扩展点：解析被拆成细粒度函数（_collect_enums / _collect_structs /
+    _collect_unions / _extract_fields / _split_decl_names ...）。若某家头文件
+    出现真怪癖，覆盖对应函数即可。当前两家都落在「通用 C 语法」上，无需
+    覆盖——实测标量别名大华用 #define、海康用 typedef，但双收集已统一覆盖。
 
 IR 结构（元组，保持与旧 gen_dh_bind.py 完全一致）：
 
@@ -23,7 +24,7 @@ import re
 # ------------------------------------------------------------------ 正则
 
 # typedef struct [tag] { ... } Name;     体内不含花括号（含 union/嵌套的会被跳过）
-# 注意结尾不能只吃一个名字：大华大量写成
+# 注意结尾不能只吃一个名字：厂商 SDK 大量写成
 #     } NET_TIME, *LPNET_TIME;
 #     } DH_POINT, *LPDH_POINT, NET_POINT, *LPNET_POINT;
 # 只抓一个名字会让整个结构体漏掉，其字段随之被判为未知类型。
@@ -52,8 +53,10 @@ FP_RE = re.compile(r'typedef\s+[^(;]*\(\s*(?:[A-Za-z_]\w*\s+)?\*\s*(\w+)\s*\)\s*
 # typedef 出来的普通类型别名（DWORD / LLONG / BYTE ...），用于字段白名单
 TYPEDEF_NAME_RE = re.compile(r'typedef\s+(?!struct\b|union\b|enum\b)[^;{()]*?([A-Za-z_]\w*)\s*;')
 
-# 大华把一批类型别名写成宏：#define DWORD unsigned int / #define BYTE unsigned char
-# 这些在 MSVC 下实际来自 windows.h，解析文本时只能靠 #define 认出来
+# 类型别名的两种写法，两家各占一种，都要收进白名单：
+#   大华：标量别名是宏    #define DWORD unsigned int / #define BYTE unsigned char
+#   海康：标量别名是 typedef  typedef unsigned char BYTE;  （仅 BOOL 仍是 #define）
+# 解析文本时 #define 与 typedef 必须都收集，否则对应字段被判未知类型。
 DEFINE_NAME_RE = re.compile(r'^\s*#\s*define\s+([A-Za-z_]\w*)\b', re.M)
 
 ENUM_ITEM_RE = re.compile(r'([A-Za-z_]\w*)\s*(?:=\s*([^,\n]+?))?\s*(?=,|\n|$)', re.M)
@@ -95,15 +98,34 @@ def make_func_re(api_macro, callconv, func_prefix):
 
 # ------------------------------------------------------------------ 结构体 / 枚举
 
-def parse_header(path):
-    raw = open(path, encoding='latin-1', errors='replace').read()
-    text = strip_comments(raw)
+def _split_decl_names(decl):
+    """拆分 typedef 结尾的名字列表：'NET_TIME, *LPNET_TIME' -> ['NET_TIME']。
 
+    指针别名（*LPNET_TIME）不构成新类型，丢弃；其余名字是同一类型的别名，
+    不能重复注册 nb::class_，但必须进白名单，否则用别名的字段会被当成未知
+    类型整个跳过，功能静默缺失。
+    """
+    names = []
+    for part in decl.split(','):
+        part = part.strip()
+        if not part or part.startswith('*'):
+            continue
+        mm = re.match(r'([A-Za-z_]\w*)', part)
+        if mm:
+            names.append(mm.group(1))
+    return names
+
+
+def _collect_type_names(text):
+    """收集类型名来源：函数指针 typedef / 普通 typedef 别名 / #define 名。"""
     fp_types = set(FP_RE.findall(text))
     typedef_names = set(TYPEDEF_NAME_RE.findall(text)) - fp_types
     define_names = set(DEFINE_NAME_RE.findall(text))
+    return fp_types, typedef_names, define_names
 
-    # ---- 枚举 ----
+
+def _collect_enums(text):
+    """收集枚举。返回 (enums, enum_names)。"""
     enums = []           # (name, [(item_name, value_expr or None), ...])
     enum_names = set()
     for m in ENUM_RE.finditer(text):
@@ -119,52 +141,41 @@ def parse_header(path):
         if items:
             enum_names.add(name)
             enums.append((name, items))
+    return enums, enum_names
 
-    # ---- 结构体 ----
-    # 先收集全部结构体名，再回头提字段：字段类型白名单需要完整的名字集合，
-    # 否则引用「后面才定义」的结构体会被误判成未知类型。
+
+def _collect_structs(text):
+    """收集结构体。先收全部名字再回头提字段：白名单需要完整名字集合。
+
+    返回 (raw_structs, struct_names, struct_aliases)。"""
     raw_structs = []
     struct_names = set()
     struct_aliases = set()
     for m in STRUCT_RE.finditer(text):
         body, decl = m.group(1), m.group(2)
-        names = []
-        for part in decl.split(','):
-            part = part.strip()
-            if not part or part.startswith('*'):
-                continue            # *LPNET_TIME 这类指针别名，不构成新类型
-            mm = re.match(r'([A-Za-z_]\w*)', part)
-            if mm:
-                names.append(mm.group(1))
+        names = _split_decl_names(decl)
         if not names:
             continue
         name = names[0]
-        # 其余名字是同一 C++ 类型的别名：不能重复注册 nb::class_（否则报
-        # already registered），但必须进白名单，否则用别名的字段会被当成
-        # 未知类型整个跳过，功能静默缺失。
         struct_aliases.update(names[1:])
         if name in struct_names:
             continue
         struct_names.add(name)
         raw_structs.append((name, body))
+    return raw_structs, struct_names, struct_aliases
 
-    # ---- union（有名 union 类型：typedef union {...} NAME;）----
-    # 类型名进白名单，让 union 字段不被判为未知类型；字段本身由
-    # emit.gen_fields 按 bytes 暴露。
+
+def _collect_unions(text):
+    """收集有名 union 类型名（typedef union {...} NAME;）。只进白名单，字段由 emit 按 bytes 暴露。"""
     union_names = set()
     for m in UNION_RE.finditer(text):
         _ubody, decl = m.group(1), m.group(2)
-        for part in decl.split(','):
-            part = part.strip()
-            if not part or part.startswith('*'):
-                continue
-            mm = re.match(r'([A-Za-z_]\w*)', part)
-            if mm:
-                union_names.add(mm.group(1))
+        union_names.update(_split_decl_names(decl))
+    return union_names
 
-    bindable = (struct_names | struct_aliases | enum_names | union_names
-                | typedef_names | define_names | BASE_TYPES)
 
+def _extract_fields(raw_structs, bindable, fp_types):
+    """从结构体 body 提字段。返回 (structs, stats)。"""
     structs = []         # (name, [(ftype, fname, arr_or_None), ...])
     stats = collections.Counter()
     for name, body in raw_structs:
@@ -189,6 +200,22 @@ def parse_header(path):
         if not fields:
             continue
         structs.append((name, fields))
+    return structs, stats
+
+
+def parse_header(path):
+    raw = open(path, encoding='latin-1', errors='replace').read()
+    text = strip_comments(raw)
+
+    fp_types, typedef_names, define_names = _collect_type_names(text)
+    enums, enum_names = _collect_enums(text)
+    raw_structs, struct_names, struct_aliases = _collect_structs(text)
+    union_names = _collect_unions(text)
+
+    bindable = (struct_names | struct_aliases | enum_names | union_names
+                | typedef_names | define_names | BASE_TYPES)
+
+    structs, stats = _extract_fields(raw_structs, bindable, fp_types)
 
     return enums, enum_names, structs, struct_names, fp_types, stats, typedef_names, union_names
 
