@@ -6,8 +6,9 @@
 # ===== 虚拟环境（项目根统一一份，native/ 与 bench_nanobind 共用）=====
 .venv/
 
-# ===== 生成的绑定代码（tools/gen_dh_bind.py 产出，可重建）=====
+# ===== 生成的绑定代码（tools/gen_bind.py 产出，可重建）=====
 native/src/gen/
+native/src/gen_hk/
 
 # ===== 编译实验产物（bench_nanobind）=====
 bench_nanobind/build/
