@@ -20,7 +20,7 @@ from common import parse
 
 # ------------------------------------------------------------ 字段代码生成
 
-def gen_fields(struct_name, fields, with_dwsize, indent='        '):
+def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        '):
     """返回结构体的字段绑定行（不含开头的 nb::class_ 注册）。"""
     lines = []
     if with_dwsize:
@@ -33,6 +33,7 @@ def gen_fields(struct_name, fields, with_dwsize, indent='        '):
 
     for ftype, fname, arr in fields:
         base = ftype.strip()
+        type_name = base.replace('unsigned', ' ').replace('signed', ' ').strip().rstrip('*').strip()
         if arr:
             n = arr.strip()
             if base.replace(' ', '') == 'char':
@@ -68,6 +69,19 @@ def gen_fields(struct_name, fields, with_dwsize, indent='        '):
                 indent + '.def_prop_rw("%s",' % fname,
                 indent + '    [](const %s &s) { return reinterpret_cast<std::uintptr_t>(s.%s); },' % (struct_name, fname),
                 indent + '    [](%s &s, std::uintptr_t v) { s.%s = reinterpret_cast<decltype(s.%s)>(v); })' % (struct_name, fname, fname),
+            ]
+        elif type_name in union_names:
+            # union 字段：多个成员共享一块内存，按 bytes 暴露原始内存。
+            # 取地址用 &（union 字段是标量，不像数组会退化成指针）。
+            lines += [
+                indent + '.def_prop_rw("%s",' % fname,
+                indent + '    [](const %s &s) {' % struct_name,
+                indent + '        return nb::bytes(reinterpret_cast<const char *>(&s.%s), sizeof(s.%s));' % (fname, fname),
+                indent + '    },',
+                indent + '    [](%s &s, const nb::bytes &v) {' % struct_name,
+                indent + '        std::size_t n = v.size() < sizeof(s.%s) ? v.size() : sizeof(s.%s);' % (fname, fname),
+                indent + '        std::memcpy(&s.%s, v.data(), n);' % fname,
+                indent + '    })',
             ]
         else:
             # 标量 / typedef 别名 / 枚举 / 结构体，交给 nanobind 的 caster
@@ -117,7 +131,7 @@ def generate(cfg, args):
         return 1
 
     print('解析[%s]:' % cfg['name'], header)
-    enums, enum_names, structs, struct_names, fp_types, stats, typedef_names = parse.parse_header(header)
+    enums, enum_names, structs, struct_names, fp_types, stats, typedef_names, union_names = parse.parse_header(header)
     total_fields = sum(len(f) for _, f in structs)
     n_arr = sum(1 for _, f in structs for _, _, a in f if a)
     print('  枚举      : %d 个' % len(enums))
@@ -241,7 +255,7 @@ def generate(cfg, args):
             fields = by_name[name]
             has_dwsize = any(f[1] == 'dwSize' for f in fields)
             lines.append('    c_%s\n' % name)
-            lines += gen_fields(name, fields, has_dwsize)
+            lines += gen_fields(name, fields, has_dwsize, union_names)
             lines.append('        ;\n')
             for _t, _fn, a in fields:
                 if a:

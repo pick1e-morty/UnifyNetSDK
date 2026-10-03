@@ -32,6 +32,11 @@ STRUCT_RE = re.compile(r'typedef\s+struct\s*(?:\w+\s*)?\{([^{}]*)\}\s*([^;]+);',
 # typedef enum [tag] { ... } Name;
 ENUM_RE = re.compile(r'typedef\s+enum\s*(?:\w+\s*)?\{([^{}]*)\}\s*(\w+)\s*;', re.S)
 
+# typedef union [tag] { ... } Name;   体内同样不含嵌套花括号。
+# union 成员共享一块内存，字段按 bytes 暴露（见 emit.gen_fields），
+# 类型名只需进白名单，不必注册 nb::class_。
+UNION_RE = re.compile(r'typedef\s+union\s*(?:\w+\s*)?\{([^{}]*)\}\s*([^;]+);', re.S)
+
 FIELD_RE = re.compile(
     r'^[ \t]*(?:(?:const|volatile|static)\s+)*'
     r'((?:unsigned\s+|signed\s+)*(?:long\s+)?(?:int|char|short|long|float|double)?'
@@ -143,7 +148,21 @@ def parse_header(path):
         struct_names.add(name)
         raw_structs.append((name, body))
 
-    bindable = (struct_names | struct_aliases | enum_names
+    # ---- union（有名 union 类型：typedef union {...} NAME;）----
+    # 类型名进白名单，让 union 字段不被判为未知类型；字段本身由
+    # emit.gen_fields 按 bytes 暴露。
+    union_names = set()
+    for m in UNION_RE.finditer(text):
+        _ubody, decl = m.group(1), m.group(2)
+        for part in decl.split(','):
+            part = part.strip()
+            if not part or part.startswith('*'):
+                continue
+            mm = re.match(r'([A-Za-z_]\w*)', part)
+            if mm:
+                union_names.add(mm.group(1))
+
+    bindable = (struct_names | struct_aliases | enum_names | union_names
                 | typedef_names | define_names | BASE_TYPES)
 
     structs = []         # (name, [(ftype, fname, arr_or_None), ...])
@@ -171,7 +190,7 @@ def parse_header(path):
             continue
         structs.append((name, fields))
 
-    return enums, enum_names, structs, struct_names, fp_types, stats, typedef_names
+    return enums, enum_names, structs, struct_names, fp_types, stats, typedef_names, union_names
 
 
 # ------------------------------------------------------------------ 函数
