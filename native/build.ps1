@@ -56,6 +56,7 @@ function Invoke-Bat {
     & cmd.exe /c $bat 2>&1 | Out-Host
     $code = $LASTEXITCODE
     $ErrorActionPreference = $prev
+    Remove-Item $bat -ErrorAction SilentlyContinue
     return $code
 }
 

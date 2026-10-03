@@ -6,17 +6,17 @@
 
 ## 当前状态
 
-| SDK | 结构体 | 枚举 | 函数 | 状态 |
-|---|---|---|---|---|
-| 大华 `dhnetsdk` | 10549 | 1873 | 2515 | ✅ 完成 |
-| 海康 `HCNetSDK` | — | — | — | ⏳ 待做 |
+| SDK | 结构体 | 字段 | 枚举 | 函数 | 状态 |
+|---|---|---|---|---|---|
+| 大华 `dhnetsdk` | 10558 | 62886 | 1873 | 2515 | ✅ 完成 |
+| 海康 `HCNetSDK` | 2669 | 18640 | 264 | 789 | 🚧 生成器就绪，待接 CMake 编译 |
 
-大华绑定模块名 `unify_dh_gen`，产物约 14936 个名字。
+两家各自独立模块：大华 `unify_dh_gen`、海康 `unify_hk_gen`（命名空间天然隔离，同名结构体不冲突）。
 
 ## 技术方案
 
 - **nanobind**：类型安全，布局由编译器算，杜绝 ctypes 手写偏移的静默错位
-- **生成器** `tools/gen_dh_bind.py`：从头文件解析结构体 / 枚举 / 函数，按**依赖拓扑序**切分片，字段类型走白名单兜底
+- **生成器** `tools/gen_bind.py --sdk dahua|haikang`：通用解析核（`common/parse.py` + `common/emit.py`）配合厂商配置（`config/*.py`），从头文件解析结构体 / 枚举 / 函数，按**依赖拓扑序**切分片，字段类型走白名单兜底
 - **增量写入**：内容不变的分片不重写 mtime，ninja 自动跳过，改一处只重编相关分片
 
 关键实测（Ryzen 9 5900HX，8C16T）：
@@ -24,7 +24,7 @@
 | 指标 | 值 |
 |---|---|
 | `/Od` 提速 | 单片编译 188s → 23s（约 8×） |
-| 全量编译 | 约 6 分钟（`-Jobs 10`） |
+| 全量编译 | 约 11 分钟（`-Jobs 8`，62886 字段 / 125 片） |
 | 增量编译 | 改一个函数片约 5s + 链接 |
 | import | 0.5s |
 
@@ -42,7 +42,13 @@ UnifyNetSDK/
 │   ├── src/dh_netsdk.cpp      # 手写登录链路（最小端到端验证）
 │   └── src/gen/               # 生成产物（不入库，可重建）
 ├── tools/
-│   ├── gen_dh_bind.py         # 绑定代码生成器
+│   ├── gen_bind.py            # 生成器入口（--sdk dahua|haikang）
+│   ├── common/                # 通用解析 + 代码生成（厂商无关）
+│   │   ├── parse.py
+│   │   └── emit.py
+│   ├── config/                # 厂商配置（路径 / 函数正则 / 跳过名单）
+│   │   ├── dahua.py
+│   │   └── haikang.py
 │   └── check_exports.py       # 检查 DLL 导出表，发现未导出函数
 ├── docs/                      # 技术选型评估等文档
 ├── dahua/                     # 大华 SDK 原始包（不入库）
@@ -61,7 +67,7 @@ uv venv --python 3.13
 uv pip install nanobind ninja tqdm
 
 # 2. 生成绑定代码（增量，很快）
-.venv\Scripts\python.exe tools\gen_dh_bind.py
+.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
 
 # 3. 编译 + 链接
 powershell -ExecutionPolicy Bypass -File native\build.ps1 -SkipTest -Jobs 10
@@ -124,5 +130,5 @@ CLIENT_ModifyBroadcastPlan
 
 ## 下一步
 
-- [ ] 海康 `HCNetSDK`（生成器换头文件即可复用）
+- [ ] 海康 `HCNetSDK`：接 CMake + 编译验证（生成器已支持 `--sdk haikang`，dry-run 通过）
 - [ ] Python 高层封装：错误码表、回调 ctypes 桥、输出缓冲自动读回
