@@ -95,9 +95,11 @@ OPAQUE_PTR = {
 
 # 头文件里声明了、但 dhnetsdk.dll 实际没导出的函数（链接报 LNK2019）。
 # 绑定它们会在链接阶段失败，只能跳过。
+# 用 tools/check_exports.py 验证/更新：它会直接查 DLL 导出表列出全部漏网函数。
 SKIP_FUNCS = {
     'CLIENT_GetSecurityEncryptInfo',
     'CLIENT_DelayReboot',
+    'CLIENT_InitDevGetLocalityConfig',
     'CLIENT_PTZSetLockupStatus',
     'CLIENT_SetTemporaryConfig',
     'CLIENT_ModifyBroadcastPlan',
@@ -200,8 +202,9 @@ def parse_header(path):
 def parse_param(part):
     """解析单个参数文本：'const char *pName' / 'LLONG lLoginID' / 'unsigned char'。
 
-    返回 dict(type/name)，type 是完整类型（含 const/unsigned/指针），
+    返回 dict(type/name/has_default)，type 是完整类型（含 const/unsigned/指针），
     name 可能为 None（有些函数只有类型没有参数名）。"""
+    has_default = '=' in part
     part = re.sub(r'\s*=\s*.+$', '', part).strip()
     if not part:
         return None
@@ -210,7 +213,8 @@ def parse_param(part):
         r'[A-Za-z_]\w*\s*\**)\s*([A-Za-z_]\w*)?', part)
     if not m or not m.group(1):
         return None
-    return {'type': m.group(1).strip(), 'name': m.group(2) or None}
+    return {'type': m.group(1).strip(), 'name': m.group(2) or None,
+            'has_default': has_default}
 
 
 def classify_param(p, struct_names, enum_names, fp_types):
@@ -226,11 +230,13 @@ def classify_param(p, struct_names, enum_names, fp_types):
     if ptr:
         if base in ('void', 'LPVOID', 'HWND', 'HDC'):
             return 'uintptr'
-        if base == 'char':
-            return 'cstr' if t.startswith('const') else 'skip'
+        if base == 'char' and t.startswith('const'):
+            return 'cstr'
         if base in struct_names or base in enum_names:
             return 'objptr'
-        return 'skip'      # int* / DWORD* 等输出指针，先不绑
+        # int* / DWORD* / char*（非 const）等：暴露为地址，Python 侧用
+        # ctypes 预分配缓冲或传 0。输出指针不再整个跳过。
+        return 'outptr'
     if base == 'void':
         return 'skip'
     return 'value'
@@ -273,12 +279,8 @@ def gen_func(name, ret, params, struct_names, enum_names, fp_types):
         if kind == 'value':
             cpp_args.append('%s %s' % (t, n))
             call_args.append(n)
-        elif kind == 'uintptr':
-            cpp_args.append('std::uintptr_t %s' % n)
-            # 转回原类型：HWND 是 HWND__*，不能统一转成 void*（C2664）
-            call_args.append('reinterpret_cast<%s>(%s)' % (t, n))
-        elif kind == 'funcptr':
-            # 回调函数指针：暴露成地址，可传 0 表示不注册回调
+        elif kind in ('uintptr', 'funcptr', 'outptr'):
+            # 不透明指针 / 回调 / 输出指针：一律暴露成地址，可传 0
             cpp_args.append('std::uintptr_t %s' % n)
             call_args.append('reinterpret_cast<%s>(%s)' % (t, n))
         elif kind == 'cstr':
@@ -290,7 +292,10 @@ def gen_func(name, ret, params, struct_names, enum_names, fp_types):
             t_clean = re.sub(r'^const\s+', '', t)
             cpp_args.append('%s %s' % (t_clean, n))
             call_args.append(n)
-        nb_args.append('nb::arg("%s")' % n)
+        if p.get('has_default'):
+            nb_args.append('nb::arg("%s") = 0' % n)
+        else:
+            nb_args.append('nb::arg("%s")' % n)
 
     sig = ', '.join(cpp_args)
     call = ', '.join(call_args)

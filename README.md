@@ -1,0 +1,128 @@
+# UnifyNetSDK
+
+统一大华 / 海康设备网络 SDK 的 Python 绑定。
+
+用 nanobind + 代码生成器，把厂商的 C 头文件转成可直接 `import` 的 Python 模块：结构体、枚举、函数全覆盖，布局由 C++ 编译器保证，不靠手写 ctypes 声明。
+
+## 当前状态
+
+| SDK | 结构体 | 枚举 | 函数 | 状态 |
+|---|---|---|---|---|
+| 大华 `dhnetsdk` | 10549 | 1873 | 2515 | ✅ 完成 |
+| 海康 `HCNetSDK` | — | — | — | ⏳ 待做 |
+
+大华绑定模块名 `unify_dh_gen`，产物约 14936 个名字。
+
+## 技术方案
+
+- **nanobind**：类型安全，布局由编译器算，杜绝 ctypes 手写偏移的静默错位
+- **生成器** `tools/gen_dh_bind.py`：从头文件解析结构体 / 枚举 / 函数，按**依赖拓扑序**切分片，字段类型走白名单兜底
+- **增量写入**：内容不变的分片不重写 mtime，ninja 自动跳过，改一处只重编相关分片
+
+关键实测（Ryzen 9 5900HX，8C16T）：
+
+| 指标 | 值 |
+|---|---|
+| `/Od` 提速 | 单片编译 188s → 23s（约 8×） |
+| 全量编译 | 约 6 分钟（`-Jobs 10`） |
+| 增量编译 | 改一个函数片约 5s + 链接 |
+| import | 0.5s |
+
+> 绑定代码是纯模板胶水，运行时无计算量，所以对生成目标关掉优化（`/Od`），编译时间大幅下降、产物行为不变。
+
+## 目录结构
+
+```
+UnifyNetSDK/
+├── native/                    # C++ 绑定（nanobind）
+│   ├── CMakeLists.txt
+│   ├── build.ps1              # 一键生成 + 编译 + 测试
+│   ├── build_one.bat          # 单片编译（调试用）
+│   ├── smoke_test.py          # 冒烟测试
+│   ├── src/dh_netsdk.cpp      # 手写登录链路（最小端到端验证）
+│   └── src/gen/               # 生成产物（不入库，可重建）
+├── tools/
+│   ├── gen_dh_bind.py         # 绑定代码生成器
+│   └── check_exports.py       # 检查 DLL 导出表，发现未导出函数
+├── docs/                      # 技术选型评估等文档
+├── dahua/                     # 大华 SDK 原始包（不入库）
+└── haikang/                   # 海康 SDK 原始包（不入库）
+```
+
+## 构建
+
+前置：MSVC（VS 2022+）、CMake 3.27+、[uv](https://github.com/astral-sh/uv)。
+
+```powershell
+cd UnifyNetSDK
+
+# 1. 建 venv（项目根统一一份）
+uv venv --python 3.13
+uv pip install nanobind ninja tqdm
+
+# 2. 生成绑定代码（增量，很快）
+.venv\Scripts\python.exe tools\gen_dh_bind.py
+
+# 3. 编译 + 链接
+powershell -ExecutionPolicy Bypass -File native\build.ps1 -SkipTest -Jobs 10
+```
+
+`build.ps1` 会自动定位 vcvarsall、用项目根 venv、对生成目标加 `/Od`。
+
+## 使用
+
+```python
+import os, sys
+os.add_dll_directory(r'dahua\C_Win64\Bin')   # 让 dhnetsdk.dll 及其依赖可被找到
+sys.path.insert(0, r'native\build')
+import unify_dh_gen as g
+
+# 初始化 SDK
+ok = g.CLIENT_Init(0, 0)              # 断线回调传 0 表示不注册
+print(ok, g.CLIENT_GetLastError())    # True 0
+
+# 登录（结构体字段直接读写；dwSize 已自动填好）
+in_param = g.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
+in_param.szIP = '192.168.1.108'
+in_param.nPort = 37777
+in_param.szUserName = 'admin'
+in_param.szPassword = 'admin123'
+out = g.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
+handle = g.CLIENT_LoginWithHighLevelSecurity(in_param, out)
+print('登录句柄:', handle, '错误码:', out.nError)
+
+g.CLIENT_Cleanup()
+```
+
+## 参数映射约定
+
+生成器把 C 参数映射成 Python 可用的形式：
+
+| C 类型 | Python 侧 | 说明 |
+|---|---|---|
+| `LLONG` / `int` / `DWORD` / 枚举 | 对应整数 | 直接传 |
+| `char[N]` 结构体字段 | `str` | 自动截断防溢出 |
+| `const char*` 参数 | `str` | 输入字符串 |
+| `T*` 结构体指针 | `T` 对象 | 传入对象，C++ 写回后 Python 可读 |
+| `void*` / `HWND` / 回调 / 输出指针 | `int`（地址） | 传 0，或用 ctypes 预分配缓冲取地址 |
+| 带默认值 `=0` 的输出指针 | 可省略 | 如 `CLIENT_Login` 的 `error` |
+
+## 跳过说明
+
+头文件声明了 2521 个 `CLIENT_` 函数，其中 **6 个未导出**（头文件写了、但 `dhnetsdk.dll` 里没有，厂商头文件与 DLL 版本不一致），绑定会链接失败，只能跳过：
+
+```
+CLIENT_GetSecurityEncryptInfo
+CLIENT_DelayReboot
+CLIENT_InitDevGetLocalityConfig
+CLIENT_PTZSetLockupStatus
+CLIENT_SetTemporaryConfig
+CLIENT_ModifyBroadcastPlan
+```
+
+用 `tools/check_exports.py` 可随时重扫（升级 SDK 后重新校验）。
+
+## 下一步
+
+- [ ] 海康 `HCNetSDK`（生成器换头文件即可复用）
+- [ ] Python 高层封装：错误码表、回调 ctypes 桥、输出缓冲自动读回
