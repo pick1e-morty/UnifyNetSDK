@@ -23,12 +23,14 @@ import re
 
 # ------------------------------------------------------------------ 正则
 
-# typedef struct [tag] { ... } Name;     体内不含花括号（含 union/嵌套的会被跳过）
+# typedef struct [tag] { ... } Name;     体内可能含嵌套 union/struct，必须用
+# 平衡花括号匹配（_find_typedef_structs），不能再靠 [^{}]* 扁平正则——那会让
+# 含匿名 union 的结构体（如 NET_DEVICEINFO）整个漏掉。
 # 注意结尾不能只吃一个名字：厂商 SDK 大量写成
 #     } NET_TIME, *LPNET_TIME;
 #     } DH_POINT, *LPDH_POINT, NET_POINT, *LPNET_POINT;
 # 只抓一个名字会让整个结构体漏掉，其字段随之被判为未知类型。
-STRUCT_RE = re.compile(r'typedef\s+struct\s*(?:\w+\s*)?\{([^{}]*)\}\s*([^;]+);', re.S)
+STRUCT_HEAD_RE = re.compile(r'typedef\s+struct\s*(?:\w+\s*)?\{')
 
 # typedef enum [tag] { ... } Name;
 ENUM_RE = re.compile(r'typedef\s+enum\s*(?:\w+\s*)?\{([^{}]*)\}\s*(\w+)\s*;', re.S)
@@ -38,12 +40,12 @@ ENUM_RE = re.compile(r'typedef\s+enum\s*(?:\w+\s*)?\{([^{}]*)\}\s*(\w+)\s*;', re
 # 类型名只需进白名单，不必注册 nb::class_。
 UNION_RE = re.compile(r'typedef\s+union\s*(?:\w+\s*)?\{([^{}]*)\}\s*([^;]+);', re.S)
 
+# 匹配单个字段声明（不含分号）。数组部分吃多个维度：[4][32] 这类二维也认。
 FIELD_RE = re.compile(
-    r'^[ \t]*(?:(?:const|volatile|static)\s+)*'
+    r'^\s*(?:(?:const|volatile|static)\s+)*'
     r'((?:unsigned\s+|signed\s+)*(?:long\s+)?(?:int|char|short|long|float|double)?'
     r'[A-Za-z_]\w*(?:\s*\*)*)'
-    r'\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;',
-    re.M)
+    r'\s+([A-Za-z_]\w*)\s*((?:\[[^\]]*\])*)')
 
 # typedef int (CALLBACK *fXxx)(...);
 # 调用约定在头文件里常常是宏（CALLBACK / CALL_METHOD ...），写死列表必然漏。
@@ -98,6 +100,46 @@ def make_func_re(api_macro, callconv, func_prefix):
 
 # ------------------------------------------------------------------ 结构体 / 枚举
 
+def _brace_match(text, open_pos):
+    """从 open_pos（指向 '{'）找到匹配的 '}' 下标。"""
+    depth = 0
+    i = open_pos
+    while i < len(text):
+        c = text[i]
+        if c == '{':
+            depth += 1
+        elif c == '}':
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return len(text) - 1
+
+
+def _find_typedef_structs(text):
+    """用平衡花括号匹配找出所有 typedef struct {...} Name;，含嵌套的。
+
+    返回 [(body, decl), ...]。body 是花括号内完整文本（含嵌套 union/struct），
+    decl 是 } 到 ; 之间的名字列表文本。
+    """
+    found = []
+    for m in STRUCT_HEAD_RE.finditer(text):
+        open_pos = m.end() - 1          # '{' 的位置
+        close_pos = _brace_match(text, open_pos)
+        body = text[m.end():close_pos]
+        after = text[close_pos + 1:]
+        semi = after.find(';')
+        decl = after[:semi] if semi != -1 else ''
+        found.append((body, decl))
+    return found
+
+
+def _normalize(ftype):
+    """剥离 unsigned/signed 修饰符和指针，返回基础类型名。"""
+    base = ftype.replace('unsigned', ' ').replace('signed', ' ').strip()
+    return base.rstrip('*').strip()
+
+
 def _split_decl_names(decl):
     """拆分 typedef 结尾的名字列表：'NET_TIME, *LPNET_TIME' -> ['NET_TIME']。
 
@@ -151,8 +193,7 @@ def _collect_structs(text):
     raw_structs = []
     struct_names = set()
     struct_aliases = set()
-    for m in STRUCT_RE.finditer(text):
-        body, decl = m.group(1), m.group(2)
+    for body, decl in _find_typedef_structs(text):
         names = _split_decl_names(decl)
         if not names:
             continue
@@ -174,29 +215,75 @@ def _collect_unions(text):
     return union_names
 
 
+def _scan_body(body, bindable, fp_types, stats):
+    """扫描一段 body（结构体或匿名 union 体内），返回字段列表。
+
+    处理嵌套：
+      - 匿名 union {...}; → 成员递归提升为字段（C 语义里匿名 union 成员
+        直接进入外层命名空间）
+      - 有名 union/struct {...} name; → name 按 bytes 暴露（匿名类型无法注册
+        nb::class_），ftype 记为 __union__/__struct__ 标记
+      - 普通字段 → FIELD_RE
+    """
+    fields = []
+    i, n = 0, len(body)
+    while i < n:
+        c = body[i]
+        if c in ' \t\r\n':
+            i += 1
+            continue
+        m = re.match(r'(union|struct)\s*\{', body[i:])
+        if m:
+            kind = m.group(1)
+            open_pos = body.find('{', i)
+            close_pos = _brace_match(body, open_pos)
+            block_body = body[open_pos + 1:close_pos]
+            after = body[close_pos + 1:]
+            m2 = re.match(r'\s*([A-Za-z_]\w*)\s*;', after)
+            block_name = m2.group(1) if m2 else None
+            if block_name:
+                fields.append(('__%s__' % kind, block_name, None))
+                stats['nested_bytes'] += 1
+            else:
+                fields.extend(_scan_body(block_body, bindable, fp_types, stats))
+            i = close_pos + 1 + (m2.end() if m2 else 0)
+            continue
+        semi = body.find(';', i)
+        if semi == -1:
+            break
+        decl = body[i:semi]
+        fm = FIELD_RE.match(decl)
+        if fm:
+            ftype = fm.group(1).strip()
+            fname = fm.group(2)
+            arr = fm.group(3) or None
+            # 位字段：名字后跟 ':' 和宽度（BYTE byImageQlty:7），不能取地址，
+            # nanobind 绑不了，跳过。
+            if decl[fm.end():].lstrip().startswith(':'):
+                stats['skip_bitfield'] += 1
+            elif fname in RESERVED_WORDS:
+                stats['skip_reserved'] += 1
+            elif '(' in ftype or ftype in fp_types:
+                stats['skip_funcptr'] += 1
+            else:
+                base = _normalize(ftype)
+                if '*' not in ftype and base not in bindable:
+                    # 既不是基本类型，也不是已知 typedef / 结构体 / 枚举。
+                    # 极可能是漏网的函数指针或外部类型，硬绑必然编译失败（C2440）。
+                    stats['skip_unknown'] += 1
+                    stats['unknown_' + base] += 1
+                else:
+                    fields.append((ftype, fname, arr))
+        i = semi + 1
+    return fields
+
+
 def _extract_fields(raw_structs, bindable, fp_types):
-    """从结构体 body 提字段。返回 (structs, stats)。"""
+    """从结构体 body 提字段（递归处理嵌套 union/struct）。返回 (structs, stats)。"""
     structs = []         # (name, [(ftype, fname, arr_or_None), ...])
     stats = collections.Counter()
     for name, body in raw_structs:
-        fields = []
-        for fm in FIELD_RE.finditer(body):
-            ftype, fname, arr = fm.group(1).strip(), fm.group(2), fm.group(3)
-            if fname in RESERVED_WORDS:
-                stats['skip_reserved'] += 1
-                continue
-            if '(' in ftype or ftype in fp_types:
-                stats['skip_funcptr'] += 1
-                continue
-            base = ftype.replace('unsigned', ' ').replace('signed', ' ').strip()
-            base = base.rstrip('*').strip()
-            if '*' not in ftype and base not in bindable:
-                # 既不是基本类型，也不是已知 typedef / 结构体 / 枚举。
-                # 极可能是漏网的函数指针或外部类型，硬绑必然编译失败（C2440）。
-                stats['skip_unknown'] += 1
-                stats['unknown_' + base] += 1
-                continue
-            fields.append((ftype, fname, arr))
+        fields = _scan_body(body, bindable, fp_types, stats)
         if not fields:
             continue
         structs.append((name, fields))

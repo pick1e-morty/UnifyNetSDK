@@ -36,7 +36,9 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        ')
         type_name = base.replace('unsigned', ' ').replace('signed', ' ').strip().rstrip('*').strip()
         if arr:
             n = arr.strip()
-            if base.replace(' ', '') == 'char':
+            # 多维数组（[4][32]）无论元素类型一律按 bytes：char[4][32] 不是
+            # 单个 C 字符串，按 str 截断语义是错的。
+            if base.replace(' ', '') == 'char' and arr.count('[') == 1:
                 # char[N] <-> str，截断到 N-1 + NUL 防溢出
                 lines += [
                     indent + '.def_prop_rw("%s",' % fname,
@@ -69,6 +71,19 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        ')
                 indent + '.def_prop_rw("%s",' % fname,
                 indent + '    [](const %s &s) { return reinterpret_cast<std::uintptr_t>(s.%s); },' % (struct_name, fname),
                 indent + '    [](%s &s, std::uintptr_t v) { s.%s = reinterpret_cast<decltype(s.%s)>(v); })' % (struct_name, fname, fname),
+            ]
+        elif base in ('__struct__', '__union__'):
+            # 内嵌有名 struct/union 字段：匿名类型无法注册 nb::class_，
+            # 按 bytes 暴露原始内存（取地址用 &，字段是标量不会退化成指针）。
+            lines += [
+                indent + '.def_prop_rw("%s",' % fname,
+                indent + '    [](const %s &s) {' % struct_name,
+                indent + '        return nb::bytes(reinterpret_cast<const char *>(&s.%s), sizeof(s.%s));' % (fname, fname),
+                indent + '    },',
+                indent + '    [](%s &s, const nb::bytes &v) {' % struct_name,
+                indent + '        std::size_t n = v.size() < sizeof(s.%s) ? v.size() : sizeof(s.%s);' % (fname, fname),
+                indent + '        std::memcpy(&s.%s, v.data(), n);' % fname,
+                indent + '    })',
             ]
         elif type_name in union_names:
             # union 字段：多个成员共享一块内存，按 bytes 暴露原始内存。
