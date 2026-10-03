@@ -46,12 +46,14 @@ $vcvarsPath = $vcvars.FullName
 Write-Host "MSVC : $vcvarsPath" -ForegroundColor Green
 
 # --- 2) venv python + ninja ---
-$venvPy = Join-Path $here ".venv\Scripts\python.exe"
-$ninjaExe = Join-Path $here ".venv\Scripts\ninja.exe"
+# 项目根的统一 .venv，与 native/ 共用同一份
+$root = Split-Path -Parent $here
+$venvPy = Join-Path $root ".venv\Scripts\python.exe"
+$ninjaExe = Join-Path $root ".venv\Scripts\ninja.exe"
 if (-not (Test-Path $venvPy) -or -not (Test-Path $ninjaExe)) {
-    Write-Host "Missing .venv or ninja. Run:" -ForegroundColor Red
+    Write-Host "Missing root-level .venv or ninja. Run from project root:" -ForegroundColor Red
     Write-Host "  uv venv --python 3.13" -ForegroundColor Cyan
-    Write-Host "  uv pip install nanobind ninja" -ForegroundColor Cyan
+    Write-Host "  uv pip install nanobind ninja tqdm" -ForegroundColor Cyan
     exit 1
 }
 Write-Host "PY   : $venvPy" -ForegroundColor Green

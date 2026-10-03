@@ -3,12 +3,12 @@
 """
 nanobind 编译耗时实测（带 tqdm 进度条）
 
-在 cmd / PowerShell 里运行:
+在项目根目录执行（venv 统一放在项目根，native/ 与 bench_nanobind/ 共用）:
 
-    .venv\\Scripts\\python.exe measure.py
-    .venv\\Scripts\\python.exe measure.py --config Release
-    .venv\\Scripts\\python.exe measure.py probe_5000 --config Release
-    .venv\\Scripts\\python.exe measure.py --no-configure
+    .venv\\Scripts\\python.exe bench_nanobind\\measure.py
+    .venv\\Scripts\\python.exe bench_nanobind\\measure.py --config Release
+    .venv\\Scripts\\python.exe bench_nanobind\\measure.py probe_5000 --config Release
+    .venv\\Scripts\\python.exe bench_nanobind\\measure.py --no-configure
 
 关于进度条，有个事实要先说清楚:
 
@@ -34,8 +34,10 @@ except ImportError:
     sys.exit("缺少 tqdm。先运行:  uv pip install tqdm --python .venv\\Scripts\\python.exe")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-VENV_PY = os.path.join(HERE, '.venv', 'Scripts', 'python.exe')
-NINJA = os.path.join(HERE, '.venv', 'Scripts', 'ninja.exe')
+PROJECT = os.path.dirname(HERE)
+# 项目根的统一 .venv，与 native/ 共用同一份
+VENV_PY = os.path.join(PROJECT, '.venv', 'Scripts', 'python.exe')
+NINJA = os.path.join(PROJECT, '.venv', 'Scripts', 'ninja.exe')
 DH_INCLUDE = os.path.normpath(
     os.path.join(HERE, '..', 'dahua', 'C_Win64', 'Include', 'Common'))
 
