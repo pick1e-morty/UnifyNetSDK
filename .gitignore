@@ -1,34 +1,29 @@
-# 除了源文件存放文件夹，另外三步生成的头文件都不保留
-gen_ctypes_file/*/*.h
-gen_ctypes_file/_1_original/*.h
-# 格式化用的二进制文件
-gen_ctypes_file/tools/clang_format/clang-format.exe
+# ===== 厂商 SDK 原始发行包（体积大，不入库）=====
+# 需要时从厂商渠道重新取得；仓库只保留调用它们的代码
+/dahua/
+/haikang/
 
-# 排除SDK的动态链接库
-UnifyNetSDK/dahua/Libs/win64/*
-UnifyNetSDK/haikang/lib/win/*
-# 但保留动态链接库的存放路径，git不支持保留空文件夹，需要.keep空文件以表占位
-!.keep
-*.pyc
+# ===== 编译实验产物（bench_nanobind）=====
+bench_nanobind/.venv/
+bench_nanobind/build/
+bench_nanobind/_tmp_*.bat
+# gen_probe.py 生成的合成切片：可重建，且含厂商结构体文本
+bench_nanobind/probe_[0-9]*.cpp
 
-# setuptools
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
 build/
 dist/
-UnifyNetSDK.egg-info/
-.eggs/
 
-
-#
+# ===== 媒体与日志 =====
+*.log
 *.bmp
 *.jpeg
 *.jpg
 *.mp4
-*.log
 
-
-# 功能测试账号配置文件
+# ===== 测试账号配置 =====
 *_testLoginConfig.py
-
-
-# vizviewer测试结果文件
-/result.json
