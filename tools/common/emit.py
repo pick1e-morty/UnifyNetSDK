@@ -10,6 +10,16 @@
   - `gen_callback_binding` 用 `m.attr` 而不是 `m.def`（第一节 1.1）
   - `write_if_changed` 的 ASCII 断言（第三节 3.3）
 
+**改完本文件后，别直接让用户编译**（`build.ps1` 只编译、不生成，生成是
+`tools/gen_bind.py` 的事）：
+  1. `python tools/gen_bind.py --sdk dahua`
+  2. grep 生成物确认新东西真进去了，例如
+     `Select-String -Path native/src/gen/dh_bind_part*.cpp -Pattern '"新字段名"'`
+  3. 再编译
+
+跳过第 2 步的后果：`.pyd` 里字段压根不存在，验证脚本报 `hasattr == False`，
+而根因在生成流程、不在绑定代码（第八节末尾有完整记录）。
+
 生成物结构（cfg['file_prefix'] 决定文件名前缀）：
 
     {prefix}.h              分片函数声明

@@ -307,11 +307,12 @@ std::thread t([&]{ thunk(); });
 
 | 操作 | 耗时 |
 |---|---|
-| 全量（160 TU / 62878 字段 / 125 结构体分片） | **612 s** |
+| 全量（160 TU / 62884 字段 / 125 结构体分片） | **612 s** |
+| 改依赖图导致的重编（95 TU） | **523 s** |
 | 增量：只改回调分片 | **7–12 s** |
 | 增量：只改手写模块单文件 | **3 s** |
 
-两条来之不易的结论：
+三条来之不易的结论：
 
 1. **回调运行时头（`dh_bind_cb.h`）只能被 `*_cbsNNN.cpp` include**。
    混进公共 `make_includes` 会让它一改就把 146 个结构体/枚举/函数分片全部拖去重编
@@ -319,6 +320,10 @@ std::thread t([&]{ thunk(); });
    是分开的，别合并回去。
 2. **`write_if_changed`**：内容不变不重写文件、不动 mtime，ninja 直接跳过整个分片。
    生成器每次全量重写的话，mtime 全变 → 每次都全量重编。
+3. **改 `build_deps` / `topo_order` 这类影响全局顺序的逻辑 = 一次性全量重编**。
+   把指针别名纳入依赖图后，依赖拓扑序变了，95 个分片的内容跟着变 → 523 s。
+   这类代价是**一次性**的：顺序稳定之后再改单个字段只重编那一个分片。
+   但要预先知道，别以为是"改一行怎么编了 8 分钟"。
 
 ---
 
@@ -332,3 +337,32 @@ std::thread t([&]{ thunk(); });
    而且是**在脚本已经打印完结果之后**才崩，最难查。退订靠 `unbind_fXxx`。
 5. **回调对象是借用视图**：`nb::cast(ptr)` 不拥有内存，SDK 回调返回后底层缓冲即失效。
    上游必须在回调内取走字段。文档和测试都按这个语义写。
+
+### 改了生成器之后的工作流（别再跳过）
+
+`build.ps1` **只编译、不生成**（生成是 `tools/gen_bind.py` 的事）。所以改完
+`tools/common/*.py` 直接编译，等于拿旧产物编了一遍——字段根本没进 pyd，
+验证脚本会报 `hasattr(...) == False`，而根因在生成流程，不在绑定代码。
+
+正确顺序：
+
+```powershell
+# 1. 重新生成
+.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
+
+# 2. 确认生成物里真的有新东西（关键，别跳）
+Select-String -Path native\src\gen\dh_bind_part*.cpp -Pattern '"lpRecordFile"'
+
+# 3. 再编译
+cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 8
+```
+
+第 2 步是这轮踩出来的：指针别名修复后直接让用户编译，`.pyd` 里
+`NET_IN_DOWNLOAD.lpRecordFile` 压根不存在，而我已经开始写"验证字段是否可用"
+的脚本了。**先确认生成物，再编译，再验证**。
+
+同理，**关掉某个生成开关时，要检查依赖它的脚本**。`--emit-selftest` 改成默认
+关闭后，`tests/test_cb_bindings.py` 依赖的 `_selftest_fXxx` 就没了，跑到第一个
+用例直接 `AttributeError` traceback，看不出是"忘了加开关重新生成"。现在该脚本
+开头会检测并打印重生成命令。
+
