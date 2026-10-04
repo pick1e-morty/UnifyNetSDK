@@ -22,7 +22,7 @@ import traceback
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-ROOT = r"C:\Users\Hast\Documents\CodeProjects\UnifyNetSDK"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.add_dll_directory(os.path.join(ROOT, "dahua", "C_Win64", "Bin"))
 sys.path.insert(0, os.path.join(ROOT, "native", "build"))
 

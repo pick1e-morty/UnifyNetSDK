@@ -61,6 +61,7 @@ UnifyNetSDK/
 │   ├── binding-tech-evaluation.md  # 技术选型评估
 │   ├── binding-tech-debt.md        # 技术债清单（活文档，修完就打勾）
 │   └── implementation-notes.md     # 实测踩坑笔记（nanobind / C API / MSVC / 大华 SDK）
+├── tests/                     # 端到端 / 绑定层验证脚本
 ├── dahua/                     # 大华 SDK 原始包（不入库）
 └── haikang/                   # 海康 SDK 原始包（不入库）
 ```
@@ -139,13 +140,14 @@ unify_dh_gen.unbind_fRealDataCallBack()          # 退订
 
 ```powershell
 # 端到端：生成版登录模拟器 + 验证回调在真实 SDK 线程上触发
-.venv\Scripts\python.exe test_e2e_generated.py
+.venv\Scripts\python.exe tests\test_e2e_generated.py
 
 # 绑定层参数分类（bytes / obj / array / 指针别名 / 退订 / 异常隔离）
-.venv\Scripts\python.exe test_cb_bindings.py
+.venv\Scripts\python.exe tests\test_cb_bindings.py
 ```
 
-`test_e2e_generated.py` 需要模拟器在 `..\Dahua_NVR_Simulator`，它会自己拉起 server。
+`tests\test_e2e_generated.py` 需要模拟器在 `..\Dahua_NVR_Simulator`（脚本会自己
+拉起 server，路径从脚本位置推导，无需改配置）。
 
 ## 参数映射约定
 

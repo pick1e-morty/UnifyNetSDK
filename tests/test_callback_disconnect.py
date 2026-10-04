@@ -11,11 +11,12 @@ import time
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-UNIFY = r"C:\Users\Hast\Documents\CodeProjects\UnifyNetSDK"
+UNIFY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SIM = os.path.join(os.path.dirname(UNIFY), "Dahua_NVR_Simulator")
 
 server_script = r'''
 import sys, time
-sys.path.insert(0, r"C:\Users\Hast\Documents\CodeProjects\Dahua_NVR_Simulator\src")
+sys.path.insert(0, r"%s\src")
 from config import DeviceConfig
 from dahua_netsdk import DahuaNetSDKServer
 cfg = DeviceConfig()
@@ -30,7 +31,7 @@ time.sleep(3)
 print("[srv] 主动断开所有连接...", flush=True)
 srv.stop()
 time.sleep(3)
-'''
+''' % SIM
 
 proc = subprocess.Popen([sys.executable, "-c", server_script])
 time.sleep(1.5)

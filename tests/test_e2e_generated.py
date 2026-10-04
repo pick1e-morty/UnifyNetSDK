@@ -17,8 +17,8 @@ import time
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-UNIFY = r"C:\Users\Hast\Documents\CodeProjects\UnifyNetSDK"
-SIM = r"C:\Users\Hast\Documents\CodeProjects\Dahua_NVR_Simulator"
+UNIFY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SIM = os.path.join(os.path.dirname(UNIFY), "Dahua_NVR_Simulator")
 
 server_script = r'''
 import sys, time
@@ -109,6 +109,9 @@ if DISCONNECTED:
 
 g.CLIENT_Logout(handle)
 g.CLIENT_Cleanup()
+# 显式释放：否则 nanobind 会对未回收的 nb::class_ 实例/类型报 leaked，
+# 在 stderr 里留一堆噪音，掩盖真正的错误。
+del in_param, out
 mark("cleanup done")
 
 try:
