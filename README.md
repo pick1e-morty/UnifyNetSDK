@@ -146,8 +146,14 @@ unify_dh_gen.unbind_fRealDataCallBack()          # 退订
 .venv\Scripts\python.exe tests\test_e2e_generated.py
 
 # 绑定层参数分类（bytes / obj / array / 指针别名 / 退订 / 异常隔离）
+# 依赖生成器默认产出的 _selftest_fXxx 钩子（--no-selftest 可关掉）
 .venv\Scripts\python.exe tests\test_cb_bindings.py
 ```
+
+`_selftest_fXxx(payload)` 钩子默认随绑定一起生成，从裸 `std::thread` 调真实
+thunk，因此**没有设备时也能验证回调处理逻辑**：`g._selftest_fRealDataCallBack(b"")`。
+`payload` 为空只做线程往返、非空才走完整 thunk —— 这个二分开关在排查卡死/崩溃时
+很好用（先确认是线程机制还是 thunk 内部的问题）。
 
 `tests\test_e2e_generated.py` 需要模拟器在 `..\Dahua_NVR_Simulator`（脚本会自己
 拉起 server，路径从脚本位置推导，无需改配置）。

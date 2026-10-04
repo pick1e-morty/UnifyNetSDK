@@ -33,11 +33,15 @@ def main():
                     help='每个函数分片的函数数上限（默认 200）')
     ap.add_argument('--cbs-per-tu', type=int, default=30,
                     help='每个回调分片的回调数上限（默认 30）')
-    ap.add_argument('--emit-selftest', action='store_true',
-                    help='为每个回调额外生成 _selftest_fXxx(payload) 钩子，'
-                         '从真正的 C++ 线程调用该 thunk。默认关闭：它只是验证'
-                         '绑定层的过渡脚手架（ctypes 无法触发无 GIL 的线程路径），'
-                         '功能验收应走真实 SDK 端到端')
+    # 自测钩子默认生成：tests/test_cb_bindings.py 完全依赖它，少了钩子那个测试
+    # 就跑不了（只剩打印提示然后 exit 0，等于静默失效）。多出的 1.5 MB 产物
+    # 换来"两个测试开箱即跑"+"上游无设备时也能验证自己的回调"，划算。
+    # 附带价值：钩子常驻后上游可以直接 _selftest_fRealDataCallBack(b"") 触发
+    # 真实 thunk，不需要连设备。
+    ap.add_argument('--no-selftest', dest='emit_selftest', action='store_false',
+                    help='不生成 _selftest_fXxx 钩子：产物小约 1.5 MB，但 '
+                         'tests/test_cb_bindings.py 将无法运行')
+    ap.set_defaults(emit_selftest=True)
     ap.add_argument('--limit', type=int, default=0,
                     help='只生成前 N 个字段（试编译用，0=全量）')
     ap.add_argument('--out-dir', default=None,

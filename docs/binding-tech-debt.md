@@ -52,8 +52,9 @@ bytes 19 / array 7`。判定必须**靠参数名**而非位置 —— 289 个回
 锚定在名字末尾：`nFileNum` 的第 4~6 字符忽略大小写正好凑出 `leN` 命中 `len`。
 
 验证：端到端 `tests/test_e2e_generated.py`（真实 SDK 线程触发，参数全对）；
-绑定层 `tests/test_cb_bindings.py`；`--emit-selftest` 从裸 `std::thread` 调 thunk
-（268 个钩子全通，**默认关闭**，ctypes 走不通这条路）。
+绑定层 `tests/test_cb_bindings.py`（依赖 `_selftest_fXxx` 钩子从裸
+`std::thread` 调 thunk，268 个钩子全通）。钩子**默认生成**（`--no-selftest` 可关），
+因为关掉后绑定层测试就完全跑不了；附带好处是上游无设备时也能用钩子验证自己的回调。
 
 ### ~~2. 指针别名~~ ✅ 2026-10-04
 
@@ -106,9 +107,10 @@ IDE 无补全，高层封装未做。
 
 ## 其他
 
-- **两套回调注册表并存**：手写模块 `unify_dh`（`dh_netsdk.cpp` 的 `set_disconnect_callback`）
-  与生成模块 `unify_dh_gen`（`bind_fXxx`）各有独立注册表。同一 SDK 订阅点只能选一套，
-  混用会静默不触发。长期应收敛到生成版。
+- ~~两套回调注册表并存~~ ✅ 已收敛（2026-10-04）。手写版 `set_disconnect_callback`
+  与 4 个 `_test_*` 转换探针已删除，回调统一走生成版。此前两套注册表独立，
+  同一 SDK 订阅点混用会静默不触发。`unify_dh` 现在只剩登录链路、`log_open`、
+  GIL 探针。
 - 生成物 `native/src/gen/` 不入库（可重建），改代码请改 `tools/` 下的源头。
 
 ## 优先级

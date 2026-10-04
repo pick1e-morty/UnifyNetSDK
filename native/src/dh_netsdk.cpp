@@ -43,25 +43,14 @@ void write_cstr(char (&buf)[N], const std::string &v) {
 }
 
 // ---------------------------------------------------------------------------
-// Callback adapter (minimal hand-written proof of concept).
-// The Python callable is kept alive in a module-level nb::object; we hand the
-// SDK a plain C function pointer whose signature matches fDisConnect. On
-// invoke: acquire the GIL, forward the args, swallow any Python exception so
-// nothing can propagate across the C boundary.
+// 回调适配器已移除：现在统一走生成版 unify_dh_gen 的 bind_fXxx / set_fXxx。
+// 手写版与生成版各有一份独立的槽位注册表，同一个 SDK 订阅点混用会静默不触发，
+// 详见 docs/binding-tech-debt.md「两套回调注册表并存」。
+//
+// 原来这里的 g_disconnect_cb + disconnect_adapter 是"先手写一个证明可行"的
+// 过渡产物；生成版已覆盖全部 289 个回调，且被 tests/test_e2e_generated.py
+// 在真实 SDK 线程上验证过，保留手写版只剩维护成本。
 // ---------------------------------------------------------------------------
-nb::object g_disconnect_cb;
-
-void disconnect_adapter(LLONG lLoginID, char *pchDVRIP, LONG nDVRPort, LDWORD dwUser) {
-    nb::gil_scoped_acquire gil;
-    if (!g_disconnect_cb.is_none()) {
-        try {
-            g_disconnect_cb(lLoginID, pchDVRIP, nDVRPort, dwUser);
-        } catch (nb::python_error &e) {
-            e.restore();
-            PyErr_Print();
-        }
-    }
-}
 
 }  // namespace
 
@@ -248,58 +237,8 @@ NB_MODULE(unify_dh, m) {
                               (long)PyGILState_Check());
     });
 
-    m.def("set_disconnect_callback",
-          [](nb::object cb) -> std::uintptr_t {
-              g_disconnect_cb = cb;
-              return reinterpret_cast<std::uintptr_t>(&disconnect_adapter);
-          },
-          nb::arg("cb"),
-          "register the fDisConnect callback; returns the C callback address "
-          "(pass it to init as cb)");
-
-    // test helper: invoke cb with a NET_DEVICEINFO_Ex* to verify struct-pointer
-    // conversion inside a callback (does nb::cast pick up the registered class?)
-    m.def("_test_struct_ptr_callback",
-          [](nb::object cb) {
-              NET_DEVICEINFO_Ex info;
-              std::memset(&info, 0, sizeof(info));
-              info.nChanNum = 3;
-              info.nDVRType = 42;
-              cb(&info);
-          },
-          nb::arg("cb"));
-
-    // test helper: invoke cb with a BYTE* (unsigned char*) to see what it maps to
-    m.def("_test_byte_ptr_callback",
-          [](nb::object cb) {
-              BYTE buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-              cb(buf, 8);
-          },
-          nb::arg("cb"));
-
-    // test helper: explicit nb::bytes wrap of a BYTE* buffer
-    m.def("_test_byte_bytes_callback",
-          [](nb::object cb) {
-              BYTE buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-              cb(nb::bytes(reinterpret_cast<const char *>(buf), 8));
-          },
-          nb::arg("cb"));
-
-    // test helper: struct ARRAY (ptr + count) -> nb::list of borrowed views.
-    // Mirrors fQueryRecordFileCallBack(LPNET_RECORDFILE_INFO pFileinfos, int nFileNum).
-    m.def("_test_struct_array_callback",
-          [](nb::object cb) {
-              NET_DEVICEINFO_Ex arr[3];
-              for (int i = 0; i < 3; ++i) {
-                  std::memset(&arr[i], 0, sizeof(arr[i]));
-                  arr[i].nChanNum = i + 1;
-                  arr[i].nDVRType = 100 + i;
-              }
-              nb::list lst;
-              for (int i = 0; i < 3; ++i) {
-                  lst.append(nb::cast(&arr[i]));   // borrow, no copy
-              }
-              cb(lst, 3);
-          },
-          nb::arg("cb"));
+    // set_disconnect_callback 与 4 个 _test_* 转换探针已移除，统一走生成版：
+    //   ptr = unify_dh_gen.bind_fDisConnect(cb)
+    //   unify_dh_gen.CLIENT_Init(ptr, 0x1234)
+    // 详见 docs/binding-tech-debt.md「两套回调注册表并存」。
 }
