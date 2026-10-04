@@ -46,7 +46,7 @@
 
 | 想改什么 | 改哪个文件 | 注意 |
 |---|---|---|
-| 回调运行时（GIL、槽位注册表、borrowed view）| `tools/common/dhcb.py` | 它的 `HEADER` 常量就是生成物 `dh_bind_cb.h` 的内容 |
+| 回调运行时（GIL、槽位注册表、borrowed view）| `tools/common/cb_runtime.py` | 它的 `HEADER` 常量就是生成物 `dh_bind_cb.h` 的内容 |
 | 回调参数怎么分类成 `bytes`/`list`/单对象 | `tools/common/parse.py` 的 `classify_cb_params` | 判定**靠参数名**；靠位置会误判 150/289 个回调 |
 | 生成什么代码（thunk、分片、注册语句）| `tools/common/emit.py` | 改这里会影响编译规模，见第四节 |
 | 大华特有的路径/函数正则/跳过名单 | `tools/config/dahua.py` | 厂商差异**只能**加在这里，`common/` 保持厂商无关 |
@@ -96,7 +96,7 @@ cd ..; .venv\Scripts\python.exe tests\test_e2e_generated.py   # 端到端（需�
 
 | 改动 | 至少要跑 |
 |---|---|
-| 回调运行时（`dhcb.py`）| 端到端 + 绑定层（覆盖 GIL / 生命周期 / 参数转换）|
+| 回调运行时（`cb_runtime.py`）| 端到端 + 绑定层（覆盖 GIL / 生命周期 / 参数转换）|
 | 回调参数分类（`parse.py`）| 绑定层（逐项断言分类结果）|
 | 结构体字段生成（`emit.gen_fields`）| 绑定层 + 手工验一个该字段的读写 |
 | 依赖图 / 拓扑序（`build_deps` / `topo_order`）| 端到端（顺序错了运行时才暴露）|

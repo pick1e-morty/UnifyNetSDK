@@ -25,7 +25,9 @@ nb_func.h(447): error C2955: "analyze_method": 使用类模板需要模板参数
 **做法**　已构造的 callable 用属性赋值，两者对 Python 侧完全一样：
 
 ```cpp
-m.attr("bind_fRealDataCallBack") = dhcb::binder("fRealDataCallBack", (void*)&thunk);
+// 命名空间带项目前缀：曾用 cbrt（callback runtime 缩写），但 <math.h> 里
+// 有 double cbrt(double)，MSVC 报 C2757 "该名称的符号已存在"。
+m.attr("bind_fRealDataCallBack") = unifycb::binder("fRealDataCallBack", (void*)&thunk);
 // Python: g.bind_fRealDataCallBack(cb)  ← 一样是普通函数
 ```
 

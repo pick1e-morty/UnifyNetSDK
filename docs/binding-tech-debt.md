@@ -27,7 +27,7 @@
 ### ~~1. 回调~~ ✅ 2026-10-04
 
 大华 289 个回调 typedef 全部生成绑定，产出 10 个分片 `dh_bind_cbs*.cpp` + 运行时头
-`dh_bind_cb.h`（模板源 `tools/common/dhcb.py`）。
+`dh_bind_cb.h`（模板源 `tools/common/cb_runtime.py`）。
 
 ```python
 ptr = unify_dh_gen.bind_fRealDataCallBack(on_data)   # 订阅 + 返回 C 函数指针
