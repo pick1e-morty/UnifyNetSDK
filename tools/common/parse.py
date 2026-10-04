@@ -647,24 +647,35 @@ def parse_param(part):
     if not m or not m.group(1):
         return None
     ftype, fname = m.group(1).strip(), m.group(2)
-    # `long x` / `unsigned short y` 这类写法里，修饰符本身就是完整类型
-    # （long == long int），后面那个标识符是**变量名**。上面的正则硬要求
-    # "修饰符 + 类型名"，碰上 `long lChannelNum` 时会把 `long lChannelNum`
-    # 整段当成类型名、变量名为空，于是生成
-    #     [](..., long lChannelNum arg2)      <- 两个参数挤在一起
-    # 报 C2146 / C3260（实测 NET_DVR_RealPlay_Card）。
+    # 引用参数：`const int& nCount` / `int &n` / `NET_X &info`。
     #
-    # 修法：把修饰符逐个剥掉，看剩下的是不是只有一个标识符 —— 是的话它就是
-    # 变量名，类型为剥剩下的修饰符。
-    mods, rest = ftype, None
-    while True:
-        m2 = re.match(r'(const|unsigned|signed|long|short)\s+(.*)$', mods)
-        if not m2:
-            break
-        rest = m2.group(2)
-        mods = m2.group(1)
-    if rest and re.fullmatch(r'[A-Za-z_]\w*', rest) and not fname:
-        ftype, fname = mods, rest
+    # 不处理会生成 `const arg3` 这种非法代码（C4430 缺少类型说明符）—— 正则只认
+    # 指针（\s*\**），遇到 & 就把类型截断成 `const`、变量名丢失。
+    # 实证：fSubLogDataCallBack(..., const int& nCount, ...) 整个大华编译失败。
+    #
+    # 语义上引用参数在 Python 侧无法直接表达（nanobind 只能传值），按指针处理是
+    # 对的：Python 给地址，C++ 写入后 Python 读回 —— 与既有 outptr 一致。
+    # `T&&`（右值引用，SDK 参数里不会出现）不转换，避免和 `&&` 运算符混淆。
+    if '&' in part and not re.search(r'&&\s*\w*$', part):
+        part = part.replace('&', '*', 1)
+        m = re.match(
+            r'((?:const\s+)?(?:unsigned\s+|signed\s+|long\s+|short\s+)?'
+            r'[A-Za-z_]\w*\s*\**)\s*([A-Za-z_]\w*)?', part)
+        if not m or not m.group(1):
+            return None
+        ftype, fname = m.group(1).strip(), m.group(2)
+    else:
+        # `long x` / `unsigned short y`：修饰符本身是完整类型（long == long int），
+        # 后面那个标识符才是变量名。剥修饰符后若只剩一个标识符就是这种情况。
+        mods, rest = ftype, None
+        while True:
+            m2 = re.match(r'(const|unsigned|signed|long|short)\s+(.*)$', mods)
+            if not m2:
+                break
+            rest = m2.group(2)
+            mods = m2.group(1)
+        if rest and re.fullmatch(r'[A-Za-z_]\w*', rest) and not fname:
+            ftype, fname = mods, rest
     # 摘掉数组后缀（可能多维，如 strIP[16][16]、iBuf[256]）。只处理紧跟在
     # 变量名后面的；指针上的维度（`int (*p)[16]`）是另一种形态，不在这里处理。
     #
