@@ -27,8 +27,10 @@ from common import dhcb, parse
 
 # ------------------------------------------------------------ 字段代码生成
 
-def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        '):
+def gen_fields(struct_name, fields, with_dwsize, union_names, ptr_aliases=frozenset(),
+               indent='        '):
     """返回结构体的字段绑定行（不含开头的 nb::class_ 注册）。"""
+    alias_keys = set(ptr_aliases)
     lines = []
     if with_dwsize:
         lines.append(indent + '.def("__init__", [](%s *self) {' % struct_name)
@@ -41,6 +43,9 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        ')
     for ftype, fname, arr in fields:
         base = ftype.strip()
         type_name = base.replace('unsigned', ' ').replace('signed', ' ').strip().rstrip('*').strip()
+        # 指针别名（LPNET_X）必须和裸指针同等对待：类型名里没有 '*'，若按标量
+        # 走 def_rw 会对指针成员报 C2440。
+        is_ptr = '*' in base or type_name in alias_keys
         if arr:
             n = arr.strip()
             # 多维数组（[4][32]）无论元素类型一律按 bytes：char[4][32] 不是
@@ -70,8 +75,8 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        ')
                     indent + '        std::memcpy(s.%s, v.data(), n);' % fname,
                     indent + '    })',
                 ]
-        elif '*' in base:
-            # 裸指针：只暴露地址，不解引用。
+        elif is_ptr:
+            # 裸指针 / 指针别名：只暴露地址，不解引用。
             # setter 必须转到字段自身的类型（int*/char*/NET_TIME* ...），
             # 直接转 void* 会被 MSVC 拒绝：C2440 void* -> T*
             lines += [
@@ -355,7 +360,7 @@ def generate(cfg, args):
           % (len(funcs), func_stat['bound'],
              func_stat['skip_undefined'], func_stat['skip_skip']))
 
-    deps = parse.build_deps(structs, struct_names)
+    deps = parse.build_deps(structs, struct_names, ptr_aliases)
     n_dep = sum(1 for v in deps.values() if v)
     print('  有类型依赖的结构体: %d 个' % n_dep)
 
@@ -469,7 +474,7 @@ def generate(cfg, args):
             fields = by_name[name]
             has_dwsize = any(f[1] == 'dwSize' for f in fields)
             lines.append('    c_%s\n' % name)
-            lines += gen_fields(name, fields, has_dwsize, union_names)
+            lines += gen_fields(name, fields, has_dwsize, union_names, ptr_aliases)
             lines.append('        ;\n')
             for _t, _fn, a in fields:
                 if a:

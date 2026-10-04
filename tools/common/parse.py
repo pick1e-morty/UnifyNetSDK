@@ -150,23 +150,27 @@ def _normalize(ftype):
 def _split_decl_names(decl):
     """拆分 typedef 结尾的名字列表：'NET_TIME, *LPNET_TIME'。
 
-    返回 (类型名列表, 指针别名列表)。
+    返回 (类型名列表, 指针别名字典 {别名: 目标类型})。
 
     指针别名（*LPNET_TIME）不构成新类型，不能注册 nb::class_，但**必须单独
-    收集起来**：厂商头文件写回调签名时经常直接用别名而不带星号，例如
+    收集起来**：厂商头文件写回调签名和结构体字段时都经常直接用别名而不带
+    星号，例如
         fQueryRecordFileCallBack(LLONG, LPNET_RECORDFILE_INFO pFileinfos, int nFileNum, ...)
-    只看 "参数类型里有没有 *" 会把 LPNET_RECORDFILE_INFO 误判成非指针的传值
-    结构体，从而丢掉数组语义、并生成 static_cast<T>(0x1234) 这类编译不过的代码。
+        typedef struct { ... LPNET_TIME pTime; } NET_RECORD;
+    只看 "类型里有没有 *" 会把它误判成非指针的传值结构体，从而丢掉数组语义、
+    生成 static_cast<T>(0x1234) 这类编译不过的代码，或把字段判成未知类型。
+    存成字典是为了让 build_deps 能据此排出正确的注册拓扑序（指针别名指向的
+    结构体必须先注册）。
     """
-    names, ptr_aliases = [], []
+    names, ptr_aliases = [], {}
     for part in decl.split(','):
         part = part.strip()
         if not part:
             continue
         if part.startswith('*'):
             mm = re.match(r'\*\s*([A-Za-z_]\w*)', part)
-            if mm:
-                ptr_aliases.append(mm.group(1))
+            if mm and names:
+                ptr_aliases[mm.group(1)] = names[0]
             continue
         mm = re.match(r'([A-Za-z_]\w*)', part)
         if mm:
@@ -205,11 +209,12 @@ def _collect_enums(text):
 def _collect_structs(text):
     """收集结构体。先收全部名字再回头提字段：白名单需要完整名字集合。
 
-    返回 (raw_structs, struct_names, struct_aliases, ptr_aliases)。"""
+    返回 (raw_structs, struct_names, struct_aliases, ptr_aliases)，
+    其中 ptr_aliases 是 {LPNET_X: NET_X} 映射（供 build_deps 排注册顺序）。"""
     raw_structs = []
     struct_names = set()
     struct_aliases = set()
-    ptr_aliases = set()
+    ptr_aliases = {}
     for body, decl in _find_typedef_structs(text):
         names, ptrs = _split_decl_names(decl)
         if not names:
@@ -227,7 +232,7 @@ def _collect_structs(text):
 def _collect_unions(text):
     """收集有名 union 类型名（typedef union {...} NAME;）。只进白名单，字段由 emit 按 bytes 暴露。"""
     union_names = set()
-    union_ptr_aliases = set()
+    union_ptr_aliases = {}
     for m in UNION_RE.finditer(text):
         _ubody, decl = m.group(1), m.group(2)
         names, ptrs = _split_decl_names(decl)
@@ -317,11 +322,17 @@ def parse_header(path):
 
     fp_types, typedef_names, define_names = _collect_type_names(text)
     enums, enum_names = _collect_enums(text)
-    raw_structs, struct_names, struct_aliases, ptr_aliases = _collect_structs(text)
+    raw_structs, struct_names, struct_aliases, struct_ptr_aliases = _collect_structs(text)
     union_names, union_ptr_aliases = _collect_unions(text)
+    ptr_aliases = dict(struct_ptr_aliases)
+    ptr_aliases.update(union_ptr_aliases)
 
+    # 指针别名（LPNET_XXX）必须进白名单：厂商头文件里字段也这么写
+    # （`LPNET_RECORDFILE_INFO pRecord;`），不进白名单会被判"未知类型"跳过。
+    # 见 docs/implementation-notes.md 4.1 —— 这个疏漏曾让 6 个字段在指针别名
+    # 已修之后仍留在 unknown 里。
     bindable = (struct_names | struct_aliases | enum_names | union_names
-                | typedef_names | define_names | BASE_TYPES)
+                | typedef_names | define_names | BASE_TYPES | set(ptr_aliases))
 
     structs, stats = _extract_fields(raw_structs, bindable, fp_types)
 
@@ -442,16 +453,23 @@ def gen_func(name, ret, params, struct_names, enum_names, fp_types):
 
 # ------------------------------------------------------------------ 依赖与拓扑
 
-def build_deps(structs, struct_names):
-    """deps[A] = {B, ...} 表示 A 的字段里出现了类型 B（需要 B 先注册）。"""
+def build_deps(structs, struct_names, ptr_aliases=None):
+    """deps[A] = {B, ...} 表示 A 的字段里出现了类型 B（需要 B 先注册）。
+
+    ptr_aliases 是 {LPNET_X: NET_X} 映射：`LPNET_X pField;` 这种字段会让 A 依赖
+    NET_X，不排进拓扑序的话 nb::class_<NET_X> 可能还没注册就 def_rw 指针成员，
+    运行时找不到类型。
+    """
+    ptr_aliases = ptr_aliases or {}
     deps = {}
     for name, fields in structs:
         d = set()
         for ftype, _fname, _arr in fields:
             base = ftype.replace('unsigned', ' ').replace('signed', ' ').strip()
             base = base.rstrip('*').strip()
-            if base in struct_names and base != name:
-                d.add(base)
+            target = ptr_aliases.get(base, base)
+            if target in struct_names and target != name:
+                d.add(target)
         deps[name] = d
     return deps
 
@@ -559,16 +577,17 @@ def classify_cb_params(params, struct_names, enum_names, ptr_aliases=frozenset()
       obj     结构体指针 -> 单个借用视图
       uintptr 其他指针（void*/HANDLE/int*...） -> 整数地址
 
-    ptr_aliases 是"名字里没有星号的指针别名"（LPNET_XXX / LPBYTE ...）。厂商
+    ptr_aliases 是"名字里没有星号的指针别名"集合或 {别名: 目标} 映射。厂商
     头文件大量这么写回调签名，漏掉它会把指针当成传值结构体 —— 详见
     docs/implementation-notes.md 4.1（实测 value 824→820、array 5→7）。
     """
+    alias_keys = set(ptr_aliases)
     kinds = []
     for i, p in enumerate(params):
         core = re.sub(r'^const\s+', '', p['type']).strip()
         base = core.replace('*', '').strip()
-        # 注意是 `in ptr_aliases` 而不是只看 '*'：LPNET_X 展开后没有星号
-        ptr = '*' in core or base in ptr_aliases
+        # 注意是 `in alias_keys` 而不是只看 '*'：LPNET_X 展开后没有星号
+        ptr = '*' in core or base in alias_keys
 
         if not ptr:
             kinds.append(('value', None))

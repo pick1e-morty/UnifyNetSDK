@@ -1,17 +1,33 @@
 # 绑定生成器技术债清单
 
-> 记录生成器当前「故意没实现 / 降级处理」的部分。数字以 `python tools/gen_bind.py --sdk X --dry-run` 实测为准。
-> 修完一项就打勾，或直接删掉该节。
+> 记录生成器当前「故意没实现 / 降级处理」的部分。数字以
+> `python tools/check_coverage.py` 实测为准（升级 SDK 后重跑即可刷新）。
 >
 > **踩坑细节见 `implementation-notes.md`**（nanobind / CPython C API / MSVC / 大华 SDK 头文件的脾气）。
+
+## 覆盖边界（2026-10-04 实测）
+
+| 类别 | 已绑定 / 总数 | 说明 |
+|---|---|---|
+| 枚举 | 1873 / 1873 | 全对 |
+| 结构体 | 10557 / 10557 | 全对 |
+| 函数 | 2515 / 2521 | 6 个 DLL 未导出，跳过是对的 |
+| 回调 typedef | 289 / 289 | 全对（`bind_fXxx` / `set_fXxx` / `unbind_fXxx`）|
+| 字段 | **62574 / 62884 = 99.51%** | 详见下方"静默跳过" |
+
+字段里的数组进一步分两种，**这个区别比"跳过多少"更重要**：
+
+| 数组类型 | 数量 | Python 侧 | 性质 |
+|---|---|---|---|
+| `char[N]` | 11211 | `str` | 无损，自动截断防溢出 |
+| 其余（`BYTE[N]` / `int[N]` / `NET_X[N]` / 多维）| 6419 | `bytes` | **降级**，需自己 `struct.unpack` |
 
 ## 已完成
 
 ### ~~1. 回调~~ ✅ 2026-10-04
 
-大华 289 个回调 typedef 全部生成绑定（`unify_dh_gen`），海康待验证。产出 10 个回调分片 `dh_bind_cbs*.cpp` + 运行时头 `dh_bind_cb.h`（模板源 `tools/common/dhcb.py`）。
-
-Python 侧三个入口：
+大华 289 个回调 typedef 全部生成绑定，产出 10 个分片 `dh_bind_cbs*.cpp` + 运行时头
+`dh_bind_cb.h`（模板源 `tools/common/dhcb.py`）。
 
 ```python
 ptr = unify_dh_gen.bind_fRealDataCallBack(on_data)   # 订阅 + 返回 C 函数指针
@@ -20,75 +36,89 @@ unify_dh_gen.set_fRealDataCallBack(on_data)          # 只订阅
 unify_dh_gen.unbind_fRealDataCallBack()               # 退订
 ```
 
-`bind_` 把「订阅 + 取指针」合成一步，避免两步之间的竞态，以及「set 必须写在传指针之前」这个顺序坑。
+`bind_` 把「订阅 + 取指针」合成一步，避免两步之间的竞态、以及「set 必须写在传指针之前」。
 
-当初列的三项难点均已解决：
+三项难点均已解决：
 
 | 难点 | 解法 |
 |---|---|
 | `cpp_function` 转裸函数指针 | 每回调一个 `static` thunk，`bind_fXxx` 用 `reinterpret_cast` 取地址 |
 | 触发时释放 GIL | 以 `PyThreadState_GetUnchecked()` 为判据 —— **不能**用 `PyGILState_Check()` |
-| 生命周期（防 Python GC 而 SDK 仍持指针） | 注册表按值持有 `nb::object`；注册表故意不析构 |
+| 生命周期（防 Python GC 而 SDK 仍持指针）| 注册表按值持有 `nb::object`；注册表故意不析构 |
 
-参数分类（1146 个参数实测，零误判）：`value 820 / obj 224 / uintptr 48 / cstr 28 / bytes 19 / array 7`。
+参数分类（1146 个参数实测，零误判）：`value 820 / obj 224 / uintptr 48 / cstr 28 /
+bytes 19 / array 7`。判定必须**靠参数名**而非位置 —— 289 个回调里 150 个形如
+`(NET_X *pInfo, LDWORD dwUser)`，那个整数是用户数据不是数量；且数量/长度关键词要 `$`
+锚定在名字末尾：`nFileNum` 的第 4~6 字符忽略大小写正好凑出 `leN` 命中 `len`。
 
-判定必须**靠参数名**而非位置 —— 289 个回调里 150 个形如 `(NET_X *pInfo, LDWORD dwUser)`，那个整数是用户数据不是数量。且数量/长度关键词要 `$` 锚定在名字末尾：`nFileNum` 的第 4~6 字符忽略大小写正好凑出 `leN` 命中 `len`，不锚定会把数组语义吃掉。
-
-绑定层验证有两条路，现已闭环：
-
-- **端到端（首选）**：`test_e2e_generated.py` 用生成版 `unify_dh_gen` 登录 `Dahua_NVR_Simulator`，验证 Gen2 登录（`nError == 0`）+ 断线回调被真实 SDK 线程触发且参数正确。这条路覆盖了 GIL、生命周期、参数转换，**selftest 因此退休**。
-- **selftest（备用）**：`--emit-selftest` 生成 `_selftest_fXxx` 从裸 `std::thread` 调 thunk，268 个钩子全通。ctypes 走不通（它的 `CFUNCTYPE` 回调自建 tstate，GIL 判据会误判导致 `PyThreadState_Attach` 致命错误），所以这是脱离真实设备时唯一能覆盖该路径的手段。默认关。
+验证：端到端 `tests/test_e2e_generated.py`（真实 SDK 线程触发，参数全对）；
+绑定层 `tests/test_cb_bindings.py`；`--emit-selftest` 从裸 `std::thread` 调 thunk
+（268 个钩子全通，**默认关闭**，ctypes 走不通这条路）。
 
 ### ~~2. 指针别名~~ ✅ 2026-10-04
 
-`_split_decl_names` 现在返回 `(类型名, 指针别名)`，`*LPNET_XXX` 进 `ptr_aliases` 集合。厂商头文件大量直接用别名写签名（`fQueryRecordFileCallBack(LLONG, LPNET_RECORDFILE_INFO, int nFileNum, ...)`），漏掉它会把指针当成传值结构体。实测 `value 824→820`、`obj 222→226`、`array 5→7`。
+厂商用 `LPNET_XXX` 写指针，类型名里没有 `*`。原先 `_split_decl_names` 直接丢弃
+`*LPNET_XXX`，导致这些字段被当传值结构体或判成未知类型。
+
+现在返回 `{别名: 目标类型}` 映射，三处都要用它：字段白名单（否则判未知）、`gen_fields`
+（否则对指针成员 `def_rw` 报 C2440）、`build_deps`（否则注册拓扑序错，运行时找不到类型）。
+回调参数分类同步修正后：未知类型 12 → 6，`array 5 → 7`。
 
 ## 核心未完成（影响业务可用性）
 
 ### 1. 输出指针不自动读回
 
-`outptr` 参数暴露成 `int`（地址），调用后需手动 `ctypes` 预分配缓冲再传地址，没有自动转成 Python 可读返回值。
+`outptr` 参数暴露成 `int`（地址），调用后需手动 `ctypes` 预分配缓冲再传地址，没有自动
+转成 Python 可读返回值。这是"能用但别扭"的主要来源。
+
+### 2. 作为结构体成员的函数指针字段（大华 296 个）
+
+顶层回调已全部解决，但**结构体成员**里的函数指针仍按 `skip_funcptr` 跳过。绑成员回调要
+`def_readwrite` + 生命周期托管（成员可能被 SDK 长期持有），与顶层回调是两个问题。
+实际影响有限：业务代码基本都走 `CLIENT_xxx` 的顶层回调参数。
 
 ## 静默跳过（数据不完整）
 
-### 2. 未知类型字段
-
-大华 12 → 指针别名那类已修（见上），剩两类：
+### 3. 未知类型字段（大华 6 个）
 
 | 类别 | 例子 | 根因 |
 |---|---|---|
-| 漏网函数指针 | `fNotifyEASWaveInfo` 等 | `FP_RE` 没抓到其 typedef |
+| 漏网函数指针 | `fNotifyEASWaveInfo`、`fNotifyFaultCheckProgress`、`fNotifyFeatureState`、`fNotifyInfraredState`、`fNotifyClassBrand` | `FP_RE` 没抓到其 typedef（正则只认 `typedef ... (*name)(`，这些写法不同）|
 | 空类型 | `(空) x1` | `FIELD_RE` 边界 bug |
 
-### 3. 作为结构体成员的函数指针字段
+### 4. 位字段（大华 8 个）
 
-大华 296、海康 11。顶层回调已解决（见上），但**结构体成员**里的函数指针仍按 `skip_funcptr` 跳过：绑成员回调要 `def_readwrite` + 生命周期托管，与顶层回调是两个问题。
-
-### 4. 位字段
-
-大华 8 个（`BYTE byImageQlty:7`）。C 不允许对位字段取地址，nanobind 绑不了——属 C 限制，不算偷懒。
+`BYTE byImageQlty:7`。C 不允许对位字段取地址，nanobind 绑不了——**属 C 限制，不算偷懒**。
 
 ## 降级处理（绑了但只能「看」）
 
-### 5. 内嵌有名 struct/union 字段按 bytes
+### 5. 非 char 数组、多维数组按 bytes（大华 6419 个）
 
-如 `stuOldLog`，需用户自己 `struct.unpack`。
+拿到 `bytes` 需自己 `struct.unpack`。要转 list/numpy 的话在 `emit.gen_fields` 扩展。
 
-### 6. 非 char 数组、多维数组按 bytes
+### 6. 内嵌有名 struct/union 字段按 bytes
 
-没转 list / numpy。
+如 `stuOldLog`，需用户自己 `struct.unpack`.
+
+### 7. 无 `.pyi` stub、错误码是裸数字
+
+IDE 无补全，高层封装未做。
 
 ## 其他
 
-- 6 个未导出函数跳过（厂商头文件 vs DLL 版本不一致，`check_exports.py` 验证过，跳过是对的）。
-- 海康还没接 CMake + 编译（生成器就绪，dry-run 通过：2669 结构体 / 18640 字段 / 789 函数）。
-- 无 `.pyi` stub（IDE 无补全）、错误码是裸数字、无高层封装。
-- **两套回调注册表并存**：手写模块 `unify_dh`（`dh_netsdk.cpp` 的 `set_disconnect_callback`）与生成模块 `unify_dh_gen`（`bind_fXxx`）各有独立注册表，同一个 SDK 订阅点只能选一套。长期应收敛到生成版。
+- **两套回调注册表并存**：手写模块 `unify_dh`（`dh_netsdk.cpp` 的 `set_disconnect_callback`）
+  与生成模块 `unify_dh_gen`（`bind_fXxx`）各有独立注册表。同一 SDK 订阅点只能选一套，
+  混用会静默不触发。长期应收敛到生成版。
+- 生成物 `native/src/gen/` 不入库（可重建），改代码请改 `tools/` 下的源头。
 
 ## 优先级
 
-1. ~~**回调**（业务核心）~~ ✅
-2. ~~**指针别名**~~ ✅
-3. **海康编译**（对等、验证通用核）
-4. **高层封装**（易用性）
-5. **输出指针自动读回**（`outptr` → Python 可读）
+| # | 事项 | 理由 |
+|---|---|---|
+| ~~1~~ | ~~回调~~ | ✅ 已完成 |
+| ~~2~~ | ~~指针别名~~ | ✅ 已完成 |
+| 3 | **未知类型归零**（6 个）| 最便宜：改 `FP_RE` 一条正则 + `FIELD_RE` 一个边界条件 |
+| 4 | **海康编译** | 验证 `common/` 真与厂商无关；dry-run 已通过（2669 结构体 / 18640 字段 / 789 函数）|
+| 5 | **`.pyi` stub** | 纯生成工作，体验提升大，且能让错误码有类型 |
+| 6 | **高层封装** | 错误码表、输出缓冲自动读回（技术债 #1）|
+| 7 | **成员函数指针**（296 个）| 最贵，且要解决生命周期托管；实际影响有限 |
