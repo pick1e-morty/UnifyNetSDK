@@ -54,15 +54,76 @@ UnifyNetSDK/
 | 交付形态 | **wheel**。一个厂商一个 wheel（见第 6 节），`unify` 是可选的上层抽象 |
 | 平台范围 | 先只打通 **win_amd64 + cp313**，证明路线可行；多平台/多版本日后按需再扩 |
 
-### 0.4 还没定的：上层 Python 做厚壳还是薄壳
+### 0.4 已定：上层做厚壳，核心是参数模型化
 
-- **薄壳**（只把 `.pyd` 包成可 import 的包，解决加载路径）：约 50 行，但价值有限
-- **厚壳**（错误码表、`outptr` 自动读回、回调装饰器）：就是第 3、5 节的内容
+不做薄壳。厚壳 = 薄壳（加载 `.pyd` + dll 路径）+ 以下全部：
 
-**倾向先薄壳**：能立刻兑现"分层"这个诉求，且做完后厚壳有了自然落点（不用再纠结
-放哪）。反过来先做厚壳，会在没有清晰包结构的情况下散落成几个脚本。
+| 能力 | 说明 |
+|---|---|
+| **参数模型化（pydantic）** | ★ 核心，见 0.6 |
+| 错误码转 Exception | 见第 5 节 |
+| `outptr` 自动读回 | 见第 3 节 |
+| 回调装饰器 | `@client.on_alarm` 之类，替代手工 `bind_fXxx` |
+| `Client` 高层类 | 把"建连接→登录→订阅→预览"串成常规流程 |
 
-### 0.5 一条设计原则（决定 `unify` 怎么做）
+**厚壳的形态是"层"，不是"替代"**：底层永远保留原始 nanobind 绑定
+（`g.NET_xxx()` 照旧可用）。给需要精细控制的人，也避免老用户觉得"官方逼我改代码"。
+
+### 0.6 参数模型化（pydantic）—— 厚壳的核心
+
+**目标形态**：用户写 Python 调用，而不是手工填 C 结构体。
+
+```python
+# 现在
+in_param = g.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
+in_param.szIP = '192.168.1.108'
+in_param.szUserName = 'admin'
+handle = g.CLIENT_LoginWithHighLevelSecurity(in_param, out)
+
+# 目标
+handle = client.login(LoginArgs(host='192.168.1.108', user='admin', password='...'))
+```
+
+`szIP` / `szUserName` 这种 Hungarian 命名对 Python 用户不友好，且 90% 字段根本不用填。
+
+**三个必须先解决的问题**：
+
+**① pydantic 模型不能直接当 C 结构体**（没有内存布局），中间必须有转换层：
+
+```python
+class LoginArgs(BaseModel):
+    host: str
+    port: int = 37777
+    user: str = "admin"
+    password: str = ""
+
+    def to_struct(self):        # ← 关键
+        s = g.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
+        s.szIP = self.host
+        s.nPort = self.port
+        ...
+        return s
+```
+
+这层胶水**应当半自动生成**：大华命名规整（`sz`=字符串、`n`=数字、`by`=字节、`dw`=DWORD、
+`st`=结构体、`f`=浮点），可写规则从 C 字段名推 Python 名，生成后人工校验。
+
+**② 62884 个字段不可能全做**。只覆盖用户真实调用的操作：登录、预览、报警、布防、
+录像查询、PTZ、云台 —— 几十个模型，覆盖 90% 需求。其余结构体保持原始绑定形态。
+
+**③ pydantic 是第三方依赖，要不要强依赖**：
+
+| 方案 | 优点 | 代价 |
+|---|---|---|
+| 强依赖 pydantic | 体验一致，模型开箱可用 | 轻量用户被迫装（几 MB）|
+| **可选依赖** `unify-dh[pydantic]` | 核心 API 零依赖 | 维护两套调用方式 |
+| 用 dataclass 替代 | 标准库零依赖 | 无运行时校验、无 JSON schema |
+
+**待定**：取决于想给什么样的用户体验 —— 参数校验（IP 格式、端口范围）在调用前就报错，
+是厚封装的核心价值之一，那强依赖也说得通。
+
+**验证方式**：先手工为"登录"写一个 `LoginArgs`（pydantic + `to_struct()`），确认形态
+对了，再讨论怎么自动生成。形态不对时现在改成本最低。
 
 厂商能力差异是**本质的**，不是接口没对齐。例：大华录像下载只支持同步，海康支持
 异步 + 同步。所以 `unify` 的接口必须**明确标注哪些是双厂商都支持的**，不要给一个
@@ -214,6 +275,19 @@ DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` �
 **大华官方 Python SDK 也是这么做的**（手动 add dll path），所以这是厂商生态的
 既有做法，不是我们自创的负担。
 
+
+**厂商探测**（`unify` 在 login 前判断设备是哪家）：两家协议天差地别（大华
+`0xA0 0x01` realm 挑战 vs 海康完全不同），端口探测能可靠区分。两个边界：
+
+- **防火墙可能 DROP 未登记端口** → 探测超时。错误信息必须区分「探测到海康但没装
+  unify-hk」（提示 pip install unify-hk）与「探测无响应」（提示用 Unify(vendor=...)
+  显式指定），否则用户会卡在"探测失败"上。
+- **探测只做到协议层，不带凭据**。纯协议探测不需要认证就安全；若实现成"直接尝试
+  登录"会消耗认证次数，甚至触发设备锁定。
+
+**不要用 git submodule 做多仓协作**。submodule 要管 .gitmodules、克隆时
+--recursive、子模块提交冲突，对 Python 项目没有必要。真要拆成多仓就用 **PyPI 发布**
+表达依赖关系（生成器可独立成一个包，别人可能复用）。
 ---
 
 ## 7. `.pyi` stub
