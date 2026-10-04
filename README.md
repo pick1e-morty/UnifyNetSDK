@@ -4,6 +4,9 @@
 
 用 nanobind + 代码生成器，把厂商的 C 头文件转成可直接 `import` 的 Python 模块：结构体、枚举、函数全覆盖，布局由 C++ 编译器保证，不靠手写 ctypes 声明。
 
+> **第一次接触本项目请先读 [`docs/onboarding.md`](docs/onboarding.md)** —— 里面有当前进度、
+> 代码地图、标准改动流程和验证清单，能省掉大量摸索。
+
 ## 当前状态
 
 | SDK | 结构体 | 字段 | 枚举 | 函数 | 回调 | 状态 |
@@ -61,6 +64,7 @@ UnifyNetSDK/
 │   │   └── haikang.py
 │   └── check_exports.py       # 检查 DLL 导出表，发现未导出函数
 ├── docs/                      # 技术文档
+│   ├── onboarding.md              # ★ 先读这个：进度 / 代码地图 / 工作流程
 │   ├── binding-tech-evaluation.md  # 技术选型评估
 │   ├── binding-tech-debt.md        # 技术债清单（活文档，修完就打勾）
 │   └── implementation-notes.md     # 实测踩坑笔记（nanobind / C API / MSVC / 大华 SDK）
