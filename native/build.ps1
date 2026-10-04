@@ -59,22 +59,30 @@ if (-not (Test-Path $venvPy) -or -not (Test-Path $ninja)) {
 Write-Host "PY   : $venvPy" -ForegroundColor Green
 Write-Host "NINJA: $ninja" -ForegroundColor Green
 
-# 执行一段 bat，**同时**做两件事：把输出实时打到屏幕上（不缓冲，符合
-# "长时间编译要看到进展"的习惯），并把同一份输出留下来做统计分析。
-# 之前只 Out-Host 不保留，于是脚本无法回答"这次是哪个厂商失败、失败了几处"
-# —— 而两个厂商的产物目录 src/gen 与 src/gen_hk 只差两个字母，肉眼极易看错。
+# 执行一段 bat，**同时**做两件事：把输出逐行实时打到屏幕上，并把同一份输出
+# 留下来做统计分析。
+#
+# 之前只 Out-Host 不保留，脚本无法回答"哪个厂商失败、失败了几处"（两个厂商的
+# 产物目录 src/gen 与 src/gen_hk 只差两个字母，肉眼极易看错）。但改成
+# `$out = & cmd ...` 之后再 Out-Host 也同样是错的 —— 那会把全部输出攒到命令
+# 结束才吐出来，海康编译 160 s 期间屏幕完全空白，而用户正是靠进度条判断
+# "还在跑 / 卡住了"。所以必须**边收边打**：ForEach-Object 每收到一行就立刻
+# Out-Host，同时追加到缓冲区。
 function Invoke-Bat {
     param([string[]]$Lines)
     $bat = Join-Path $here "_tmp_build.bat"
     ($Lines -join "`r`n") | Out-File -FilePath $bat -Encoding ascii
     $prev = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
-    $out = & cmd.exe /c $bat 2>&1
+    $buf = [System.Collections.ArrayList]::new()
+    & cmd.exe /c $bat 2>&1 | ForEach-Object {
+        [void]$buf.Add($_)
+        $_ | Out-Host
+    }
     $code = $LASTEXITCODE
-    $out | Out-Host
     $ErrorActionPreference = $prev
     Remove-Item $bat -ErrorAction SilentlyContinue
-    return @{ Code = $code; Out = $out }
+    return @{ Code = $code; Out = $buf }
 }
 
 # 数编译错误条数。只认 "error <LETTER><digits>"（MSVC / clang 的诊断格式），
