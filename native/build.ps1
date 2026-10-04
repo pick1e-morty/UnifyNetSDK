@@ -13,13 +13,14 @@ param(
     # 同一个 -j N 池子**并行**编译，不是串行 —— 所以选厂商不是"避免等两个"，
     # 而是日常只改一个时不必让另一个进依赖图。
     #
-    #   dahua（默认）：只建大华。**海康还没编通**（SDK 头文件大量类型被
-    #     `#if defined(__linux__)` 之类的条件编译包着，生成器无条件绑定会报
-    #     "未声明的标识符"），所以默认不选它 —— 裸跑 build.ps1 必须能成功。
-    #   haikang：只建海康。
-    #   all：两个都建。海康编通后再用它，或在海康专用工作流里显式指定。
+    #   all（默认）：两个都建。两者都已通过编译 + 运行时读写验证。ninja 会跳过
+    #     内容未变的 TU，所以日常只改一个时另一个几乎是秒过。
+    #   dahua / haikang：只建该厂商。
+    #
+    # 曾经默认是 dahua —— 那时海康还编不过（121 处错误）。现在两个厂商都验证过了，
+    # 默认改回 all，避免"改了海康却只编了大华"这类静默漏编。
     [ValidateSet("dahua", "haikang", "all")]
-    [string]$Sdk = "dahua",
+    [string]$Sdk = "all",
     # 0 = 交给 ninja 自行决定（CPU 核数+2）。160+ 个大 TU 并发编译时
     # 每个 cl 都要吞 8.7MB 的 SDK 头，内存峰值高，用 -Jobs 8 收敛一下。
     [int]$Jobs = 0
@@ -94,6 +95,19 @@ function Count-Errors($out) {
     }
     return $n
 }
+
+Write-Host ""
+Write-Host "=== check SDK copies (tools/sync_sdk.py --check) ===" -ForegroundColor Cyan
+$sdkCheck = & $venvPy (Join-Path $root 'tools\sync_sdk.py') --check
+if ($LASTEXITCODE -ne 0) {
+    # 换过 vendor SDK 却没同步的症状很隐蔽：编译能过、程序能跑，但结构体字段
+    # 与 DLL 实际行为对不上，排查成本极高。所以在 configure 之前就挡住。
+    $sdkCheck | Out-Host
+    Write-Host "SDK 副本与 vendor 原始包不一致（或源目录缺失）。请先跑：" -ForegroundColor Red
+    Write-Host "  python tools\sync_sdk.py" -ForegroundColor Cyan
+    exit 1
+}
+Write-Host ("  " + ($sdkCheck | Select-Object -Last 1)) -ForegroundColor Green
 
 Write-Host ""
 Write-Host "=== configure ($Config, Sdk=$Sdk) ===" -ForegroundColor Cyan
