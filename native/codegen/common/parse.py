@@ -42,22 +42,36 @@ STRUCT_HEAD_RE = re.compile(r'typedef\s+struct\s*(?:\w+\s*)?\{')
 # typedef enum [tag] { ... } Name;
 ENUM_RE = re.compile(r'typedef\s+enum\s*(?:\w+\s*)?\{([^{}]*)\}\s*(\w+)\s*;', re.S)
 
-# typedef union [tag] { ... } Name;   体内同样不含嵌套花括号。
+# typedef union [tag] { ... } Name;   体内**可以**嵌套花括号（海康
+# NET_DVR_PLAYITEM_INFO 等的 union 体内嵌 struct/union 定义），所以收集时
+# 必须用平衡花括号匹配，不能用 [^{}]* 的单层正则。
 # union 成员共享一块内存，字段按 bytes 暴露（见 emit.gen_fields），
 # 类型名只需进白名单，不必注册 nb::class_。
-UNION_RE = re.compile(r'typedef\s+union\s*(?:\w+\s*)?\{([^{}]*)\}\s*([^;]+);', re.S)
+UNION_HEAD_RE = re.compile(r'typedef\s+union\s*(?:\w+\s*)?\{')
 
 # 匹配单个字段声明（不含分号）。数组部分吃多个维度：[4][32] 这类二维也认。
+#
+# 类型与名字之间的分隔是 `[\s*]+`（空格/星号混合，**至少 1 个字符**），星号
+# 归分隔组、由调用方拼回 ftype。两个坑都踩过：
+#   - 用 `\s+`：`unsigned char *in_buf`（* 紧贴字段名，海康/大华都这么写）
+#     匹配不上，回退成 type='unsigned'、name='char'，字段名错、类型成空。
+#   - 用 `\s*`：贪婪回退会把名字劈开 —— `long bToScreen` 匹配成
+#     type='long bToScree' + name='n'。分隔组要求至少 1 个字符即可杜绝：
+#     合法 C 里类型和名字之间必有空格或 *。
 FIELD_RE = re.compile(
     r'^\s*(?:(?:const|volatile|static)\s+)*'
     r'((?:unsigned\s+|signed\s+)*(?:long\s+)?(?:int|char|short|long|float|double)?'
-    r'[A-Za-z_]\w*(?:\s*\*)*)'
-    r'\s+([A-Za-z_]\w*)\s*((?:\[[^\]]*\])*)')
+    r'[A-Za-z_]\w*)'           # 1: 类型 core（不含 *）
+    r'([\s*]+)'                # 2: 类型与名字之间的分隔（空格 / * 混合）
+    r'([A-Za-z_]\w*)'          # 3: 字段名
+    r'\s*((?:\[[^\]]*\])*)')   # 4: 数组维度
 
 # typedef int (CALLBACK *fXxx)(...);
 # 调用约定在头文件里常常是宏（CALLBACK / CALL_METHOD ...），写死列表必然漏。
 # 漏了 CALL_METHOD 就会让 fNotifyXxx 这类字段被当成普通类型去 def_rw，触发 C2440。
-FP_RE = re.compile(r'typedef\s+[^(;]*\(\s*(?:[A-Za-z_]\w*\s+)?\*\s*(\w+)\s*\)\s*\(')
+# 宏与 * 之间的空格不能要求：大华写 `typedef void (CALLBACK* fXxx)(...)`
+#（无空格），要求 \s+ 会漏掉整整一族 fNotifyXxx typedef。
+FP_RE = re.compile(r'typedef\s+[^(;]*\(\s*(?:[A-Za-z_]\w*\s*)?\*\s*(\w+)\s*\)\s*\(')
 
 # typedef 出来的普通类型别名（DWORD / LLONG / BYTE ...），用于字段白名单
 TYPEDEF_NAME_RE = re.compile(r'typedef\s+(?!struct\b|union\b|enum\b)[^;{()]*?([A-Za-z_]\w*)\s*;')
@@ -108,9 +122,16 @@ OPAQUE_PTR = {
 
 
 def strip_comments(text):
-    """去掉块注释和行注释，避免注释里的分号/花括号干扰正则。"""
-    text = re.sub(r'/\*.*?\*/', ' ', text, flags=re.S)
-    text = re.sub(r'//[^\n]*', ' ', text)
+    """去掉块注释和行注释，避免注释里的分号/花括号干扰正则。
+
+    必须**单趟交替匹配**，不能"先块后行"两趟：C 语义里行注释到行末为止，
+    行注释里的 `/*` 不是块注释开头。两趟式先删块注释会把 `//.../*...` 行里的
+    `/*` 误当块注释起点，一路吞到文件里下一个 `*/`，中间的**真代码整段消失**。
+    海康 HCNetSDK.h 的 `///////////*网络参数配置_V50/////////////` 就是这种写法，
+    曾把 NET_DVR_ALARMHOST_NETPARAM_V50 的 typedef 头吞掉，结构体收集不到，
+    引用它的字段全部被判未知类型。
+    """
+    text = re.sub(r'/\*.*?\*/|//[^\n]*', ' ', text, flags=re.S)
     return text
 
 
@@ -250,11 +271,20 @@ def _collect_structs(text):
 
 
 def _collect_unions(text):
-    """收集有名 union 类型名（typedef union {...} NAME;）。只进白名单，字段由 emit 按 bytes 暴露。"""
+    """收集有名 union 类型名（typedef union {...} NAME;）。只进白名单，字段由 emit 按 bytes 暴露。
+
+    body 用平衡花括号找（同 _find_typedef_structs）：海康的 union 体内嵌
+    struct/union 定义，单层 [^{}]* 正则抓不到，整个类型会从白名单里消失，
+    引用它的字段全部被判未知类型。
+    """
     union_names = set()
     union_ptr_aliases = {}
-    for m in UNION_RE.finditer(text):
-        _ubody, decl = m.group(1), m.group(2)
+    for m in UNION_HEAD_RE.finditer(text):
+        open_pos = m.end() - 1          # '{' 的位置
+        close_pos = _brace_match(text, open_pos)
+        after = text[close_pos + 1:]
+        semi = after.find(';')
+        decl = after[:semi] if semi != -1 else ''
         names, ptrs = _split_decl_names(decl)
         union_names.update(names)
         union_ptr_aliases.update(ptrs)
@@ -308,9 +338,10 @@ def _scan_body(body, bindable, fp_types, stats):
         decl = body[i:semi]
         fm = FIELD_RE.match(decl)
         if fm:
-            ftype = fm.group(1).strip()
-            fname = fm.group(2)
-            arr = fm.group(3) or None
+            # 星号在分隔组（group 2）里，拼回类型；见 FIELD_RE 处的注释
+            ftype = (fm.group(1) + fm.group(2)).strip()
+            fname = fm.group(3)
+            arr = fm.group(4) or None
             # 位字段：名字后跟 ':' 和宽度（BYTE byImageQlty:7），不能取地址，
             # nanobind 绑不了，跳过。
             if decl[fm.end():].lstrip().startswith(':'):
@@ -549,7 +580,8 @@ def _extract_scale(text):
     rs, rsn, rsa, rspa = _collect_structs(text)
     un, unp = _collect_unions(text)
     fp, td, dn = _collect_type_names(text)
-    bindable = (rsn | rsa | un | td | dn | BASE_TYPES | set(rspa) | set(unp))
+    bindable = (rsn | rsa | un | td | dn | BASE_TYPES | OPAQUE_PTR
+                | set(rspa) | set(unp))
     st, _ = _extract_fields(rs, bindable, fp)
     return len(st), sum(len(f) for _, f in st)
 
@@ -612,8 +644,15 @@ def parse_header(path, filters=None, verify=True):
     # （`LPNET_RECORDFILE_INFO pRecord;`），不进白名单会被判"未知类型"跳过。
     # 见 docs/implementation-notes.md 4.1 —— 这个疏漏曾让 6 个字段在指针别名
     # 已修之后仍留在 unknown 里。
+    #
+    # OPAQUE_PTR（HWND/HANDLE 等）同理：它们是 void* 的 typedef，来自
+    # windows.h 而非厂商头文件。海康头文件里 HWND 的 typedef 住在被
+    # text_filters 裁掉的 Linux 分支里，不进白名单的话 gen_bind 管线会把
+    # 7 个 HWND 字段判未知（check_coverage 不裁剪所以看不见这个差）。
+    # emit.gen_fields 对这些类型按指针字段同款处理（uintptr 地址读写）。
     bindable = (struct_names | struct_aliases | enum_names | union_names
-                | typedef_names | define_names | BASE_TYPES | set(ptr_aliases))
+                | typedef_names | define_names | BASE_TYPES | OPAQUE_PTR
+                | set(ptr_aliases))
 
     structs, stats = _extract_fields(raw_structs, bindable, fp_types)
 

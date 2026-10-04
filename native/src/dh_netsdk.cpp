@@ -1,4 +1,4 @@
-// Unified NetSDK -- Dahua NetSDK (dhnetsdk) minimal real-path binding.
+﻿// Unified NetSDK -- Dahua NetSDK (dhnetsdk) minimal real-path binding.
 //
 // Goal: prove the end-to-end chain on REAL types (not synthetic slices):
 //   1. dhnetsdk.h is consumed by MSVC as-is

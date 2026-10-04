@@ -4,7 +4,8 @@
 与 dahua 的差异都在数据层：
   - 头文件/输出目录/模块名/前缀不同
   - 函数声明里调用约定三种混用（__stdcall / CALLBACK / WINAPI）
-  - 结构体有 42 个含嵌套 union/struct（common 的扁平解析会跳过，待 hook）
+  - 结构体大量含嵌套 union/struct（common 已用平衡花括号 + _scan_body 递归
+    统一处理：嵌套匿名 union 成员提升、有名块按 bytes 暴露）
 
 **回调参数语义钩子：故意留空。**
 common/classify_cb_params 在没有钩子时保守退化——BYTE* 只给地址、结构体指针

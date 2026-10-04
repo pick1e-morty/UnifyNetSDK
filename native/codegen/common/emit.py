@@ -54,8 +54,11 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, ptr_aliases=frozen
         base = ftype.strip()
         type_name = base.replace('unsigned', ' ').replace('signed', ' ').strip().rstrip('*').strip()
         # 指针别名（LPNET_X）必须和裸指针同等对待：类型名里没有 '*'，若按标量
-        # 走 def_rw 会对指针成员报 C2440。
-        is_ptr = '*' in base or type_name in alias_keys
+        # 走 def_rw 会对指针成员报 C2440。OPAQUE_PTR（HWND/HANDLE 等 windows.h
+        # 句柄，本质是 void* 的 typedef）同理：nanobind 没有它们的 caster，
+        # 按地址（uintptr）读写 —— 与回调参数分类的既有语义一致。
+        is_ptr = ('*' in base or type_name in alias_keys
+                  or type_name in parse.OPAQUE_PTR)
         if arr:
             n = arr.strip()
             # 多维数组（[4][32]）无论元素类型一律按 bytes：char[4][32] 不是

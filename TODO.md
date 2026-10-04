@@ -165,7 +165,7 @@ class LoginArgs(BaseModel):
 这层胶水**应当半自动生成**：大华命名规整（`sz`=字符串、`n`=数字、`by`=字节、`dw`=DWORD、
 `st`=结构体、`f`=浮点），可写规则从 C 字段名推 Python 名，生成后人工校验。
 
-**② 62884 个字段不可能全做**。只覆盖用户真实调用的操作：登录、预览、报警、布防、
+**② 63353 个字段不可能全做**。只覆盖用户真实调用的操作：登录、预览、报警、布防、
 录像查询、PTZ、云台 —— 几十个模型，覆盖 90% 需求。其余结构体保持原始绑定形态。
 
 **③ pydantic 是第三方依赖，要不要强依赖**：
@@ -266,7 +266,7 @@ class LoginArgs(BaseModel):
 把现有的 `native/codegen/check_coverage.py` 改写成 pytest 断言，让**手写数字变成自动防线**：
 
 ```python
-def test_no_unknown_type_fields():            # 现在大华 6 + 海康 7 个，修完就是 0
+def test_no_unknown_type_fields():            # 已归零（2026-10-04），此断言防回归
 def test_callback_count_matches():            # 头文件 typedef 数 == bind_* 数（289/289）
 def test_struct_field_total_not_shrinking():  # 防某次改动漏绑一大批
 def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能持平；函数指针(296)只能减少
@@ -356,11 +356,13 @@ diff，也服务测试期断言。
 
 ---
 
-## 4. 未知类型归零（大华 6 个 + 海康 7 个）
+## 4. 未知类型归零（大华 6 个 + 海康 7 个）✅ 已完成（2026-10-04）
 
-`FP_RE` 只认 `typedef ... (*name)(` 一种写法（大华漏 5 个、海康漏 3 个函数指针
-typedef）；另有 `FIELD_RE` 边界 bug（大华 1 个、海康 4 个空类型）。改完 Phase 1 的
-`test_no_unknown_type_fields` 就能转绿。
+实际根因比预想多——不止 `FP_RE` / `FIELD_RE` 两处，共 4 条，全在 `common/parse.py`
+的通用 C 语法层：注释剥离顺序（行注释里的 `/*` 被误当块注释开头，吞掉真代码）、
+`FP_RE` 调用约定宏后要求空格、`UNION_RE` 抓不到嵌套花括号、`FIELD_RE` 匹配不上
+`*` 紧贴字段名的写法。明细与修法见 `binding-tech-debt.md` 和
+`implementation-notes.md` 第十节。附带收益：注释修复找回 651 个此前被吞的字段。
 
 ---
 

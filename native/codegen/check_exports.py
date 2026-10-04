@@ -60,10 +60,10 @@ def main():
         print('  下面的"未导出"清单不可信，先解决加载问题。')
         return 1
 
-    # 函数名提取走 common.parse，与生成器用的是同一套正则 —— 这里若与
-    # 生成器不一致，黑名单就会和实际漏绑的函数对不上。
-    text = parse.strip_comments(
-        open(cfg['header'], encoding='latin-1', errors='replace').read())
+    # 函数名提取走 common.parse 的统一入口 load_header（与生成器同一份文本，
+    # 含 text_filters），这里若与生成器看到的头文件不一致，黑名单就会和
+    # 实际漏绑的函数对不上。
+    text = parse.load_header(cfg['header'], cfg.get('text_filters'))
     names = {f[0] for f in parse.parse_funcs(text, cfg['func_re'])}
 
     declared = set(cfg['skip_funcs'])
