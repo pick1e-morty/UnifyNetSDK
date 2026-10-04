@@ -33,14 +33,14 @@ def main():
                     help='每个函数分片的函数数上限（默认 200）')
     ap.add_argument('--cbs-per-tu', type=int, default=30,
                     help='每个回调分片的回调数上限（默认 30）')
-    # 自测钩子默认生成：tests/test_cb_bindings.py 完全依赖它，少了钩子那个测试
+    # 自测钩子默认生成：tests/test_callbacks.py 完全依赖它，少了钩子那个测试
     # 就跑不了（只剩打印提示然后 exit 0，等于静默失效）。多出的 1.5 MB 产物
     # 换来"两个测试开箱即跑"+"上游无设备时也能验证自己的回调"，划算。
     # 附带价值：钩子常驻后上游可以直接 _selftest_fRealDataCallBack(b"") 触发
     # 真实 thunk，不需要连设备。
     ap.add_argument('--no-selftest', dest='emit_selftest', action='store_false',
                     help='不生成 _selftest_fXxx 钩子：产物小约 1.5 MB，但 '
-                         'tests/test_cb_bindings.py 将无法运行')
+                         'tests/test_callbacks.py 将无法运行')
     ap.set_defaults(emit_selftest=True)
     ap.add_argument('--limit', type=int, default=0,
                     help='只生成前 N 个字段（试编译用，0=全量）')

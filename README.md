@@ -11,10 +11,14 @@
 
 ## 当前状态
 
-| SDK | 版本 | 结构体 | 字段 | 枚举 | 函数 | 回调 | 状态 |
+| SDK | 版本 | 结构体 | 字段（绑定/共） | 枚举 | 函数（绑定/共） | 回调 | 状态 |
 |---|---|---|---|---|---|---|---|
-| 大华 `dhnetsdk` | 3.6.1.92074 | 10557 | 62884 | 1873 | 2515 | 289 | ✅ 编译 + 运行时验证通过 |
-| 海康 `HCNetSDK` | 6.1.11.30 | 2667 | 18603 | 264 | 785 | 26 | ✅ 编译 + 运行时验证通过 |
+| 大华 `dhnetsdk` | 3.6.1.92074 | 10557 | 62574 / 62884 | 1873 | 2515 / 2521 | 289 | ✅ 编译 + 运行时验证通过 |
+| 海康 `HCNetSDK` | 6.1.11.30 | 2669 | 18621 / 18639 | 264 | 785 / 789 | 26 | ✅ 编译 + 运行时验证通过 |
+
+> 数字来自 `python native/codegen/check_coverage.py --sdk <sdk>` 实测。函数"绑定/共"之差
+> 是 DLL 未导出被跳过（大华 6、海康 4）；字段之差见下方"未绑/降级"与
+> `docs/binding-tech-debt.md` 的覆盖边界表。
 
 两家各自独立模块：大华 `unify_dh_gen`、海康 `unify_hk_gen`（命名空间天然隔离，同名结构体不冲突）。
 两个 pyd 都通过了 `native/tests/verify_runtime.py`：import、字段读写往返、不依赖设备的安全函数
@@ -24,7 +28,7 @@
 "靠参数名判断数量"的规则是从大华 289 个回调归纳的，对海康不成立，等接上设备后照
 它的实际行为再补。
 
-未绑/降级的部分（296 个结构体成员函数指针、非 `char[N]` 数组按 bytes 暴露等）见
+未绑/降级的部分（结构体成员函数指针大华 296 个、海康 11 个，非 `char[N]` 数组按 bytes 暴露等）见
 `docs/binding-tech-debt.md`；跑 `python native/codegen/check_coverage.py --sdk <sdk>` 可随时重算。
 
 ## 技术方案
@@ -38,7 +42,7 @@
 | 指标 | 值 |
 |---|---|
 | `/Od` 提速 | 单片编译 188s → 23s（约 8×） |
-| 全量编译 | 约 11 分钟（`-Jobs 8`，62886 字段 / 125 片） |
+| 全量编译 | 约 11 分钟（`-Jobs 8`，62884 字段 / 125 片） |
 | 增量编译 | 改一个函数片约 5s + 链接 |
 | import | 0.5s |
 
@@ -101,7 +105,6 @@ UnifyNetSDK/
 │   ├── binding-tech-debt.md        # 技术债清单（活文档，修完就打勾）
 │   └── implementation-notes.md     # 实测踩坑笔记（nanobind / C API / MSVC / SDK）
 ├── pytest.ini                # testpaths（与上面的树一致）+ e2e marker（e2e 默认不跑）
-├── clean_pycache.bat         # 删所有 __pycache__（preview 列而不删 / all 连 .venv 一起）
 └── vendor/                   # 厂商原始 SDK（体积大，不入库）
     ├── dahua/                     # 大华 3.6.1.92074
     │   ├── C_Win64/                   #   原始发行包（只读，sync_sdk.py 的源）
@@ -117,8 +120,8 @@ SDK 原始包不入库，需自行从厂商渠道取得。**版本必须与下�
 
 | 厂商 | 版本 | 来源目录 | 产物与规模 |
 |---|---|---|---|
-| 大华 | **3.6.1.92074** | `vendor/dahua/C_Win64/` | `unify_dh_gen.pyd`：10557 结构体 / 2521 函数 / 289 回调 |
-| 海康 | **6.1.11.30**（build 20260805） | `vendor/haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/` | `unify_hk_gen.pyd`：2667 结构体 / 789 函数 / 26 回调 |
+| 大华 | **3.6.1.92074** | `vendor/dahua/C_Win64/` | `unify_dh_gen.pyd`：10557 结构体 / 2515 函数 / 289 回调 |
+| 海康 | **6.1.11.30**（build 20260805） | `vendor/haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/` | `unify_hk_gen.pyd`：2669 结构体 / 785 函数 / 26 回调 |
 
 版本号取自 DLL 的版本资源，不是目录名 —— 目录名可能与实际版本不符：
 

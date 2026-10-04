@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """端到端：用**生成版** unify_dh_gen 登录模拟器，验证回调在真实 SDK 线程上触发。
 
-这是 --emit-selftest 的替代验证：selftest 只能证明"从裸 std::thread 调 thunk"
-不崩，而这里证明的是真实链路 —— SDK 自己的工作线程 -> thunk -> GIL -> Python。
+这是 selftest 钩子（`_selftest_fXxx`）之外的另一条验证：selftest 只能证明
+"从裸 std::thread 调 thunk"不崩，而这里证明的是真实链路 ——
+SDK 自己的工作线程 -> thunk -> GIL -> Python。
 
 覆盖：
   1. bind_fDisConnect 返回的地址能直接喂给 CLIENT_Init

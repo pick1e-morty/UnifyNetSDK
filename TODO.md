@@ -15,7 +15,7 @@
 | 现象 | 现状 |
 |---|---|
 | 用户没有可 import 的入口 | 要用必须知道 `os.add_dll_directory` → `sys.path.insert(native/build)` → 手动构造结构体填 `dwSize` |
-| Python 测试散在三处 | `tests/` 2 个；`native/smoke_test.py` 因构建需要留在 C++ 侧；端到端的模拟器代码**内嵌在字符串字面量里** |
+| Python 测试曾散在三处 | 顶层 `tests/` 已撤掉、模拟器代码已拆出 `e2e/simulator/server.py`；`native/smoke_test.py` 因构建需要留在 C++ 侧；`python/` 三层 tests 待填 |
 | 手写与生成混在一层 | `native/src/dh_netsdk.cpp`（手写）与 `native/src/gen_dh/`（生成）职责已不同 |
 | 没有对外承诺 | README 讲了怎么做，没讲"用户会得到什么" |
 
@@ -84,11 +84,11 @@ UnifyNetSDK/
 ```
 native/codegen/gen_bind.py --sdk dahua
     ↓
-native/build/*.pyd  +  vendor/dahua/C_Win64/Bin/*.dll        # 1. 两份产物
+native/build/*.pyd  +  vendor/dahua/sdk_win64/bin/*.dll      # 1. 两份产物（sync_sdk.py 同步副本）
     ↓
 python/dhbind/_binding/                              # 2. 拷进胶水层
     ↓
-bdist_wheel                                           # 3. 打包 → unify_dh-1.0.0-cp313-win_amd64.whl
+bdist_wheel                                           # 3. 打包 → dhbind-1.0.0-cp313-win_amd64.whl
 ```
 
 **要分的是「运行时」（C++ 绑定 + Python 上层）和「构建期」（生成器）**，不是简单按
@@ -266,7 +266,7 @@ class LoginArgs(BaseModel):
 把现有的 `native/codegen/check_coverage.py` 改写成 pytest 断言，让**手写数字变成自动防线**：
 
 ```python
-def test_no_unknown_type_fields():            # 现在 6 个，修完就是 0
+def test_no_unknown_type_fields():            # 现在大华 6 + 海康 7 个，修完就是 0
 def test_callback_count_matches():            # 头文件 typedef 数 == bind_* 数（289/289）
 def test_struct_field_total_not_shrinking():  # 防某次改动漏绑一大批
 def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能持平；函数指针(296)只能减少
@@ -328,7 +328,7 @@ diff，也服务测试期断言。
 
 - `native/codegen/check_coverage.py` 已能输出完整覆盖边界，Phase 1 只需把数字改成断言
 - `native/tests/` 已就位（`conftest.py` + `_paths.py` + 三个脚本 + `e2e/`），顶层 `tests/` 已撤掉
-- **还没有 `pytest` 依赖**，所以那三个脚本目前仍不被 pytest 收集（它们也没有 `def test_*`）
+- `pytest.ini` 已就位但 **`pytest` 依赖尚未加入**，所以那三个脚本目前不被 pytest 收集（它们也没有 `def test_*`）
 - 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/verify_runtime.py` 报 72.2 MB / 3824 导出 / 26 回调（此前卡住的 121 个编译错误已解决）
 
 ---
@@ -356,10 +356,11 @@ diff，也服务测试期断言。
 
 ---
 
-## 4. 未知类型归零（6 个）
+## 4. 未知类型归零（大华 6 个 + 海康 7 个）
 
-`FP_RE` 只认 `typedef ... (*name)(` 一种写法，漏了 5 个函数指针 typedef；另有 1 个
-`FIELD_RE` 边界 bug。改完 Phase 1 的 `test_no_unknown_type_fields` 就能转绿。
+`FP_RE` 只认 `typedef ... (*name)(` 一种写法（大华漏 5 个、海康漏 3 个函数指针
+typedef）；另有 `FIELD_RE` 边界 bug（大华 1 个、海康 4 个空类型）。改完 Phase 1 的
+`test_no_unknown_type_fields` 就能转绿。
 
 ---
 

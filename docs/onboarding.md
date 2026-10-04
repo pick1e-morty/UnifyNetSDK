@@ -18,7 +18,7 @@
 |---|---|---|
 | `unify_dh_gen` | 生成产物（`native/codegen/gen_bind.py --sdk dahua`）| 大华，**主力模块** |
 | `unify_dh` | 手写（`native/src/dh_netsdk.cpp`）| 只剩登录链路 + `log_open` + GIL 探针 |
-| `unify_hk_gen` | 生成产物（`--sdk haikang`）| 海康，**尚未接 CMake 编译** |
+| `unify_hk_gen` | 生成产物（`--sdk haikang`）| 海康，✅ 已编译并验证（2026-10-04）；26 回调保守退化 |
 
 ---
 
@@ -27,6 +27,8 @@
 **已完成并验证**：
 
 - 大华 10557 结构体 / 62884 字段（99.51%）/ 1873 枚举 / 2515 函数 / **289 回调**全部绑定
+- 海康 2669 结构体 / 18639 字段（99.90%）/ 264 枚举 / 785 函数 / **26 回调**绑定完成
+  （`verify_runtime.py` 通过；回调走保守退化，待接设备后照实际行为补规则）
 - 端到端跑通：生成版登录 `Dahua_NVR_Simulator`（Gen2 两阶段认证），断线回调被
   **真实 SDK 工作线程**触发、参数全对
 - 回调参数分类覆盖 289 个 typedef：结构体数组 → `list`、字节缓冲 → `bytes`、
@@ -34,11 +36,10 @@
 
 **下一步（按性价比，见 `binding-tech-debt.md` 末尾表格）**：
 
-1. 未知类型归零（6 个，改 `FP_RE` 一条正则 + `FIELD_RE` 一个边界条件）
-2. **海康接 CMake 编译** —— 验证 `common/` 真的与厂商无关
-3. `.pyi` stub（IDE 补全）
-4. 高层封装（错误码表、`outptr` 自动读回）
-5. 成员函数指针字段（大华 296 个，最贵）
+1. 未知类型归零（大华 6 个 + 海康 7 个，改 `FP_RE` 一条正则 + `FIELD_RE` 一个边界条件）
+2. `.pyi` stub（IDE 补全）
+3. 高层封装（错误码表、`outptr` 自动读回）
+4. 成员函数指针字段（大华 296 个 + 海康 11 个，最贵）
 
 ---
 
@@ -77,7 +78,7 @@ cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 
 # 4. 验证
 cd ..; .venv\Scripts\python.exe native\tests\e2e\test_login_callback.py   # 端到端（需模拟器）
 .venv\Scripts\python.exe native\tests\test_callbacks.py          # 绑定层 268 个钩子
-.venv\Scripts\python.exe native/codegen\check_coverage.py             # 覆盖边界统计
+.venv\Scripts\python.exe native/codegen\check_coverage.py --sdk dahua|haikang             # 覆盖边界统计
 ```
 
 ### 编译由谁来跑
@@ -127,15 +128,15 @@ cd ..; .venv\Scripts\python.exe native\tests\e2e\test_login_callback.py   # 端�
 ## 七、常用命令速查
 
 ```powershell
-# 生成
+# 生成（--sdk dahua|haikang，下同）
 .venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua
 .venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua --no-selftest  # 少 1.5MB 产物
 .venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua --dry-run
 
 # 覆盖边界统计（升级 SDK 后重跑，刷新文档里的数字）
-.venv\Scripts\python.exe native/codegen\check_coverage.py
+.venv\Scripts\python.exe native/codegen\check_coverage.py --sdk dahua|haikang
 
 # 校验 DLL 导出表（头文件声明但实际未导出的函数）
-.venv\Scripts\python.exe native/codegen\check_exports.py
+.venv\Scripts\python.exe native/codegen\check_exports.py --sdk dahua|haikang
 ```
 

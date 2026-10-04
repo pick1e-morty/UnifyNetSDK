@@ -202,7 +202,7 @@ def gen_selftest(prefix, name, params, kinds):
 
     自测钩子按签名自动填好固定参数，所以每个回调都能被独立验证：
         <模块名>._selftest_fDataCallBack(b"\\x01\\x02")
-    默认不生成（--emit-selftest 开启），避免污染交付产物。
+    默认生成（--no-selftest 可关，省约 1.5 MB 产物）。
     """
     if not params:
         return []

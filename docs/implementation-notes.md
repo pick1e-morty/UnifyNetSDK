@@ -259,7 +259,7 @@ fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *pstuCarPassInfos, int nInfoNum, ...) 
 `nInfoNum` / `nBufLen` / `dwBufSize` / `nItemCount` 都仍正确。
 
 **统计口径**（289 回调 / 1146 参数，零误判）：
-`value 820 / obj 224 / uintptr 48 / cstr 28 / bytes 19 / array 7`
+`value 819 / obj 224 / uintptr 49 / cstr 28 / bytes 19 / array 7`
 
 ### 4.5 `dwUser` 就是传给注册函数的那个值
 
@@ -273,8 +273,10 @@ fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *pstuCarPassInfos, int nInfoNum, ...) 
 `ctypes.CFUNCTYPE` 回调会**自建并 swap 一个 thread state**，导致 2.3 的判据误判，
 进而二次 attach 崩溃。所以 **ctypes 无法验证"无 GIL 线程调 thunk"** 这条路径。
 
-这也是 `--emit-selftest` 存在的唯一理由：从裸 `std::thread` 调 thunk。
-不过现在 `test_login_callback.py`（真实 SDK 线程）已经覆盖，selftest 默认关闭。
+这也是 selftest 钩子（`_selftest_fXxx`）存在的唯一理由：从裸 `std::thread` 调 thunk。
+钩子现在**默认生成**（`--no-selftest` 可关，省 1.5 MB 产物），因为绑定层
+`test_callbacks.py` 依赖它；端到端 `test_login_callback.py` 覆盖的是另一条路径 ——
+真实 SDK 工作线程进 thunk。
 
 ---
 
@@ -371,7 +373,7 @@ digest 绕道；后来登录实测通了，却没回头修正这个结论，甚�
 
 | | |
 |---|---|
-| **做法** | 造 4 个只含大华头文件、不含真实逻辑的合成 TU，分别绑 0 / 506 / 2005 / 5014 个字段；单文件计时；最小二乘拟合 `t = 固定 + 每字段 × N`；外推到 61881（大华全量）与 82755（大华+海康）字段 |
+| **做法** | 造 4 个只含大华头文件、不含真实逻辑的合成 TU，分别绑 0 / 506 / 2005 / 5014 个字段；单文件计时；最小二乘拟合 `t = 固定 + 每字段 × N`；外推到 61881（大华全量）与 82755（大华+海康）字段（当时口径；最终实测 62884 / 81523）|
 | **结论** | 可行，编译时间在可接受范围 |
 | **印证** | 真实产物随后直接验证了这一点：拆成 125 个分片后全量 612 s（上表），而不是单文件几十分钟 |
 
@@ -405,23 +407,16 @@ digest 绕道；后来登录实测通了，却没回头修正这个结论，甚�
 
 正确顺序：
 
-```powershell
-# 1. 重新生成
-.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua
-
-# 2. 确认生成物里真的有新东西（关键，别跳）
-Select-String -Path native\src\gen_dh\dh_bind_part*.cpp -Pattern '"lpRecordFile"'
-
-# 3. 再编译
-cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 8
-```
+完整命令序列见 `onboarding.md` 第四节（① 重新生成 → ② `Select-String` 确认生成物 →
+③ 编译 → ④ 验证），不在此重复。
 
 第 2 步是这轮踩出来的：指针别名修复后直接让用户编译，`.pyd` 里
 `NET_IN_DOWNLOAD.lpRecordFile` 压根不存在，而我已经开始写"验证字段是否可用"
 的脚本了。**先确认生成物，再编译，再验证**。
 
-同理，**关掉某个生成开关时，要检查依赖它的脚本**。`--emit-selftest` 改成默认
-关闭后，`native/tests/test_callbacks.py` 依赖的 `_selftest_fXxx` 就没了，跑到第一个
-用例直接 `AttributeError` traceback，看不出是"忘了加开关重新生成"。现在该脚本
-开头会检测并打印重生成命令。
+同理，**关掉某个生成开关时，要检查依赖它的脚本**。早年 `--emit-selftest` 默认
+关闭的阶段，`native/tests/test_callbacks.py` 依赖的 `_selftest_fXxx` 就没了，跑到
+第一个用例直接 `AttributeError` traceback，看不出是"忘了加开关重新生成"。该脚本
+开头会检测并打印重生成命令。现在钩子默认生成，只有带 `--no-selftest` 重新生成
+才会复现这个问题。
 
