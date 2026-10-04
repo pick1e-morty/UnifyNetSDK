@@ -52,6 +52,9 @@ HAIKANG = {
     # 产物目录与 config/dahua.py 同一套命名规则：gen_<厂商缩写>，
     # 与 file_prefix（hk_bind_*）、module（unify_hk_gen）保持一致。
     'out_dir': os.path.join(PROJECT, 'native', 'src', 'gen_hk'),
+    # pyd 的构建输出目录：emit_stub 会把 {module}.pyi 再放一份到这里
+    # （与 dahua 同构；目录不存在时静默跳过）。
+    'build_dir': os.path.join(PROJECT, 'native', 'build'),
     'module': 'unify_hk_gen',
     'include': '#include <HCNetSDK.h>',
     'file_prefix': 'hk_bind',

@@ -487,3 +487,27 @@ type=`'long bToScree'` + name=`'n'`，未知类型清单里出现一批缺尾字
 做"未知类型归零"这类以数字为目标的任务时，先确认哪个工具的口径是文档承诺的
 （本项目以 `check_coverage` 为准，debt 文档开头写明）。
 
+---
+
+## 十一、`.pyi` stub 的两个坑（2026-10-04）
+
+stub 由 `common/emit_stub.py` 从 IR 自动生成（IR 的第二个消费者），两个坑：
+
+### 11.1 裸 `char` 是 str，`unsigned char` 是 int —— 归一化后无法区分
+
+nanobind 对裸 `char` 成员/参数的映射是**单字符 str**，`unsigned char`/`BYTE`
+是 int。而剥掉 unsigned/signed 做类型归一化后，两者的 core 都是 `'char'` ——
+只看归一化结果写注解，11211 个 `BYTE[N]` 数组之外的裸 char 字段全会注错。
+判据必须落在**原始类型文本**上（`'unsigned' not in base`）。
+
+**怎么逮到的**：stub 写完不是"看着对"就完事，而是拿 pyd 实例化后**逐字段对拍
+运行时类型** —— 第一版 4 个 `char cXxx` 字段立刻现形。对拍脚本半小时，比 IDE
+里发现注解撒谎后再排查便宜得多。
+
+### 11.2 stub 的名字和位置决定它是否生效
+
+`.pyi` 不是放在生成目录就完事：IDE 按模块名识别，必须叫
+`unify_<厂商>_gen.pyi`（不是 `{file_prefix}.pyi`），且与 `.pyd` 同目录
+（`native/build/`）才开箱即用。所以 emit_stub 写两份：`cfg['out_dir']`
+（生成器管辖区）+ `cfg['build_dir']`（pyd 旁边，目录不存在则静默跳过）。
+

@@ -42,6 +42,11 @@ def main():
                     help='不生成 _selftest_fXxx 钩子：产物小约 1.5 MB，但 '
                          'tests/test_callbacks.py 将无法运行')
     ap.set_defaults(emit_selftest=True)
+    # .pyi stub 默认生成：与 pyd 同源的 IDE 补全（common/emit_stub.py，见 TODO 7）。
+    # 产物 10MB 级文本，只要 pyd 不要 stub 时用 --no-stub 关掉。
+    ap.add_argument('--no-stub', dest='emit_stub', action='store_false',
+                    help='不生成 {module}.pyi 类型存根')
+    ap.set_defaults(emit_stub=True)
     ap.add_argument('--limit', type=int, default=0,
                     help='只生成前 N 个字段（试编译用，0=全量）')
     ap.add_argument('--out-dir', default=None,

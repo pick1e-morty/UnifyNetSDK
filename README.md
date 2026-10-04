@@ -77,7 +77,8 @@ UnifyNetSDK/
 │   │   │   ├── dh_bind_cbsNNN.cpp #   回调 thunk + 绑定
 │   │   │   ├── dh_bind_partNNN.cpp#   结构体分片
 │   │   │   ├── dh_bind_enumsNNN.cpp
-│   │   │   └── dh_bind_funcsNNN.cpp
+│   │   │   ├── dh_bind_funcsNNN.cpp
+│   │   │   └── unify_dh_gen.pyi   #   IDE 补全存根（emit_stub.py，build 目录另有副本）
 │   │   └── gen_hk/            # 海康生成产物（结构与 gen_dh 同构）
 │   └── tests/                 # ★ 测第 1 层：.pyd 绑定层
 │       ├── conftest.py            #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
@@ -193,6 +194,10 @@ g.CLIENT_Cleanup()
 
 > 两个厂商的 pyd 都要 import 时，**两个 DLL 目录都得先 `add_dll_directory`**，否则
 > 跨厂商 import 会报 `DLL load failed: 找不到指定的模块`（依赖解析在进程级）。
+
+类型存根：`gen_bind.py` 同时产出 `unify_<厂商>_gen.pyi`（`--no-stub` 可关），
+与 pyd 同放 `native/build/` —— IDE 对上面的 import 直接给出全量补全与字段类型
+（`char[N]` → `str`、其余数组 → `bytes`、指针/句柄 → `int` 地址）。
 
 ## 回调
 

@@ -101,7 +101,7 @@ bdist_wheel                                           # 3. 打包 → dhbind-1.0
 
 | 决策 | 结论 |
 |---|---|
-| 交付形态 | **wheel**。一个厂商一个 wheel（见第 6 节），`unify_netsdk` 是可选的上层抽象 |
+| 交付形态 | **wheel**。一个厂商一个 wheel（见第 4 节），`unify_netsdk` 是可选的上层抽象 |
 | 平台范围 | 先只打通 **win_amd64 + cp313**，证明路线可行；多平台/多版本日后按需再扩 |
 
 ### 0.4 已定：上层做厚壳，核心是参数模型化
@@ -111,8 +111,8 @@ bdist_wheel                                           # 3. 打包 → dhbind-1.0
 | 能力 | 说明 |
 |---|---|
 | **参数模型化（pydantic）** | ★ 核心，见 0.6 |
-| 错误码转 Exception | 见第 5 节 |
-| `outptr` 自动读回 | 见第 3 节 |
+| 错误码转 Exception | 见第 3 节 |
+| `outptr` 自动读回 | 见第 2 节 |
 | 回调装饰器 | `@client.on_alarm` 之类，替代手工 `bind_fXxx` |
 | `Client` 高层类 | 把"建连接→登录→订阅→预览"串成常规流程 |
 
@@ -194,7 +194,7 @@ class LoginArgs(BaseModel):
 - **讨论时机**：等第 1 层 `.pyd` 编译通过、第 2/3/4 层的包骨架落地后再定。届时要回答：
   1. 拆分边界按**产品层**（第 1/2/3/4 层）还是按**运行时 vs 构建期**？
   2. `native/` 的绑定层同时服务两个 wheel，单独成仓还是留在某个 wheel 仓里？
-  3. 生成器（现在在 `native/codegen/`）若要与 native 绑定分离成独立仓，依赖怎么表达（见第 6 节：倾向 PyPI，不用 submodule）。
+  3. 生成器（现在在 `native/codegen/`）若要与 native 绑定分离成独立仓，依赖怎么表达（见第 4 节：倾向 PyPI，不用 submodule）。
 
 ---
 
@@ -240,7 +240,7 @@ class LoginArgs(BaseModel):
 | `native/tests/verify_runtime.py` | `native/tests/test_structs.py` 落地并跑通（本节 Phase 2）| DLL 加载知识 → `conftest.py` 的 fixture；字段往返 → `test_structs.py` |
 | `native/tests/_paths.py` | 三个脚本转成 pytest 之后 | 内容并入 `conftest.py` |
 
-**在退役条件达成之前不要删** —— 海康 pyd 的编译推进中（第 2 节），
+**在退役条件达成之前不要删** —— 两厂商 pyd 均已编译验证，
 `verify_runtime.py` 是目前唯一能同时验证两个厂商 `.pyd` 可 import + 字段可读写
 的跨厂商回归工具，删早了就没有替代品。同一约定也写在该文件的 docstring 顶部。
 
@@ -269,7 +269,7 @@ class LoginArgs(BaseModel):
 def test_no_unknown_type_fields():            # 已归零（2026-10-04），此断言防回归
 def test_callback_count_matches():            # 头文件 typedef 数 == bind_* 数（289/289）
 def test_struct_field_total_not_shrinking():  # 防某次改动漏绑一大批
-def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能持平；函数指针(296)只能减少
+def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能持平；函数指针(301)只能减少
 ```
 
 **为什么最先做**：以后换 SDK 或改生成器，测试立刻告诉你「这次漏了什么」，
@@ -329,44 +329,18 @@ diff，也服务测试期断言。
 - `native/codegen/check_coverage.py` 已能输出完整覆盖边界，Phase 1 只需把数字改成断言
 - `native/tests/` 已就位（`conftest.py` + `_paths.py` + 三个脚本 + `e2e/`），顶层 `tests/` 已撤掉
 - `pytest.ini` 已就位但 **`pytest` 依赖尚未加入**，所以那三个脚本目前不被 pytest 收集（它们也没有 `def test_*`）
-- 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/verify_runtime.py` 报 72.2 MB / 3824 导出 / 26 回调（此前卡住的 121 个编译错误已解决）
+- 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/verify_runtime.py` 报 72.9 MB / 3825 导出 / 26 回调
 
 ---
 
-## 2. 海康接 CMake 编译 ✅ 已完成（2026-10-04）
-
-原计划是验证 `common/` 真的与厂商无关（当时生成器 dry-run 通过但编译不过，
-121 个错误：Linux 条件分支里的 `DC`/`INITINFO`/`PLAYRECT` 类型被无条件生成、
-二维数组参数、输出指针分类）。**现已全部解决** —— `unify_hk_gen.pyd`
-72.2 MB / 3824 导出 / 26 回调，import + 字段往返都正常，跑
-`native/tests/verify_runtime.py` 即可复核。
-
-**留下的海康遗留**：26 个回调走保守退化 —— `config/haikang.py` 故意**不设**
-`cb_qty_pred` / `cb_count_pred`，所以不识别数组、结构体指针只给单对象。这是有意的：
-大华那套"靠参数名猜数量"的规律照搬过来只会误判（海康回调命名风格完全不同）。
-等接上设备、拿到实际回调行为后照事实写规则 —— 那时才叫"我们吃苦"。
-**少给可接受，给错无法排查。**
-
----
-
-## 3. 输出指针（outptr）自动读回
+## 2. 输出指针（outptr）自动读回
 
 `outptr` 现在暴露成 `int` 地址，调用后要自己 `ctypes` 预分配缓冲再读回，属于
 「能用但别扭」。做完后 Phase 3 的函数测试会简单很多 —— 否则每次都要手工配缓冲。
 
 ---
 
-## 4. 未知类型归零（大华 6 个 + 海康 7 个）✅ 已完成（2026-10-04）
-
-实际根因比预想多——不止 `FP_RE` / `FIELD_RE` 两处，共 4 条，全在 `common/parse.py`
-的通用 C 语法层：注释剥离顺序（行注释里的 `/*` 被误当块注释开头，吞掉真代码）、
-`FP_RE` 调用约定宏后要求空格、`UNION_RE` 抓不到嵌套花括号、`FIELD_RE` 匹配不上
-`*` 紧贴字段名的写法。明细与修法见 `binding-tech-debt.md` 和
-`implementation-notes.md` 第十节。附带收益：注释修复找回 651 个此前被吞的字段。
-
----
-
-## 5. 错误码转 Exception
+## 3. 错误码转 Exception
 
 把裸数字错误码变成可捕获的异常。上层 Python 的核心价值之一，也是"用户不必自己
 查厂商错误码表"的前提。
@@ -383,7 +357,7 @@ diff，也服务测试期断言。
 
 ---
 
-## 6. 打包与分发
+## 4. 打包与分发
 
 目标形态（已确认）：
 
@@ -415,17 +389,10 @@ DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` �
 表达依赖关系（生成器可独立成一个包，别人可能复用）。
 ---
 
-## 7. `.pyi` stub
-
-纯生成工作，IDE 补全 + 错误码有类型。与 pytest 无关，但两者都依赖「从 IR 生成
-元数据」，可以合并成同一个生成步骤。
-
-
-
-## 8. 那个大华模拟器有空了fork一下，后面还要实现录像下载。
+## 5. 那个大华模拟器有空了fork一下，后面还要实现录像下载。
 然后记得还有海康模拟器，上网搜一搜有没有现成的。
 
-## 9. `dh_netsdk.cpp` 的定位与清理
+## 6. `dh_netsdk.cpp` 的定位与清理
 
 它是"GIL 安全的阻塞调用封装"（第 2 层 `dhbind` 的 C++ 侧），两件事没做完：
 

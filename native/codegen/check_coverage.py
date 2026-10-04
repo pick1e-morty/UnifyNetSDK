@@ -78,7 +78,7 @@ print("[降级：绑了但只能看]")
 print("   非 char 数组 / 多维数组  %4d  拿到 bytes，需自己 struct.unpack" % arr_other)
 print("   内嵌 struct/union 字段        按 bytes 暴露")
 print("   outptr 输出指针               暴露为 int 地址，调用后需自己读回")
-print("   无 .pyi stub                  IDE 无补全、错误码是裸数字")
+print("   错误码裸数字                  厂商错误码无符号名，待错误码表")
 print()
 
 # ---- 回调参数分类 ----

@@ -71,6 +71,9 @@ DAHUA = {
     # 只差两个字母，肉眼极易看串（build.ps1 至今还在为此发提示）。第三方厂商
     # 接入时更会歧义：gen 到底指谁。
     'out_dir': os.path.join(PROJECT, 'native', 'src', 'gen_dh'),
+    # pyd 的构建输出目录：emit_stub 会把 {module}.pyi 再放一份到这里，
+    # 与 .pyd 同目录，IDE 按模块名识别（目录不存在时静默跳过）。
+    'build_dir': os.path.join(PROJECT, 'native', 'build'),
     'module': 'unify_dh_gen',
     'include': '#include <dhnetsdk.h>',
     'file_prefix': 'dh_bind',

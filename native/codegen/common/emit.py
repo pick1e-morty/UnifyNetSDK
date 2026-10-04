@@ -32,7 +32,8 @@ import collections
 import os
 import re
 
-from common import cb_runtime, parse
+from common import cb_runtime, emit_stub, parse
+from common.writeout import write_if_changed
 
 
 # ------------------------------------------------------------ 字段代码生成
@@ -281,34 +282,6 @@ def gen_callback_binding(prefix, name):
     ]
 
 
-def write_if_changed(path, text):
-    """内容不变就不写文件，避免 mtime 变化导致 ninja 无谓重编整个分片。
-
-    同时强制 ASCII：生成物是给 MSVC 读的，非 ASCII 会触发 C4819；而
-    `open(..., 'w', encoding='ascii')` 是写到第一个非 ASCII 字符时才抛
-    UnicodeEncodeError，报错里完全看不出是哪句注释写的。
-    """
-    try:
-        text.encode('ascii')
-    except UnicodeEncodeError as e:
-        bad = text[max(0, e.start - 60):e.start + 60]
-        raise ValueError(
-            '生成内容含非 ASCII 字符（写入 %s 会因此崩溃）。\n'
-            '  位置: %r\n  上下文: ...%s...\n'
-            '  生成代码里的注释必须用 ASCII；中文说明请留在 Python 侧 docstring。'
-            % (os.path.basename(path), e.start, bad.replace('\n', '\\n')))
-    if os.path.isfile(path):
-        try:
-            with open(path, 'r', encoding='ascii', errors='replace') as f:
-                if f.read() == text:
-                    return False
-        except OSError:
-            pass
-    with open(path, 'w', encoding='ascii') as f:
-        f.write(text)
-    return True
-
-
 def make_includes(cfg):
     return (
         '#define NOMINMAX\n'
@@ -372,6 +345,7 @@ def generate(cfg, args):
     funcs = parse.parse_funcs(text, cfg['func_re'])
     func_stat = collections.Counter()
     bindable_funcs = []
+    stub_funcs = []    # (fname, ret, params)：emit_stub 的输入（C++ 行不含类型）
     for fname, ret, params in funcs:
         if fname in cfg['skip_funcs']:
             func_stat['skip_undefined'] += 1
@@ -381,6 +355,7 @@ def generate(cfg, args):
             func_stat['skip_' + reason] += 1
         else:
             bindable_funcs.append((fname, flines))
+            stub_funcs.append((fname, ret, params))
             func_stat['bound'] += 1
     print('  函数      : %d 个（可绑 %d / 未导出跳过 %d / 其他跳过 %d）'
           % (len(funcs), func_stat['bound'],
@@ -534,6 +509,7 @@ def generate(cfg, args):
                     cb_runtime.header(cfg['module']))
 
     # ---- 回调 thunk + 注册 ----
+    selftest_names = set()   # 实际生成了 _selftest_fXxx 的回调（stub 需要同名注解）
     for i, chunk in enumerate(cb_shards):
         lines = [BANNER, INCLUDES, CB_INCLUDES]
         # thunk 必须定义在**文件作用域**：C++ 不允许在函数体内定义函数
@@ -544,7 +520,10 @@ def generate(cfg, args):
         for cname, cret, cparams, kinds in chunk:
             lines += gen_callback_binding(prefix, cname)
             if args.emit_selftest:
-                lines += gen_selftest(prefix, cname, cparams, kinds)
+                st_lines = gen_selftest(prefix, cname, cparams, kinds)
+                if st_lines:
+                    lines += st_lines
+                    selftest_names.add(cname)
         lines.append('}\n')
         fname = '%s_cbs%03d.cpp' % (prefix, i)
         keep.add(fname)
@@ -565,6 +544,17 @@ def generate(cfg, args):
     lines.append('}\n')
     keep.add('%s_main.cpp' % prefix)
     write_if_changed(os.path.join(out_dir, '%s_main.cpp' % prefix), ''.join(lines))
+
+    # ---- .pyi stub：IR 的第二个消费者（common/emit_stub.py）----
+    # 不是 TU，不进 keep/manifest（分片 diff 只统计编译输入）；--limit 试编译
+    # 模式下 pyd 只有部分字段，全量 stub 会与运行时不符，跳过。
+    if getattr(args, 'emit_stub', False):
+        if args.limit:
+            print('  stub       : --limit 模式跳过（pyd 不完整，stub 会撒谎）')
+        else:
+            emit_stub.write(cfg, fp_types, enums, structs, struct_names,
+                            enum_names, union_names, ptr_aliases, stub_funcs,
+                            [c[0] for c in bindable_cbs], selftest_names)
 
     # ---- 清理过期分片（片数变少 / 改名后残留的旧文件）----
     removed = 0
