@@ -41,10 +41,25 @@ def mark(msg):
 
 mark("module imported")
 
+# 绑定层测试依赖 --emit-selftest 生成的 _selftest_fXxx 钩子（默认不生成）。
+# 缺钩子时给明确出路，而不是抛 AttributeError。
+_selftests = [n for n in dir(G) if n.startswith("_selftest_")]
+if not _selftests:
+    print(__doc__)
+    print("=" * 70)
+    print("缺少 _selftest_* 钩子：生成时需要加 --emit-selftest 并重编。")
+    print()
+    print("  .venv\\Scripts\\python.exe tools\\gen_bind.py --sdk dahua --emit-selftest")
+    print("  cd native")
+    print("  powershell -ExecutionPolicy Bypass -File .\\build.ps1 -SkipTest -Jobs 8")
+    print()
+    print("（功能验收不需要它 —— 走 tests\\test_e2e_generated.py 真实 SDK 链路）")
+    sys.exit(0)
+
 print("unify_dh_gen loaded")
 binds = [n for n in dir(G) if n.startswith("bind_")]
 setters = [n for n in dir(G) if n.startswith("set_")]
-selftests = [n for n in dir(G) if n.startswith("_selftest_")]
+selftests = _selftests
 print("  bind_* %d / set_* %d / _selftest_* %d" % (len(binds), len(setters), len(selftests)))
 print()
 
