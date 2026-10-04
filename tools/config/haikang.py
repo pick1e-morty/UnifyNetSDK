@@ -30,6 +30,8 @@ HAIKANG = {
     'dll': os.path.join(PROJECT, 'haikang', 'HCNetSDK_Win64',
                         'HCNetSDKV6.1.11.30_build20260805_Win64_ZH',
                         '库文件', 'HCNetSDK.dll'),
+    # 产物目录与 config/dahua.py 同一套命名规则：gen_<厂商缩写>，
+    # 与 file_prefix（hk_bind_*）、module（unify_hk_gen）保持一致。
     'out_dir': os.path.join(PROJECT, 'native', 'src', 'gen_hk'),
     'module': 'unify_hk_gen',
     'include': '#include <HCNetSDK.h>',

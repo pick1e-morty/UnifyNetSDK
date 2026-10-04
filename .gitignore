@@ -7,7 +7,8 @@
 .venv/
 
 # ===== 生成的绑定代码（tools/gen_bind.py 产出，可重建）=====
-native/src/gen/
+# 目录名带厂商缩写，与 config/<sdk>.py 的 out_dir 一致：gen_dh / gen_hk
+native/src/gen_dh/
 native/src/gen_hk/
 
 # ===== 编译实验产物（bench_nanobind）=====

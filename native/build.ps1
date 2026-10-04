@@ -63,7 +63,7 @@ Write-Host "NINJA: $ninja" -ForegroundColor Green
 # 留下来做统计分析。
 #
 # 之前只 Out-Host 不保留，脚本无法回答"哪个厂商失败、失败了几处"（两个厂商的
-# 产物目录 src/gen 与 src/gen_hk 只差两个字母，肉眼极易看错）。但改成
+# 产物目录 src/gen_dh 与 src/gen_hk 只差两个字母，肉眼极易看错）。但改成
 # `$out = & cmd ...` 之后再 Out-Host 也同样是错的 —— 那会把全部输出攒到命令
 # 结束才吐出来，海康编译 160 s 期间屏幕完全空白，而用户正是靠进度条判断
 # "还在跑 / 卡住了"。所以必须**边收边打**：ForEach-Object 每收到一行就立刻
@@ -182,8 +182,8 @@ Write-Host "========================================" -ForegroundColor Cyan
 
 if ($anyFail) {
     Write-Host ""
-    Write-Host "提示：错误行里的路径已标明归属厂商 —— src\gen\   是大华 (dh)，" -ForegroundColor Yellow
-    Write-Host "      src\gen_hk\ 是海康 (hk)。文件名只差 hk 两字，注意别看串。" -ForegroundColor Yellow
+    Write-Host "提示：错误行里的路径已标明归属厂商 —— src\gen_dh\ 是大华 (dh)，" -ForegroundColor Yellow
+    Write-Host "      src\gen_hk\  是海康 (hk)。目录名只差两个字母，注意别看串。" -ForegroundColor Yellow
     Write-Host "      单独重编某个厂商：build.ps1 -Sdk dahua | -Sdk haikang" -ForegroundColor Yellow
     exit 1
 }

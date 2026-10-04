@@ -16,7 +16,7 @@
 |---|---|
 | 用户没有可 import 的入口 | 要用必须知道 `os.add_dll_directory` → `sys.path.insert(native/build)` → 手动构造结构体填 `dwSize` |
 | Python 测试散在三处 | `tests/` 2 个；`native/smoke_test.py` 因构建需要留在 C++ 侧；端到端的模拟器代码**内嵌在字符串字面量里** |
-| 手写与生成混在一层 | `native/src/dh_netsdk.cpp`（手写）与 `native/src/gen/`（生成）职责已不同 |
+| 手写与生成混在一层 | `native/src/dh_netsdk.cpp`（手写）与 `native/src/gen_dh/`（生成）职责已不同 |
 | 没有对外承诺 | README 讲了怎么做，没讲"用户会得到什么" |
 
 ### 0.2 目标形态：四层产品结构
@@ -26,7 +26,7 @@
 
 | 产品层 | 交付物 | 源码位置 |
 |---|---|---|
-| **第 1 层** C → pyd | `unify_dh_gen.pyd` / `unify_hk_gen.pyd` | `native/src/gen/`（生成物，不入库）|
+| **第 1 层** C → pyd | `unify_dh_gen.pyd` / `unify_hk_gen.pyd` | `native/src/gen_dh/`（生成物，不入库）|
 | **第 2 层** 大华厚封装 wheel | `unify-dh` | `python/unify_dh/` |
 | **第 3 层** 海康厚封装 wheel | `unify-hk` | `python/unify_hk/` |
 | **第 4 层** 跨厂商抽象 | `unify-netsdk` | `python/unify/` |
@@ -38,7 +38,7 @@ UnifyNetSDK/
 ├── native/                          # 第 1 层：C++ 绑定（nanobind）
 │   ├── CMakeLists.txt / build.ps1
 │   ├── src/dh_netsdk.cpp            # 手写部分（登录链路 / 排障工具）
-│   └── src/gen/                     # 生成产物（不入库）
+│   └── src/gen_dh/                     # 生成产物（不入库）
 │
 ├── python/                          # 上层：三个待打包的包
 │   ├── unify_dh/                    # → 第 2 层，wheel 1

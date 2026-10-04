@@ -388,7 +388,7 @@ digest 绕道；后来登录实测通了，却没回头修正这个结论，甚�
 .venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
 
 # 2. 确认生成物里真的有新东西（关键，别跳）
-Select-String -Path native\src\gen\dh_bind_part*.cpp -Pattern '"lpRecordFile"'
+Select-String -Path native\src\gen_dh\dh_bind_part*.cpp -Pattern '"lpRecordFile"'
 
 # 3. 再编译
 cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 8

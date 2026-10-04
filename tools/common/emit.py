@@ -14,7 +14,7 @@
 `tools/gen_bind.py` 的事）：
   1. `python tools/gen_bind.py --sdk dahua`
   2. grep 生成物确认新东西真进去了，例如
-     `Select-String -Path native/src/gen/dh_bind_part*.cpp -Pattern '"新字段名"'`
+     `Select-String -Path native/src/gen_dh/dh_bind_part*.cpp -Pattern '"新字段名"'`
   3. 再编译
 
 跳过第 2 步的后果：`.pyd` 里字段压根不存在，验证脚本报 `hasattr == False`，

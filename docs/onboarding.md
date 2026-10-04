@@ -51,7 +51,7 @@
 | 生成什么代码（thunk、分片、注册语句）| `tools/common/emit.py` | 改这里会影响编译规模，见第四节 |
 | 大华特有的路径/函数正则/跳过名单 | `tools/config/dahua.py` | 厂商差异**只能**加在这里，`common/` 保持厂商无关 |
 | 手写登录链路、GIL 探针 | `native/src/dh_netsdk.cpp` | |
-| 生成物 | **不要直接改** `native/src/gen/` | 下次生成就被覆盖，且不入库 |
+| 生成物 | **不要直接改** `native/src/gen_dh/` | 下次生成就被覆盖，且不入库 |
 
 改 `common/` 里的厂商无关逻辑时，要问"海康需不需要额外分支"。需要 → 说明抽象漏了，
 要么放 `config/`，要么就想清楚为什么两家不同。
@@ -69,7 +69,7 @@
 #      或：修改 95 个 (part 95) => 预计重编 95 个 TU，约 8.7 min
 
 # 2. 确认生成物里真的有新东西（这步别跳）
-Select-String -Path native\src\gen\dh_bind_part*.cpp -Pattern '"新字段名"'
+Select-String -Path native\src\gen_dh\dh_bind_part*.cpp -Pattern '"新字段名"'
 
 # 3. 编译
 cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 8
@@ -102,7 +102,7 @@ cd ..; .venv\Scripts\python.exe tests\test_e2e_generated.py   # 端到端（需�
 | 依赖图 / 拓扑序（`build_deps` / `topo_order`）| 端到端（顺序错了运行时才暴露）|
 | 纯文档 | 不用跑 |
 
-两个测试都要求 `native/src/gen/` 产物与源码同步。**若产物是旧的**，要么测试给出
+两个测试都要求 `native/src/gen_dh/` 产物与源码同步。**若产物是旧的**，要么测试给出
 提示（绑定层），要么出现莫名其妙的 `hasattr == False` —— 先怀疑产物没重新生成。
 
 ---

@@ -48,7 +48,12 @@ DAHUA = {
     'name': 'dahua',
     'header': os.path.join(PROJECT, 'dahua', 'C_Win64', 'Include', 'Common', 'dhnetsdk.h'),
     'dll': os.path.join(PROJECT, 'dahua', 'C_Win64', 'Bin', 'dhnetsdk.dll'),
-    'out_dir': os.path.join(PROJECT, 'native', 'src', 'gen'),
+    # 产物目录带厂商缩写，与 file_prefix / module 保持同一套命名：
+    #   gen_dh  / dh_bind_*  / unify_dh_gen
+    # 早先是裸 'gen'，靠"先建大华所以没后缀"的历史原因，结果 gen 与 gen_hk
+    # 只差两个字母，肉眼极易看串（build.ps1 至今还在为此发提示）。第三方厂商
+    # 接入时更会歧义：gen 到底指谁。
+    'out_dir': os.path.join(PROJECT, 'native', 'src', 'gen_dh'),
     'module': 'unify_dh_gen',
     'include': '#include <dhnetsdk.h>',
     'file_prefix': 'dh_bind',

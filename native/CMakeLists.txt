@@ -113,8 +113,10 @@ function(add_gen_module target gen_dir include_dir lib_file)
 endfunction()
 
 if(UNIFY_SDK STREQUAL "all" OR UNIFY_SDK STREQUAL "dahua")
+    # 产物目录 gen_dh / gen_hk：与各 config 的 out_dir、file_prefix、module
+    # 同一套命名。目录名只差两个字母，失败提示里务必写明归属（见 build.ps1）。
     add_gen_module(unify_dh_gen
-                   "${CMAKE_CURRENT_SOURCE_DIR}/src/gen"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/src/gen_dh"
                    "${DH_INCLUDE}" "${DH_LIB}/dhnetsdk.lib")
 endif()
 
