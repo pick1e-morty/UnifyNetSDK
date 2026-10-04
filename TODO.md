@@ -19,28 +19,68 @@
 | 手写与生成混在一层 | `native/src/dh_netsdk.cpp`（手写）与 `native/src/gen/`（生成）职责已不同 |
 | 没有对外承诺 | README 讲了怎么做，没讲"用户会得到什么" |
 
-### 0.2 目标形态
+### 0.2 目标形态：四层产品结构
+
+**四层是「产品分层」，不是目录分层** —— 回答的是"交付什么"，而不是"代码放哪"。
+两者必须映射清楚，否则会出现"照着四层讨论功能、打开仓库却不知道放哪"的情况。
+
+| 产品层 | 交付物 | 源码位置 |
+|---|---|---|
+| **第 1 层** C → pyd | `unify_dh_gen.pyd` / `unify_hk_gen.pyd` | `native/src/gen/`（生成物，不入库）|
+| **第 2 层** 大华厚封装 wheel | `unify-dh` | `python/unify_dh/` |
+| **第 3 层** 海康厚封装 wheel | `unify-hk` | `python/unify_hk/` |
+| **第 4 层** 跨厂商抽象 | `unify-netsdk` | `python/unify/` |
+
+第 4 层由本层 Python 判断该调哪个厂商，**用户层代码全部抽象、没有厂商方言**。
 
 ```
 UnifyNetSDK/
-├── native/                 # C++ 绑定层
+├── native/                          # 第 1 层：C++ 绑定（nanobind）
 │   ├── CMakeLists.txt / build.ps1
-│   ├── src/dh_netsdk.cpp   # 手写部分（登录链路 / 排障工具）
-│   └── src/gen/            # 生成产物（不入库）
-├── python/                 # 上层用户包
-│   └── unify/              # 面向用户的封装
-│       ├── __init__.py     #   Client / 错误码 / 回调装饰器
-│       ├── _binding/       #   .pyd 加载胶水（add_dll_directory 只写在这）
-│       └── errors.py       #   错误码表
-├── tools/                  # 生成器（构建期工具，不是运行时库）
+│   ├── src/dh_netsdk.cpp            # 手写部分（登录链路 / 排障工具）
+│   └── src/gen/                     # 生成产物（不入库）
+│
+├── python/                          # 上层：三个待打包的包
+│   ├── unify_dh/                    # → 第 2 层，wheel 1
+│   │   ├── __init__.py              #   加载胶水：add_dll_directory + 导出 API
+│   │   ├── errors.py                #   大华错误码表
+│   │   ├── client.py                #   大华版 Client（内部调 unify_dh_gen）
+│   │   └── _binding/                #   构建时填充：.pyd + 厂商 DLL（不入库）
+│   │       ├── unify_dh_gen.cp313-win_amd64.pyd
+│   │       └── dhnetsdk.dll / libeay32.dll / ...
+│   │
+│   ├── unify_hk/                    # → 第 3 层，wheel 2（同构，指向海康）
+│   │   └── ... 同上
+│   │
+│   └── unify/                       # → 第 4 层，wheel 3（纯 Python，无 .pyd）
+│       ├── client.py                #   跨厂商 Client
+│       ├── errors.py                #   统一异常
+│       └── _vendor/                 #   厂商探测与分发
+│           ├── detect.py            #     协议探测 + 未安装时的提示
+│           ├── dahua.py
+│           └── haikang.py
+│
+├── tools/                           # 构建期：生成器（不是运行时库）
 ├── tests/
 │   ├── conftest.py
 │   ├── test_coverage_regression.py / test_structs.py / test_functions.py
-│   └── e2e/                # 端到端（需模拟器）
-│       ├── simulator/      #   模拟器胶水，从字符串字面量挪成真文件
+│   └── e2e/                         # 端到端（需模拟器）
+│       ├── simulator/               #   模拟器胶水，从字符串字面量挪成真文件
 │       └── test_login_callback.py
 ├── docs/
 └── TODO.md
+```
+
+**构建流程**：
+
+```
+tools/gen_bind.py --sdk dahua
+    ↓
+native/build/*.pyd  +  dahua/C_Win64/Bin/*.dll        # 1. 两份产物
+    ↓
+python/unify_dh/_binding/                              # 2. 拷进胶水层
+    ↓
+bdist_wheel                                           # 3. 打包 → unify_dh-1.0.0-cp313-win_amd64.whl
 ```
 
 **要分的是「运行时」（C++ 绑定 + Python 上层）和「构建期」（生成器）**，不是简单按
@@ -68,6 +108,13 @@ UnifyNetSDK/
 
 **厚壳的形态是"层"，不是"替代"**：底层永远保留原始 nanobind 绑定
 （`g.NET_xxx()` 照旧可用）。给需要精细控制的人，也避免老用户觉得"官方逼我改代码"。
+
+
+### 0.5 一条设计原则（决定 `unify` 怎么做）
+
+厂商能力差异是**本质的**，不是接口没对齐。例：大华录像下载只支持同步，海康支持
+异步 + 同步。所以 `unify` 的接口必须**明确标注哪些是双厂商都支持的**，不要给一个
+"看起来统一、实际某厂商上会 AttributeError"的假象。
 
 ### 0.6 参数模型化（pydantic）—— 厚壳的核心
 
