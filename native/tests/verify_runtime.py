@@ -8,29 +8,42 @@
   - 枚举值不对
 所以这里做**写进去再读回来**的往返测试，值对不上就说明绑定有问题。
 
-DLL 目录从 tools/config/<sdk>.py 读（不硬编码中文路径），加载方式照抄
-native/smoke_test.py：os.add_dll_directory + sys.path.insert。
+========================================================================
+【退役约定 —— Phase 2 落地后必须删掉本文件，不要忘】
+
+本文件是 TODO 1.2 Phase 2 的**手工预演版**：只覆盖 3-6 个结构体，而 Phase 2
+要求逐个跑完全部 10557 个（TODO 里的 native/tests/test_structs.py）。
+
+触发退役的条件：**native/tests/test_structs.py 落地并跑通**。届时本文件的
+全部价值都已转移：
+  - 两个厂商的 DLL 目录都要先 add 再 import 任意 pyd
+    -> _paths.add_sdk_dll_dirs（转 pytest 后进 conftest.py 的 fixture）
+  - 结构体字段往返 -> test_structs.py 的 test_struct_roundtrip
+
+在那之前**不要删**：海康 pyd 还没编译通过（TODO 第 2 节），本文件是目前唯一
+能同时验证两个厂商 .pyd 可 import + 字段可读写的跨厂商回归工具。删早了就没有
+替代品了。
+
+退役动作：删本文件；若届时 _paths.py 已无其他使用者，一并删掉。
+========================================================================
 """
 import io
 import os
 import sys
 
-ROOT = r"C:\Users\Hast\Documents\CodeProjects\UnifyNetSDK"
-BUILD = os.path.join(ROOT, "native", "build")
-sys.path.insert(0, os.path.join(ROOT, "tools"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-from config import get_config
+import _paths  # noqa: E402
+
+ROOT = _paths.PROJECT
+BUILD = _paths.BUILD
 
 fails = []
 
-# 两个厂商的 DLL 目录**都要先 add**，再 import 任意一个：
-# Windows 上 import 一个 pyd 会连带解析它的依赖 DLL，而 add_dll_directory
-# 是进程级的、但只对**调用之后**的加载有效。先只 add 大华再去 import 海康，
-# 会报 "DLL load failed: 找不到指定的模块"（依赖链里缺 HCNetSDK.dll）。
-for _sdk in ("dahua", "haikang"):
-    os.add_dll_directory(os.path.dirname(get_config(_sdk)["dll"]))
-sys.path.insert(0, BUILD)
+# 两个厂商的 DLL 目录都要先 add 再 import 任意一个 pyd，原因见
+# _paths.add_sdk_dll_dirs 的 docstring。
+_paths.add_sdk_dll_dirs()
 
 
 def ck(label, cond, extra=""):
@@ -38,10 +51,6 @@ def ck(label, cond, extra=""):
                            ("  " + extra) if extra else ""))
     if not cond:
         fails.append(label)
-
-
-def load(sdk, modname):
-    return __import__(modname)
 
 
 def roundtrip(G, sname, fields):
@@ -65,7 +74,7 @@ def survey(G, modname, sdk):
     ck("pyd 存在", os.path.isfile(pyd),
        "%.1f MB" % (os.path.getsize(pyd) / 1048576.0))
     try:
-        G = load(sdk, modname)
+        G = _paths.import_pyd(modname)
     except Exception as e:
         ck("import", False, "%s: %s" % (type(e).__name__, e))
         return None

@@ -27,9 +27,9 @@
 | 产品层 | 交付物 | 源码位置 |
 |---|---|---|
 | **第 1 层** C → pyd | `unify_dh_gen.pyd` / `unify_hk_gen.pyd` | `native/src/gen_dh/`（生成物，不入库）|
-| **第 2 层** 大华厚封装 wheel | `unify-dh` | `python/unify_dh/` |
-| **第 3 层** 海康厚封装 wheel | `unify-hk` | `python/unify_hk/` |
-| **第 4 层** 跨厂商抽象 | `unify-netsdk` | `python/unify/` |
+| **第 2 层** 大华厚封装 wheel | `dhbind` | `python/dhbind/` |
+| **第 3 层** 海康厚封装 wheel | `hkbind` | `python/hkbind/` |
+| **第 4 层** 跨厂商抽象 | `unify-netsdk` | `python/unify_netsdk/` |
 
 第 4 层由本层 Python 判断该调哪个厂商，**用户层代码全部抽象、没有厂商方言**。
 
@@ -37,36 +37,44 @@
 UnifyNetSDK/
 ├── native/                          # 第 1 层：C++ 绑定（nanobind）
 │   ├── CMakeLists.txt / build.ps1
+│   ├── codegen/                     # 构建期生成器：common/（通用语法）+ config/（厂商语义）
 │   ├── src/dh_netsdk.cpp            # 手写部分（登录链路 / 排障工具）
-│   └── src/gen_dh/                     # 生成产物（不入库）
+│   ├── src/gen_dh/                  # 生成产物（不入库）
+│   └── tests/                       # ★ 测本层
+│       ├── conftest.py              #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
+│       ├── _paths.py                #   脚本阶段的路径 helper，转 pytest 后并入 conftest
+│       ├── test_callbacks.py        #   289 个 bind_/set_ 分类 / 退订 / 异常隔离
+│       ├── verify_runtime.py        #   两厂商 .pyd 读写往返【Phase 2 落地后退役】
+│       ├── test_coverage_regression.py / test_structs.py / test_functions.py
+│       └── e2e/                     # 端到端（需模拟器，默认不跑）
+│           ├── simulator/server.py  #   模拟器胶水，从字符串字面量挪成真文件
+│           └── test_login_callback.py
 │
 ├── python/                          # 上层：三个待打包的包
-│   ├── unify_dh/                    # → 第 2 层，wheel 1
+│   ├── dhbind/                      # → 第 2 层，wheel 1
 │   │   ├── __init__.py              #   加载胶水：add_dll_directory + 导出 API
 │   │   ├── errors.py                #   大华错误码表
 │   │   ├── client.py                #   大华版 Client（内部调 unify_dh_gen）
-│   │   └── _binding/                #   构建时填充：.pyd + 厂商 DLL（不入库）
-│   │       ├── unify_dh_gen.cp313-win_amd64.pyd
-│   │       └── dhnetsdk.dll / libeay32.dll / ...
+│   │   ├── _binding/                #   构建时填充：.pyd + 厂商 DLL（不入库）
+│   │   │   ├── unify_dh_gen.cp313-win_amd64.pyd
+│   │   │   └── dhnetsdk.dll / libeay32.dll / ...
+│   │   └── tests/                   #   测本层：Client 流程 / 错误码 / outptr 读回
 │   │
-│   ├── unify_hk/                    # → 第 3 层，wheel 2（同构，指向海康）
-│   │   └── ... 同上
+│   ├── hkbind/                      # → 第 3 层，wheel 2（同构，指向海康）
+│   │   ├── ... 同上
+│   │   └── tests/
 │   │
-│   └── unify/                       # → 第 4 层，wheel 3（纯 Python，无 .pyd）
+│   └── unify_netsdk/                # → 第 4 层，wheel 3（纯 Python，无 .pyd）
 │       ├── client.py                #   跨厂商 Client
 │       ├── errors.py                #   统一异常
-│       └── _vendor/                 #   厂商探测与分发
-│           ├── detect.py            #     协议探测 + 未安装时的提示
-│           ├── dahua.py
-│           └── haikang.py
+│       ├── _vendor/                 #   厂商探测与分发
+│       │   ├── detect.py            #     协议探测 + 未安装时的提示
+│       │   ├── dahua.py
+│       │   └── haikang.py
+│       └── tests/                   #   测本层：探测 / 分发 / 能力标注
 │
-├── tools/                           # 构建期：生成器（不是运行时库）
-├── tests/
-│   ├── conftest.py
-│   ├── test_coverage_regression.py / test_structs.py / test_functions.py
-│   └── e2e/                         # 端到端（需模拟器）
-│       ├── simulator/               #   模拟器胶水，从字符串字面量挪成真文件
-│       └── test_login_callback.py
+├── tools/                           # 构建期：SDK 同步（sync_sdk.py）
+├── pytest.ini                       # testpaths 与上面的树一致；e2e 默认不跑
 ├── docs/
 └── TODO.md
 ```
@@ -74,24 +82,26 @@ UnifyNetSDK/
 **构建流程**：
 
 ```
-tools/gen_bind.py --sdk dahua
+native/codegen/gen_bind.py --sdk dahua
     ↓
-native/build/*.pyd  +  dahua/C_Win64/Bin/*.dll        # 1. 两份产物
+native/build/*.pyd  +  vendor/dahua/C_Win64/Bin/*.dll        # 1. 两份产物
     ↓
-python/unify_dh/_binding/                              # 2. 拷进胶水层
+python/dhbind/_binding/                              # 2. 拷进胶水层
     ↓
 bdist_wheel                                           # 3. 打包 → unify_dh-1.0.0-cp313-win_amd64.whl
 ```
 
 **要分的是「运行时」（C++ 绑定 + Python 上层）和「构建期」（生成器）**，不是简单按
-语言分。所以 `tools/` 保持独立，`native/smoke_test.py` 不要为了整齐挪走（构建流程
-要用它）。
+语言分。生成器已从 `tools/` 迁入 `native/codegen/`：它的唯一产物就是
+`native/src/gen_*`，与 CMakeLists / build.ps1 属同一条构建链，放在根目录平行于
+`native/` 只会让"造弹药的"和"枪"看着无关。`native/smoke_test.py` 同样别为了整齐
+挪走（构建流程要用它）。`tools/` 因此只剩 `sync_sdk.py`。
 
 ### 0.3 两个已定的决策
 
 | 决策 | 结论 |
 |---|---|
-| 交付形态 | **wheel**。一个厂商一个 wheel（见第 6 节），`unify` 是可选的上层抽象 |
+| 交付形态 | **wheel**。一个厂商一个 wheel（见第 6 节），`unify_netsdk` 是可选的上层抽象 |
 | 平台范围 | 先只打通 **win_amd64 + cp313**，证明路线可行；多平台/多版本日后按需再扩 |
 
 ### 0.4 已定：上层做厚壳，核心是参数模型化
@@ -110,10 +120,10 @@ bdist_wheel                                           # 3. 打包 → unify_dh-1
 （`g.NET_xxx()` 照旧可用）。给需要精细控制的人，也避免老用户觉得"官方逼我改代码"。
 
 
-### 0.5 一条设计原则（决定 `unify` 怎么做）
+### 0.5 一条设计原则（决定 `unify_netsdk` 怎么做）
 
 厂商能力差异是**本质的**，不是接口没对齐。例：大华录像下载只支持同步，海康支持
-异步 + 同步。所以 `unify` 的接口必须**明确标注哪些是双厂商都支持的**，不要给一个
+异步 + 同步。所以 `unify_netsdk` 的接口必须**明确标注哪些是双厂商都支持的**，不要给一个
 "看起来统一、实际某厂商上会 AttributeError"的假象。
 
 ### 0.6 参数模型化（pydantic）—— 厚壳的核心
@@ -163,7 +173,7 @@ class LoginArgs(BaseModel):
 | 方案 | 优点 | 代价 |
 |---|---|---|
 | 强依赖 pydantic | 体验一致，模型开箱可用 | 轻量用户被迫装（几 MB）|
-| **可选依赖** `unify-dh[pydantic]` | 核心 API 零依赖 | 维护两套调用方式 |
+| **可选依赖** `dhbind[pydantic]` | 核心 API 零依赖 | 维护两套调用方式 |
 | 用 dataclass 替代 | 标准库零依赖 | 无运行时校验、无 JSON schema |
 
 **待定**：取决于想给什么样的用户体验 —— 参数校验（IP 格式、端口范围）在调用前就报错，
@@ -173,14 +183,69 @@ class LoginArgs(BaseModel):
 对了，再讨论怎么自动生成。形态不对时现在改成本最低。
 
 厂商能力差异是**本质的**，不是接口没对齐。例：大华录像下载只支持同步，海康支持
-异步 + 同步。所以 `unify` 的接口必须**明确标注哪些是双厂商都支持的**，不要给一个
+异步 + 同步。所以 `unify_netsdk` 的接口必须**明确标注哪些是双厂商都支持的**，不要给一个
 "看起来统一、实际某厂商上会 AttributeError"的假象。
+
+### 0.7 待定：是否拆成多个 git 仓库（**框架搭出来后再讨论，现在不拆**）
+
+> 之前讨论过"四层产品 = 四个独立 git 库"。**当前决定：先不拆，把框架搭出来再说**，为时不晚。
+
+- **现状**：单一monorepo。已完成的是**目录与逻辑隔离**（`native/codegen/common` 只放通用语法与骨架、`native/codegen/config` 放厂商语义），**不等于仓库隔离**。
+- **讨论时机**：等第 1 层 `.pyd` 编译通过、第 2/3/4 层的包骨架落地后再定。届时要回答：
+  1. 拆分边界按**产品层**（第 1/2/3/4 层）还是按**运行时 vs 构建期**？
+  2. `native/` 的绑定层同时服务两个 wheel，单独成仓还是留在某个 wheel 仓里？
+  3. 生成器（现在在 `native/codegen/`）若要与 native 绑定分离成独立仓，依赖怎么表达（见第 6 节：倾向 PyPI，不用 submodule）。
 
 ---
 
 ## 1. 用 pytest 全面测试绑定层 ⭐
 
 > 目标：在上层 Python 用 pytest 把头文件里的函数、结构体尽可能逐项测一遍。
+
+### 1.0 测试分层约定（写任何测试之前先看这里）
+
+仓库有**四个可独立交付的对象**：`native`（第 1 层 pyd）、`dhbind`、`hkbind`、
+`unify_netsdk`。**每个对象的测试放在它自己的 `tests/` 下**，顶层不设 `tests/`：
+
+| 对象 | 测试位置 | 测什么 |
+|---|---|---|
+| `native` | `native/tests/` | 绑定层：字段覆盖、回调分类、类型往返、函数可调 |
+| `dhbind` | `python/dhbind/tests/` | 大华厚壳：Client 流程、错误码转换、`outptr` 自动读回 |
+| `hkbind` | `python/hkbind/tests/` | 同上（海康）|
+| `unify_netsdk` | `python/unify_netsdk/tests/` | 跨厂商：探测、分发、能力标注是否与实际一致 |
+
+**为什么**：
+
+1. 测试跟着被测对象走 —— 发布 `dhbind` 时不必捎上 `native` 的测试。
+2. `conftest.py` **逐层生效**，所以每层的 SDK 加载与夹具各管各的，不需要在
+   一个 conftest 里写"当前测的是哪一层"的分支。
+3. 顶层 `tests/` 会退化成"混放"，过两年没人说得清哪个测试属于哪个 wheel。
+
+**三条硬约定**（违反会真的坏事，不是风格问题）：
+
+1. **叫 `test_*.py` 的文件必须是 pytest 测试**（含 `def test_*`）。手工脚本不许
+   叫 `test_*.py` —— pytest 在 collection 阶段就 import 模块，顶层代码会被执行。
+   刚发生过的真事：`test_login_callback.py` 顶层会 `Popen` 拉起模拟器并
+   `sleep(20)`，跑一次 `pytest` 就意外启动外部进程并阻塞；而且因为没有
+   `def test_*`，最后报的还是 `no tests collected` —— 副作用全占了，断言一个没跑。
+2. **端到端测试必须标 `@pytest.mark.e2e`**。`pytest.ini` 已用
+   `addopts = -m "not e2e"` 默认排除，因为它依赖项目外的 `Dahua_NVR_Simulator`。
+3. **`pytest.ini` 的 `testpaths` 必须与 TODO 0.2 的目录树一致**。两处不同步的后果
+   是"某些测试永远不跑"或者"跑进 vendor/ 里去"。
+
+**待退役清单**（避免"落地了就忘"）：
+
+| 文件 | 退役触发条件 | 退役后价值去哪 |
+|---|---|---|
+| `native/tests/verify_runtime.py` | `native/tests/test_structs.py` 落地并跑通（本节 Phase 2）| DLL 加载知识 → `conftest.py` 的 fixture；字段往返 → `test_structs.py` |
+| `native/tests/_paths.py` | 三个脚本转成 pytest 之后 | 内容并入 `conftest.py` |
+
+**在退役条件达成之前不要删** —— 海康 pyd 的编译推进中（第 2 节），
+`verify_runtime.py` 是目前唯一能同时验证两个厂商 `.pyd` 可 import + 字段可读写
+的跨厂商回归工具，删早了就没有替代品。同一约定也写在该文件的 docstring 顶部。
+
+**新增测试时的自检三问**：① 测的是哪一层？放对目录了吗？② 它是 pytest 测试还是
+手工脚本（决定文件名）？③ 依赖外部东西吗（决定要不要 marker）？
 
 ### 1.1 可行性结论：能测，但要先分清测什么
 
@@ -198,7 +263,7 @@ class LoginArgs(BaseModel):
 
 #### Phase 1：覆盖边界断言（★ 最先做，成本最低价值最高）
 
-把现有的 `tools/check_coverage.py` 改写成 pytest 断言，让**手写数字变成自动防线**：
+把现有的 `native/codegen/check_coverage.py` 改写成 pytest 断言，让**手写数字变成自动防线**：
 
 ```python
 def test_no_unknown_type_fields():            # 现在 6 个，修完就是 0
@@ -246,11 +311,11 @@ def test_struct_smoke(name):
 
 ### 1.3 需要的脚手架
 
-- `tests/conftest.py`：导入 `unify_dh_gen`、准备 `dll_directory`
-- `tests/test_coverage_regression.py`：Phase 1
-- `tests/test_structs.py`：Phase 2
-- `tests/test_functions.py`：Phase 3
-- 现有 `tests/test_e2e_generated.py` 与 `tests/test_cb_bindings.py` 将来并入 pytest
+- `native/tests/conftest.py`：**已建**，提供 `pyd(sdk)` fixture（导入 .pyd，缺厂商自动 skip）
+- `native/tests/test_coverage_regression.py`：Phase 1
+- `native/tests/test_structs.py`：Phase 2（**落地后按 1.0 的待退役清单处理 `verify_runtime.py`**）
+- `native/tests/test_functions.py`：Phase 3
+- 现有三个脚本转 pytest：`test_callbacks.py`（拆 6 个 test）、`verify_runtime.py`、`e2e/test_login_callback.py`（加 marker）。转正清单见 `native/tests/conftest.py` 的 docstring
 
 **结构体/函数清单从哪来**：让生成器输出 `gen_manifest.json`（名字 + 跳过原因 +
 字段列表），测试直接读它，免得测试里再解析一遍头文件。
@@ -261,16 +326,26 @@ diff，也服务测试期断言。
 
 ### 1.4 现状
 
-- `tools/check_coverage.py` 已能输出完整覆盖边界，Phase 1 只需把数字改成断言
-- 还没有 `pytest` 依赖与 `conftest.py`
+- `native/codegen/check_coverage.py` 已能输出完整覆盖边界，Phase 1 只需把数字改成断言
+- `native/tests/` 已就位（`conftest.py` + `_paths.py` + 三个脚本 + `e2e/`），顶层 `tests/` 已撤掉
+- **还没有 `pytest` 依赖**，所以那三个脚本目前仍不被 pytest 收集（它们也没有 `def test_*`）
+- 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/verify_runtime.py` 报 72.2 MB / 3824 导出 / 26 回调（此前卡住的 121 个编译错误已解决）
 
 ---
 
-## 2. 海康接 CMake 编译
+## 2. 海康接 CMake 编译 ✅ 已完成（2026-10-04）
 
-验证 `common/` 真的与厂商无关。生成器 dry-run 已通过（2669 结构体 / 18640 字段 /
-789 函数），只差编译与 CMake 配置。注意接入会改依赖图 → **一次性全量重编**
-（用分片 diff 报告确认规模）。
+原计划是验证 `common/` 真的与厂商无关（当时生成器 dry-run 通过但编译不过，
+121 个错误：Linux 条件分支里的 `DC`/`INITINFO`/`PLAYRECT` 类型被无条件生成、
+二维数组参数、输出指针分类）。**现已全部解决** —— `unify_hk_gen.pyd`
+72.2 MB / 3824 导出 / 26 回调，import + 字段往返都正常，跑
+`native/tests/verify_runtime.py` 即可复核。
+
+**留下的海康遗留**：26 个回调走保守退化 —— `config/haikang.py` 故意**不设**
+`cb_qty_pred` / `cb_count_pred`，所以不识别数组、结构体指针只给单对象。这是有意的：
+大华那套"靠参数名猜数量"的规律照搬过来只会误判（海康回调命名风格完全不同）。
+等接上设备、拿到实际回调行为后照事实写规则 —— 那时才叫"我们吃苦"。
+**少给可接受，给错无法排查。**
 
 ---
 
@@ -309,25 +384,25 @@ diff，也服务测试期断言。
 
 目标形态（已确认）：
 
-- **一个厂商一个 wheel**：`unify-dh` 只含大华、`unify-hk` 只含海康。
+- **一个厂商一个 wheel**：`dhbind` 只含大华、`hkbind` 只含海康。
   理由是厂商 DLL 体积大，捆一起会让只需要单家的用户白下载另一家的 SDK。
-- **`unify` 是可选的上层抽象**：依赖厂商 wheel，抽象掉厂商差异。
-  用户不需要 `unify` 时可以只装 `unify-dh` 自己拼，自由度最高。
+- **`unify_netsdk` 是可选的上层抽象**：依赖厂商 wheel，抽象掉厂商差异。
+  用户不需要 `unify_netsdk` 时可以只装 `dhbind` 自己拼，自由度最高。
 - **平台范围先只打通 `win_amd64` + `cp313`**，证明整条路线可行，多平台/多 Python
   版本日后按需再扩。
-- `unify` 的 `pyproject.toml` 写清版本依赖限制，三个包用同一套版本号
-  （避免"unify-dh 能装、unify-hk 装不上"）。
+- `unify_netsdk` 的 `pyproject.toml` 写清版本依赖限制，三个包用同一套版本号
+  （避免"dhbind 能装、hkbind 装不上"）。
 
 DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` 指向包内目录。
 **大华官方 Python SDK 也是这么做的**（手动 add dll path），所以这是厂商生态的
 既有做法，不是我们自创的负担。
 
 
-**厂商探测**（`unify` 在 login 前判断设备是哪家）：两家协议天差地别（大华
+**厂商探测**（`unify_netsdk` 在 login 前判断设备是哪家）：两家协议天差地别（大华
 `0xA0 0x01` realm 挑战 vs 海康完全不同），端口探测能可靠区分。两个边界：
 
 - **防火墙可能 DROP 未登记端口** → 探测超时。错误信息必须区分「探测到海康但没装
-  unify-hk」（提示 pip install unify-hk）与「探测无响应」（提示用 Unify(vendor=...)
+  hkbind」（提示 pip install hkbind）与「探测无响应」（提示用 Unify(vendor=...)
   显式指定），否则用户会卡在"探测失败"上。
 - **探测只做到协议层，不带凭据**。纯协议探测不需要认证就安全；若实现成"直接尝试
   登录"会消耗认证次数，甚至触发设备锁定。
@@ -341,3 +416,17 @@ DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` �
 
 纯生成工作，IDE 补全 + 错误码有类型。与 pytest 无关，但两者都依赖「从 IR 生成
 元数据」，可以合并成同一个生成步骤。
+
+
+
+## 8. 那个大华模拟器有空了fork一下，后面还要实现录像下载。
+然后记得还有海康模拟器，上网搜一搜有没有现成的。
+
+## 9. `dh_netsdk.cpp` 的定位与清理
+
+它是"GIL 安全的阻塞调用封装"（第 2 层 `dhbind` 的 C++ 侧），两件事没做完：
+
+- **接线**：里面的登录链路要接到 `python/dhbind/client.py`，成为 `Client.login()`
+  的底层实现。释放 GIL + 填 `dwSize` 这两件它已经做了，缺的是 Python 侧去调它
+  （现在是 `native/tests/e2e/test_login_callback.py` 在直接用生成版 pyd 绕着走）。
+- **清理**：`_test_gil_*` 两个探针无人使用，可移除。

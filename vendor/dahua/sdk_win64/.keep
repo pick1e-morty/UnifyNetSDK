@@ -3,9 +3,9 @@
 不要手工改动这里的文件 —— 下次同步会被覆盖。要改绑定行为，改 tools/ 下的源头。
 
 来源（vendor 原始发行包，只读，不入库）：
-    dahua/C_Win64/Include/Common/  ->  include/   （*.h）
-    dahua/C_Win64/Lib/Win64/       ->  lib/       （*.lib）
-    dahua/C_Win64/Bin/             ->  bin/       （*.dll）
+    vendor/dahua/C_Win64/Include/Common/  ->  include/   （*.h）
+    vendor/dahua/C_Win64/Lib/Win64/       ->  lib/       （*.lib）
+    vendor/dahua/C_Win64/Bin/             ->  bin/       （*.dll）
 
 同步命令（在项目根跑）：
     python tools/sync_sdk.py            # 全量同步，只复制变化的

@@ -22,7 +22,7 @@ endif()
 # ============================================================
 # 厂商 SDK 路径
 #
-# 两个厂商都指向 tools/sync_sdk.py 同步出来的副本 <厂商>/sdk_win64/{include,lib,bin}，
+# 两个厂商都指向 tools/sync_sdk.py 同步出来的副本 vendor/<厂商>/sdk_win64/{include,lib,bin}，
 # 结构同构、全 ASCII 路径。vendor 原始包保持不动，只作为复制源。
 #
 # 为什么大华也要走副本：它的原始路径本来已是纯 ASCII，但海康的"头文件/库文件"
@@ -32,12 +32,16 @@ endif()
 # 换了 vendor SDK 后先跑：  python tools/sync_sdk.py
 # 原始包与副本都不入库，见 .gitignore。
 # ============================================================
-set(DH_ROOT_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/../dahua/sdk_win64"
-    CACHE PATH "大华 SDK（sync_sdk.py 同步的副本）")
-# CACHE 变量有个陷阱：改了这里的默认值，已有 build/CMakeCache.txt 里的旧值
-# **不会**跟着更新（set(... CACHE) 只在 cache 里没有该变量时才生效）。目录改名
-# 后旧值仍指向已不存在的路径，configure 就会报"找不到 dhnetsdk.h"而看不出真因。
-# 所以先探测旧值是否还有效，无效则 FORCE 更新为默认值。用户显式传对的路径不受影响。
+set(DH_ROOT_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/dahua/sdk_win64")
+# *_ROOT_DEFAULT 必须是**普通变量**，不能是 CACHE。踩过的坑：它原本写成
+# CACHE PATH 且没有 FORCE，于是自己也被缓存进 CMakeCache.txt —— 源码里改了
+# 默认值，已有 build/ 目录里存的仍是旧路径。后果是下面那段 stale 探测永远
+# 失效（探测条件里的 DEFAULT 本身就是旧值），DH_ROOT 修不过来，configure
+# 只会报"找不到 dhnetsdk.h"，完全看不出真因是 DEFAULT 自己被冻住了。
+# 用户要覆盖路径用 -DDH_ROOT=...，那个入口仍然是 CACHE。
+#
+# DH_ROOT 作为 CACHE 有个固有陷阱：改了默认值，已有 build/CMakeCache.txt 里
+# 的旧值**不会**跟着更新。所以先探测旧值是否还有效，无效则 FORCE 更新。
 if(NOT EXISTS "${DH_ROOT}/include/dhnetsdk.h"
    AND EXISTS "${DH_ROOT_DEFAULT}/include/dhnetsdk.h")
     message(STATUS "DH_ROOT stale path, updating to ${DH_ROOT_DEFAULT}")
@@ -48,8 +52,8 @@ set(DH_INCLUDE "${DH_ROOT}/include")
 set(DH_LIB "${DH_ROOT}/lib")
 set(DH_BIN "${DH_ROOT}/bin")
 
-set(HK_ROOT_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/../haikang/sdk_win64"
-    CACHE PATH "海康 SDK（sync_sdk.py 同步的副本）")
+set(HK_ROOT_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/haikang/sdk_win64")
+# 同 DH_ROOT_DEFAULT：必须是普通变量，否则自身被 cache 冻住，stale 探测失效。
 if(NOT EXISTS "${HK_ROOT}/include/HCNetSDK.h"
    AND EXISTS "${HK_ROOT_DEFAULT}/include/HCNetSDK.h")
     message(STATUS "HK_ROOT stale path, updating to ${HK_ROOT_DEFAULT}")
@@ -75,7 +79,7 @@ endif()
 # nanobind / Python
 # 必须指向本项目的 .venv，不要用系统 Python
 # ============================================================
-# 项目根的统一 .venv（native/../.venv），与 bench_nanobind 共用同一份
+# 项目根的统一 .venv（native/../.venv）
 set(NB_PYTHON "${CMAKE_CURRENT_SOURCE_DIR}/../.venv/Scripts/python.exe"
     CACHE FILEPATH "venv 中的 Python 解释器")
 
@@ -112,7 +116,7 @@ else()
 endif()
 
 # ============================================================
-# 全量生成绑定（由 tools/gen_bind.py --sdk <sdk> 产出，不入库、可重建）
+# 全量生成绑定（由 native/codegen/gen_bind.py --sdk <sdk> 产出，不入库、可重建）
 # 没有生成产物时自动跳过，不影响对应手写模块的编译。
 #
 # 大华与海康是两个独立 target：ninja 会把两边的 TU 混进同一个 -j N 池子

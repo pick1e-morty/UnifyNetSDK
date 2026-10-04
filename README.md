@@ -17,7 +17,7 @@
 | 海康 `HCNetSDK` | 6.1.11.30 | 2667 | 18603 | 264 | 785 | 26 | ✅ 编译 + 运行时验证通过 |
 
 两家各自独立模块：大华 `unify_dh_gen`、海康 `unify_hk_gen`（命名空间天然隔离，同名结构体不冲突）。
-两个 pyd 都通过了 `tests/verify_runtime.py`：import、字段读写往返、不依赖设备的安全函数
+两个 pyd 都通过了 `native/tests/verify_runtime.py`：import、字段读写往返、不依赖设备的安全函数
 （`CLIENT_GetSDKVersion()` 返回 36192074 = 3.6.1.92074 的 build 号）。
 
 海康的 26 个回调目前走**保守退化**（不识别结构体数组，全部给单个对象）—— 那套
@@ -25,12 +25,12 @@
 它的实际行为再补。
 
 未绑/降级的部分（296 个结构体成员函数指针、非 `char[N]` 数组按 bytes 暴露等）见
-`docs/binding-tech-debt.md`；跑 `python tools/check_coverage.py --sdk <sdk>` 可随时重算。
+`docs/binding-tech-debt.md`；跑 `python native/codegen/check_coverage.py --sdk <sdk>` 可随时重算。
 
 ## 技术方案
 
 - **nanobind**：类型安全，布局由编译器算，杜绝 ctypes 手写偏移的静默错位
-- **生成器** `tools/gen_bind.py --sdk dahua|haikang`：通用解析核（`common/parse.py` + `common/emit.py`）配合厂商配置（`config/*.py`），从头文件解析结构体 / 枚举 / 函数，按**依赖拓扑序**切分片，字段类型走白名单兜底
+- **生成器** `native/codegen/gen_bind.py --sdk dahua|haikang`：通用解析核（`common/parse.py` + `common/emit.py`）配合厂商配置（`config/*.py`），从头文件解析结构体 / 枚举 / 函数，按**依赖拓扑序**切分片，字段类型走白名单兜底
 - **增量写入**：内容不变的分片不重写 mtime，ninja 自动跳过，改一处只重编相关分片
 
 关键实测（Ryzen 9 5900HX，8C16T）：
@@ -48,46 +48,65 @@
 
 ```
 UnifyNetSDK/
-├── native/                    # C++ 绑定（nanobind）
+├── native/                    # C++ 绑定（nanobind）+ 生成器
 │   ├── CMakeLists.txt
 │   ├── build.ps1              # 一键生成 + 编译 + 测试（-Sdk dahua|haikang|all）
 │   ├── build_one.bat          # 单片编译（调试用）
 │   ├── smoke_test.py          # 冒烟测试（大华）
-│   ├── src/dh_netsdk.cpp      # 手写登录链路（第 2 层封装：释放 GIL + 填 dwSize）
-│   └── src/
-│       ├── gen_dh/            # 大华生成产物（不入库，可重建）
-│       │   ├── dh_bind.h          #   分片函数声明
-│       │   ├── dh_bind_cb.h       #   回调运行时（模板源 common/cb_runtime.py）
-│       │   ├── dh_bind_cbsNNN.cpp #   回调 thunk + 绑定
-│       │   ├── dh_bind_partNNN.cpp#   结构体分片
-│       │   ├── dh_bind_enumsNNN.cpp
-│       │   └── dh_bind_funcsNNN.cpp
-│       └── gen_hk/            # 海康生成产物（结构与 gen_dh 同构）
+│   ├── codegen/               # 绑定生成器：唯一产物就是下面的 src/gen_*
+│   │   ├── gen_bind.py            #   入口（--sdk dahua|haikang）
+│   │   ├── check_coverage.py      #   覆盖边界报告（--sdk）
+│   │   ├── check_exports.py       #   扫 DLL 导出表，找未导出的函数（--sdk）
+│   │   ├── common/                #   通用骨架（零厂商字样：只回答"语法长什么样"）
+│   │   │   ├── parse.py               #   C 语法解析 + 条件编译裁剪
+│   │   │   ├── emit.py                #   代码生成
+│   │   │   └── cb_runtime.py          #   回调运行时模板（槽位注册表 / GIL 宏）
+│   │   └── config/                #   厂商语义（路径 / 正则 / 跳过名单 / 参数钩子）
+│   │       ├── paths.py                #   项目根推导（向上找锚点，不数层数）
+│   │       ├── dahua.py               #   含回调参数分类规则（从 289 个回调归纳）
+│   │       └── haikang.py             #   故意不设钩子 —— 缺省即保守退化
+│   ├── src/
+│   │   ├── dh_netsdk.cpp      # 手写登录链路（第 2 层封装：释放 GIL + 填 dwSize）
+│   │   ├── gen_dh/            # 大华生成产物（不入库，可重建）
+│   │   │   ├── dh_bind.h          #   分片函数声明
+│   │   │   ├── dh_bind_cb.h       #   回调运行时（模板源 common/cb_runtime.py）
+│   │   │   ├── dh_bind_cbsNNN.cpp #   回调 thunk + 绑定
+│   │   │   ├── dh_bind_partNNN.cpp#   结构体分片
+│   │   │   ├── dh_bind_enumsNNN.cpp
+│   │   │   └── dh_bind_funcsNNN.cpp
+│   │   └── gen_hk/            # 海康生成产物（结构与 gen_dh 同构）
+│   └── tests/                 # ★ 测第 1 层：.pyd 绑定层
+│       ├── conftest.py            #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
+│       ├── _paths.py              #   脚本阶段的路径 helper，转 pytest 后并入 conftest
+│       ├── test_callbacks.py      #   289 个 bind_/set_ 分类 / 退订 / 异常隔离
+│       ├── verify_runtime.py      #   两厂商 .pyd 读写往返【Phase 2 落地后退役】
+│       └── e2e/                   #   需项目外的模拟器，默认不跑（-m e2e）
+│           ├── simulator/server.py    #     模拟器胶水（原为内嵌字符串，已拆出）
+│           └── test_login_callback.py #     真实 SDK 工作线程 -> thunk -> GIL 回调
+├── python/                   # 上层：三个待打包的 wheel（目前只有骨架，内容待填）
+│   ├── dhbind/              # → wheel dhbind：加载 unify_dh_gen + 大华错误码 + Client
+│   │   ├── _binding/         #   构建时填充 .pyd + 厂商 DLL（不入库）
+│   │   └── tests/            #   测第 2 层：Client 流程 / 错误码转换 / outptr 读回
+│   ├── hkbind/              # → wheel hkbind：同构，指向海康
+│   │   ├── _binding/
+│   │   └── tests/
+│   └── unify_netsdk/         # → unify-netsdk：纯 Python，跨厂商抽象
+│       ├── _vendor/          #   厂商探测与分发（detect.py / dahua.py / haikang.py）
+│       └── tests/            #   测跨厂商：探测 / 分发 / 能力标注
 ├── tools/
-│   ├── gen_bind.py            # 生成器入口（--sdk dahua|haikang）
-│   ├── sync_sdk.py            # SDK 同步：vendor 包 -> <厂商>/sdk_win64/（--check 只校验）
-│   ├── check_coverage.py      # 覆盖边界报告（--sdk）
-│   ├── check_exports.py       # 扫 DLL 导出表，发现未导出函数（--sdk）
-│   ├── common/                # 通用骨架（零厂商字样：只回答"语法长什么样"）
-│   │   ├── parse.py               #   C 语法解析 + 条件编译裁剪
-│   │   ├── emit.py                #   代码生成
-│   │   └── cb_runtime.py          #   回调运行时模板（槽位注册表 / GIL 宏）
-│   └── config/                # 厂商配置（路径 / 正则 / 跳过名单 / 语义钩子）
-│       ├── dahua.py               #   含回调参数分类规则（从 289 个回调归纳）
-│       └── haikang.py             #   故意不设钩子 —— 缺省即保守退化
+│   └── sync_sdk.py           # SDK 同步：原始包 -> vendor/<厂商>/sdk_win64/（--check 只校验）
 ├── docs/                      # 技术文档
 │   ├── onboarding.md              # ★ 先读这个：进度 / 代码地图 / 工作流程
 │   ├── binding-tech-evaluation.md  # 技术选型评估
 │   ├── binding-tech-debt.md        # 技术债清单（活文档，修完就打勾）
 │   └── implementation-notes.md     # 实测踩坑笔记（nanobind / C API / MSVC / SDK）
-├── tests/                     # 端到端 / 绑定层 / 运行时验证脚本
-│   ├── test_e2e_generated.py       #   生成版登录模拟器 + 真实 SDK 线程回调
-│   ├── test_cb_bindings.py         #   回调参数分类 / 退订 / 异常隔离
-│   └── verify_runtime.py           #   两个 pyd 的 import / 字段往返 / 安全函数
-├── dahua/                     # 大华 SDK（不入库）
-│   ├── C_Win64/                   #   原始发行包（只读，sync_sdk.py 的源）
-│   └── sdk_win64/                 #   同步副本：{include,lib,bin}（只有 .keep 入库）
-└── haikang/                   # 海康 SDK（不入库，结构同上）
+├── pytest.ini                # testpaths（与上面的树一致）+ e2e marker（e2e 默认不跑）
+├── clean_pycache.bat         # 删所有 __pycache__（preview 列而不删 / all 连 .venv 一起）
+└── vendor/                   # 厂商原始 SDK（体积大，不入库）
+    ├── dahua/                     # 大华 3.6.1.92074
+    │   ├── C_Win64/                   #   原始发行包（只读，sync_sdk.py 的源）
+    │   └── sdk_win64/                 #   同步副本：{include,lib,bin}（只有 .keep 入库）
+    └── haikang/                   # 海康 6.1.11.30，结构同上
 ```
 
 ## SDK 版本
@@ -98,14 +117,14 @@ SDK 原始包不入库，需自行从厂商渠道取得。**版本必须与下�
 
 | 厂商 | 版本 | 来源目录 | 产物与规模 |
 |---|---|---|---|
-| 大华 | **3.6.1.92074** | `dahua/C_Win64/` | `unify_dh_gen.pyd`：10557 结构体 / 2521 函数 / 289 回调 |
-| 海康 | **6.1.11.30**（build 20260805） | `haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/` | `unify_hk_gen.pyd`：2667 结构体 / 789 函数 / 26 回调 |
+| 大华 | **3.6.1.92074** | `vendor/dahua/C_Win64/` | `unify_dh_gen.pyd`：10557 结构体 / 2521 函数 / 289 回调 |
+| 海康 | **6.1.11.30**（build 20260805） | `vendor/haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/` | `unify_hk_gen.pyd`：2667 结构体 / 789 函数 / 26 回调 |
 
 版本号取自 DLL 的版本资源，不是目录名 —— 目录名可能与实际版本不符：
 
 ```powershell
-(Get-Item dahua\sdk_win64\bin\dhnetsdk.dll).VersionInfo.FileVersion    # 3, 6, 1, 92074
-(Get-Item haikang\sdk_win64\bin\HCNetSDK.dll).VersionInfo.FileVersion  # 6, 1, 11, 30
+(Get-Item vendor\dahua\sdk_win64\bin\dhnetsdk.dll).VersionInfo.FileVersion    # 3, 6, 1, 92074
+(Get-Item vendor\haikang\sdk_win64\bin\HCNetSDK.dll).VersionInfo.FileVersion  # 6, 1, 11, 30
 ```
 
 取得 SDK 后先同步一次 —— 把头文件/库/DLL 复制到 `<厂商>/sdk_win64/{include,lib,bin}`，
@@ -134,8 +153,8 @@ uv pip install nanobind ninja tqdm
 .venv\Scripts\python.exe tools\sync_sdk.py
 
 # 3. 生成绑定代码（增量，很快）
-.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
-.venv\Scripts\python.exe tools\gen_bind.py --sdk haikang
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk haikang
 
 # 4. 编译 + 链接
 powershell -ExecutionPolicy Bypass -File native\build.ps1 -SkipTest -Jobs 10
@@ -148,7 +167,7 @@ powershell -ExecutionPolicy Bypass -File native\build.ps1 -SkipTest -Jobs 10
 
 ```python
 import os, sys
-os.add_dll_directory(r'dahua\sdk_win64\bin')   # 让 dhnetsdk.dll 及其依赖可被找到
+os.add_dll_directory(r'vendor\dahua\sdk_win64\bin')   # 让 dhnetsdk.dll 及其依赖可被找到
 sys.path.insert(0, r'native\build')
 import unify_dh_gen as g
 
@@ -202,13 +221,13 @@ unify_dh_gen.unbind_fRealDataCallBack()          # 退订
 
 ```powershell
 # 运行时验证：两个 pyd 的 import / 规模 / 字段读写往返 / 安全函数
-.venv\Scripts\python.exe tests\verify_runtime.py
+.venv\Scripts\python.exe native\tests\verify_runtime.py
 
 # 端到端：生成版登录模拟器 + 验证回调在真实 SDK 线程上触发（需大华模拟器）
-.venv\Scripts\python.exe tests\test_e2e_generated.py
+.venv\Scripts\python.exe native\tests\e2e\test_login_callback.py
 
 # 绑定层参数分类（bytes / obj / array / 指针别名 / 退订 / 异常隔离）
-.venv\Scripts\python.exe tests\test_cb_bindings.py
+.venv\Scripts\python.exe native\tests\test_callbacks.py
 ```
 
 `verify_runtime.py` 是判断"绑定是否真的可用"的最小成本手段 —— 编译通过只证明类型和
@@ -219,13 +238,5 @@ thunk，因此**没有设备时也能验证回调处理逻辑**：`g._selftest_f
 `payload` 为空只做线程往返、非空才走完整 thunk —— 这个二分开关在排查卡死/崩溃时
 很好用（先确认是线程机制还是 thunk 内部的问题）。
 
-`tests\test_e2e_generated.py` 需要模拟器在 `..\Dahua_NVR_Simulator`（脚本会自己
+`native\tests\e2e\test_login_callback.py` 需要模拟器在 `..\Dahua_NVR_Simulator`（脚本会自己
 拉起 server，路径从脚本位置推导，无需改配置）。
-
-## 下一步
-
-- [ ] Python 高层封装：错误码表、输出缓冲自动读回（`outptr` → Python 可读）
-- [ ] `.pyi` stub：IDE 补全
-- [ ] 海康回调参数分类规则：目前 26 个回调走保守退化（不识别数组），等接上设备后照实际行为补
-- [ ] `dh_netsdk.cpp` 定位：它是"GIL 安全的阻塞调用封装"（第 2 层的 C++ 侧），需接线到
-      `python/unify_dh/client.py`；另有两个 `_test_gil_*` 探针无人使用，可移除

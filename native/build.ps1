@@ -123,7 +123,7 @@ if ($r.Code -ne 0) { Write-Host "configure FAILED (exit $($r.Code))" -Foreground
 #
 # 为什么不用一次构建：cmake --build 是全有或全无 —— 任一 target 失败，
 # 整条命令返回非 0，于是**另一个厂商的 .pyd 也拿不到**。但这两个 pyd
-# 是两份独立交付物（unify-dh 与 unify-hk 两个 wheel），海康写坏了不该
+# 是两份独立交付物（dhbind 与 hkbind 两个 wheel），海康写坏了不该
 # 让大华也编不出来。这才是真正的耦合，而它是可以拆掉的。
 #
 # 代价：失去跨厂商并行。同一厂商**内部**仍是满并发（-j $Jobs 不变），

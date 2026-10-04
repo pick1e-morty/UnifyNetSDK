@@ -21,7 +21,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.normpath(os.path.join(HERE, '..'))
-DH_BIN = os.path.join(PROJECT, 'dahua', 'C_Win64', 'Bin')
+DH_BIN = os.path.join(PROJECT, 'vendor', 'dahua', 'C_Win64', 'Bin')
 BUILD = os.path.join(HERE, 'build')
 
 # 结构体大小的预期值（由字段定义手工推算，用于交叉验证 C 编译器的 sizeof）

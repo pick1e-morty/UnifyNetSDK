@@ -3,9 +3,9 @@
 不要手工改动这里的文件 —— 下次同步会被覆盖。要改绑定行为，改 tools/ 下的源头。
 
 来源（vendor 原始发行包，只读，不入库）：
-    haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/头文件/
+    vendor/haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/头文件/
         ->  include/   （*.h）
-    haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/库文件/
+    vendor/haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/库文件/
         ->  lib/       （*.lib）
         ->  bin/       （*.dll）
 

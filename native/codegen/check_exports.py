@@ -12,8 +12,8 @@
 config/<sdk>.py。函数名用 common.parse.parse_funcs 提取（不自己写正则），
 注释剥离也复用 common.parse.strip_comments。
 
-    python tools/check_exports.py --sdk dahua
-    python tools/check_exports.py --sdk haikang
+    python native/codegen/check_exports.py --sdk dahua
+    python native/codegen/check_exports.py --sdk haikang
 """
 import argparse
 import ctypes

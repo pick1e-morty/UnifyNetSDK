@@ -6,8 +6,8 @@ MSVC / batch / dumpbin 等工具链对中文路径的处理并不可靠 —— �
 message() 打印会乱码、bat 里传中文路径会让工具直接失败。大华的路径本来就是
 纯 ASCII，但两边结构不一致会让后来的人猜"哪个是有意的"，所以两边一起统一：
 
-    dahua/sdk_win64/{include,lib,bin}/
-    haikang/sdk_win64/{include,lib,bin}/
+    vendor/dahua/sdk_win64/{include,lib,bin}/
+    vendor/haikang/sdk_win64/{include,lib,bin}/
 
 vendor 原始目录保持不动，只作为复制源。
 
@@ -29,7 +29,11 @@ import os
 import shutil
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# 厂商配置在 <root>/native/codegen/ 下（跟着 native 走 —— 它的产物就是 native
+# 的绑定代码），而本文件留在 <root>/tools/，所以要跨目录把 codegen 挂进 sys.path。
+# 别改回 os.path.dirname(__file__)：那会指向 tools/，config 不在那里。
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'native', 'codegen'))
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 from config import get_config

@@ -4,8 +4,8 @@
 厂商无关：头文件路径、函数正则、回调参数语义钩子全部来自 config/<sdk>.py，
 统计口径是通用的。**厂商差异只该出现在 config/ 里，不该出现在本脚本里。**
 
-    python tools/check_coverage.py --sdk dahua
-    python tools/check_coverage.py --sdk haikang
+    python native/codegen/check_coverage.py --sdk dahua
+    python native/codegen/check_coverage.py --sdk haikang
 """
 import argparse
 import io

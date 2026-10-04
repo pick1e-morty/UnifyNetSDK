@@ -274,7 +274,7 @@ fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *pstuCarPassInfos, int nInfoNum, ...) 
 进而二次 attach 崩溃。所以 **ctypes 无法验证"无 GIL 线程调 thunk"** 这条路径。
 
 这也是 `--emit-selftest` 存在的唯一理由：从裸 `std::thread` 调 thunk。
-不过现在 `test_e2e_generated.py`（真实 SDK 线程）已经覆盖，selftest 默认关闭。
+不过现在 `test_login_callback.py`（真实 SDK 线程）已经覆盖，selftest 默认关闭。
 
 ---
 
@@ -319,7 +319,7 @@ std::thread t([&]{ thunk(); });
 ```
 
 **它不是登录失败的原因。** Gen2 登录实测正常（`nError == 0`，见
-`tests/test_e2e_generated.py`）。
+`native/tests/e2e/test_login_callback.py`）。
 
 事实与来源要分清：
 
@@ -364,6 +364,26 @@ digest 绕道；后来登录实测通了，却没回头修正这个结论，甚�
    这类代价是**一次性**的：顺序稳定之后再改单个字段只重编那一个分片。
    但要预先知道，别以为是"改一行怎么编了 8 分钟"。
 
+### 8.1 预研：合成基准（`bench_nanobind/`，2026-10-04 已删除）
+
+在真实分片方案定下来之前，"62884 个字段全绑会不会把编译拖垮"是没有答案的。
+当时用**合成 probe** 做了一次成本预研（目录已删除，结论保留下列）：
+
+| | |
+|---|---|
+| **做法** | 造 4 个只含大华头文件、不含真实逻辑的合成 TU，分别绑 0 / 506 / 2005 / 5014 个字段；单文件计时；最小二乘拟合 `t = 固定 + 每字段 × N`；外推到 61881（大华全量）与 82755（大华+海康）字段 |
+| **结论** | 可行，编译时间在可接受范围 |
+| **印证** | 真实产物随后直接验证了这一点：拆成 125 个分片后全量 612 s（上表），而不是单文件几十分钟 |
+
+**为什么删掉**：合成基准唯一的优势是"干净"（不含 SDK 逻辑、不含回调运行时），
+而真实 `unify_dh_gen.pyd` 早就能直接测了 —— 预研阶段结束，对照组失去意义。
+它剩下的唯一价值是"换绑定库（nanobind → pybind11）时做 A/B 对比"，但那需要的是
+**变量隔离**，这个目录并不自动提供；真要做，重写 30 行 probe 也就十几分钟。
+
+**教训（这次真踩了）**：预研的**结论要当场落盘**。这个基准跑完只留下一个被掐断的
+`r500.log` —— 连 `build_measure.ps1` 的 RESULT 表都没打出来，拟合系数至今无法
+复原，只能靠真实产物反推。**别把"我看过一眼"当成结论。**
+
 ---
 
 ## 九、生成代码的自我约束
@@ -379,15 +399,15 @@ digest 绕道；后来登录实测通了，却没回头修正这个结论，甚�
 
 ### 改了生成器之后的工作流（别再跳过）
 
-`build.ps1` **只编译、不生成**（生成是 `tools/gen_bind.py` 的事）。所以改完
-`tools/common/*.py` 直接编译，等于拿旧产物编了一遍——字段根本没进 pyd，
+`build.ps1` **只编译、不生成**（生成是 `native/codegen/gen_bind.py` 的事）。所以改完
+`native/codegen/common/*.py` 直接编译，等于拿旧产物编了一遍——字段根本没进 pyd，
 验证脚本会报 `hasattr(...) == False`，而根因在生成流程，不在绑定代码。
 
 正确顺序：
 
 ```powershell
 # 1. 重新生成
-.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua
 
 # 2. 确认生成物里真的有新东西（关键，别跳）
 Select-String -Path native\src\gen_dh\dh_bind_part*.cpp -Pattern '"lpRecordFile"'
@@ -401,7 +421,7 @@ cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 
 的脚本了。**先确认生成物，再编译，再验证**。
 
 同理，**关掉某个生成开关时，要检查依赖它的脚本**。`--emit-selftest` 改成默认
-关闭后，`tests/test_cb_bindings.py` 依赖的 `_selftest_fXxx` 就没了，跑到第一个
+关闭后，`native/tests/test_callbacks.py` 依赖的 `_selftest_fXxx` 就没了，跑到第一个
 用例直接 `AttributeError` traceback，看不出是"忘了加开关重新生成"。现在该脚本
 开头会检测并打印重生成命令。
 

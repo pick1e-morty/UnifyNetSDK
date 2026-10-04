@@ -1,7 +1,7 @@
 # 绑定生成器技术债清单
 
 > 记录生成器当前「故意没实现 / 降级处理」的部分。数字以
-> `python tools/check_coverage.py` 实测为准（升级 SDK 后重跑即可刷新）。
+> `python native/codegen/check_coverage.py` 实测为准（升级 SDK 后重跑即可刷新）。
 >
 > **踩坑细节见 `implementation-notes.md`**（nanobind / CPython C API / MSVC / 大华 SDK 头文件的脾气）。
 
@@ -27,7 +27,7 @@
 ### ~~1. 回调~~ ✅ 2026-10-04
 
 大华 289 个回调 typedef 全部生成绑定，产出 10 个分片 `dh_bind_cbs*.cpp` + 运行时头
-`dh_bind_cb.h`（模板源 `tools/common/cb_runtime.py`）。
+`dh_bind_cb.h`（模板源 `native/codegen/common/cb_runtime.py`）。
 
 ```python
 ptr = unify_dh_gen.bind_fRealDataCallBack(on_data)   # 订阅 + 返回 C 函数指针
@@ -51,8 +51,8 @@ bytes 19 / array 7`。判定必须**靠参数名**而非位置 —— 289 个回
 `(NET_X *pInfo, LDWORD dwUser)`，那个整数是用户数据不是数量；且数量/长度关键词要 `$`
 锚定在名字末尾：`nFileNum` 的第 4~6 字符忽略大小写正好凑出 `leN` 命中 `len`。
 
-验证：端到端 `tests/test_e2e_generated.py`（真实 SDK 线程触发，参数全对）；
-绑定层 `tests/test_cb_bindings.py`（依赖 `_selftest_fXxx` 钩子从裸
+验证：端到端 `native/tests/e2e/test_login_callback.py`（真实 SDK 线程触发，参数全对）；
+绑定层 `native/tests/test_callbacks.py`（依赖 `_selftest_fXxx` 钩子从裸
 `std::thread` 调 thunk，268 个钩子全通）。钩子**默认生成**（`--no-selftest` 可关），
 因为关掉后绑定层测试就完全跑不了；附带好处是上游无设备时也能用钩子验证自己的回调。
 
@@ -111,7 +111,7 @@ IDE 无补全，高层封装未做。
   与 4 个 `_test_*` 转换探针已删除，回调统一走生成版。此前两套注册表独立，
   同一 SDK 订阅点混用会静默不触发。`unify_dh` 现在只剩登录链路、`log_open`、
   GIL 探针。
-- 生成物 `native/src/gen_dh/` 不入库（可重建），改代码请改 `tools/` 下的源头。
+- 生成物 `native/src/gen_dh/` 不入库（可重建），改代码请改 `native/codegen/` 下的源头。
 
 ## 优先级
 

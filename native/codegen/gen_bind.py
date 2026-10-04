@@ -6,9 +6,9 @@
 
 用法
 ----
-    python tools/gen_bind.py --sdk dahua            # 全量生成
-    python tools/gen_bind.py --sdk dahua --dry-run  # 只统计，不写文件
-    python tools/gen_bind.py --sdk haikang --limit 3000
+    python native/codegen/gen_bind.py --sdk dahua            # 全量生成
+    python native/codegen/gen_bind.py --sdk dahua --dry-run  # 只统计，不写文件
+    python native/codegen/gen_bind.py --sdk haikang --limit 3000
 """
 import argparse
 import os

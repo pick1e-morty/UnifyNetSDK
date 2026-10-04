@@ -1,32 +1,27 @@
 # ===== 厂商 SDK（体积大，内容不入库）=====
 # 原始发行包需要时从厂商渠道重新取得；仓库只保留调用它们的代码。
+# 位置 vendor/<厂商>/：厂商数量是变量，不放在根目录。
 #
-# 但 <厂商>/sdk_win64/ 会入库一个 .keep —— 让 clone 后能看到这个目录存在，
+# 但 vendor/<厂商>/sdk_win64/ 会入库一个 .keep —— 让 clone 后能看到这个目录存在，
 # 并从 .keep 里读到“内容从哪来、用什么命令重新同步”。
-# 写法上有个坑：父目录被整条忽略时，子目录的例外规则不生效（git 不会进
-# 去看），所以要用 /dahua/* 而不是 /dahua/。
-/dahua/*
-/haikang/*
-!/dahua/sdk_win64/
-!/haikang/sdk_win64/
-/dahua/sdk_win64/*
-/haikang/sdk_win64/*
-!/dahua/sdk_win64/.keep
-!/haikang/sdk_win64/.keep
+#
+# 写法上有个坑：父目录被整条忽略时，子目录的例外规则不生效（git 不会进去
+# 去看），所以要逐层用 !/ 重新解锁。这也是这里用 ** 而不是 /vendor/* 的原因。
+# 加新厂商（宇视等）时本段零改动 —— 规则对 vendor 下所有厂商生效。
+/vendor/**
+!/vendor/*/
+!/vendor/*/sdk_win64/
+!/vendor/*/sdk_win64/.keep
 
 # ===== 虚拟环境（项目根统一一份，native/ 与 bench_nanobind 共用）=====
 .venv/
 
-# ===== 生成的绑定代码（tools/gen_bind.py 产出，可重建）=====
+# ===== 生成的绑定代码（native/codegen/gen_bind.py 产出，可重建）=====
 # 目录名带厂商缩写，与 config/<sdk>.py 的 out_dir 一致：gen_dh / gen_hk
 native/src/gen_dh/
 native/src/gen_hk/
 
-# ===== 编译实验产物（bench_nanobind）=====
-bench_nanobind/build/
-# gen_probe.py 生成的合成切片：可重建，含厂商结构体文本
-bench_nanobind/probe_[0-9]*.cpp
-# build.ps1 / build_measure.ps1 生成的临时 bat
+# ===== 临时文件（build.ps1 生成的临时 bat）=====
 _tmp_*.bat
 
 # ===== Python =====

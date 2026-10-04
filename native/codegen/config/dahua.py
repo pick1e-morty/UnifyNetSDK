@@ -10,7 +10,7 @@ import re
 
 from common.parse import make_func_re
 
-PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from .paths import PROJECT
 
 # ---------------------------------------------------------------- 大华专属钩子
 #
@@ -47,22 +47,24 @@ def dahua_count_pred(name):
 DAHUA = {
     'name': 'dahua',
     # SDK 源目录（vendor 原始包，只读）。tools/sync_sdk.py 从这里复制到 sdk_dir。
+    # 统一在 vendor/<厂商>/ 下：厂商数量是变量，不该让根目录每加一家就多一个顶层
+    # 目录；且原始包（第三方数据）与 native/（我们的 C++ 代码）语义不同。
     'sdk_src': {
-        'include': os.path.join(PROJECT, 'dahua', 'C_Win64', 'Include', 'Common'),
-        'lib': os.path.join(PROJECT, 'dahua', 'C_Win64', 'Lib', 'Win64'),
-        'bin': os.path.join(PROJECT, 'dahua', 'C_Win64', 'Bin'),
+        'include': os.path.join(PROJECT, 'vendor', 'dahua', 'C_Win64', 'Include', 'Common'),
+        'lib': os.path.join(PROJECT, 'vendor', 'dahua', 'C_Win64', 'Lib', 'Win64'),
+        'bin': os.path.join(PROJECT, 'vendor', 'dahua', 'C_Win64', 'Bin'),
     },
-    # SDK 副本：统一到 <厂商>/sdk_win64/{include,lib,bin}，全 ASCII 路径。
+    # SDK 副本：统一到 vendor/<厂商>/sdk_win64/{include,lib,bin}，全 ASCII 路径。
     # 大华原始路径本来已是纯 ASCII，但为了与海康结构一致（海康的"头文件"/"库文件"
     # 是中文，MSVC/batch/dumpbin 处理不可靠），两边一起走这个布局 ——
     # 结构对不齐，后来的人就得猜哪个是有意的。改用 tools/sync_sdk.py 同步。
-    'sdk_dir': os.path.join(PROJECT, 'dahua', 'sdk_win64'),
+    'sdk_dir': os.path.join(PROJECT, 'vendor', 'dahua', 'sdk_win64'),
     # 编译与运行都指向副本，不再直接引用 vendor 原始目录。
-    'header': os.path.join(PROJECT, 'dahua', 'sdk_win64', 'include', 'dhnetsdk.h'),
-    'dll': os.path.join(PROJECT, 'dahua', 'sdk_win64', 'bin', 'dhnetsdk.dll'),
-    'lib_dir': os.path.join(PROJECT, 'dahua', 'sdk_win64', 'lib'),
-    'include_dir': os.path.join(PROJECT, 'dahua', 'sdk_win64', 'include'),
-    'bin_dir': os.path.join(PROJECT, 'dahua', 'sdk_win64', 'bin'),
+    'header': os.path.join(PROJECT, 'vendor', 'dahua', 'sdk_win64', 'include', 'dhnetsdk.h'),
+    'dll': os.path.join(PROJECT, 'vendor', 'dahua', 'sdk_win64', 'bin', 'dhnetsdk.dll'),
+    'lib_dir': os.path.join(PROJECT, 'vendor', 'dahua', 'sdk_win64', 'lib'),
+    'include_dir': os.path.join(PROJECT, 'vendor', 'dahua', 'sdk_win64', 'include'),
+    'bin_dir': os.path.join(PROJECT, 'vendor', 'dahua', 'sdk_win64', 'bin'),
     # 产物目录带厂商缩写，与 file_prefix / module 保持同一套命名：
     #   gen_dh  / dh_bind_*  / unify_dh_gen
     # 早先是裸 'gen'，靠"先建大华所以没后缀"的历史原因，结果 gen 与 gen_hk
@@ -88,7 +90,7 @@ DAHUA = {
     'probe_funcs': ('CLIENT_Init', 'CLIENT_Login', 'CLIENT_Cleanup',
                     'CLIENT_GetLastError'),
     # 头文件里声明了、但 dhnetsdk.dll 实际没导出的函数（链接报 LNK2019）。
-    # 用 tools/check_exports.py --sdk dahua 验证/更新。
+    # 用 native/codegen/check_exports.py --sdk dahua 验证/更新。
     'skip_funcs': {
         'CLIENT_GetSecurityEncryptInfo',
         'CLIENT_DelayReboot',

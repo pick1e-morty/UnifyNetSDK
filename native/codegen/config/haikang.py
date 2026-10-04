@@ -20,7 +20,7 @@ import os
 
 from common.parse import make_func_re, strip_inactive_branches
 
-PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from .paths import PROJECT
 
 HAIKANG = {
     'name': 'haikang',
@@ -28,26 +28,26 @@ HAIKANG = {
     # MSVC 编译能过（内部走 Unicode），但 CMake 的 message() 会打印乱码、
     # bat 里传中文路径会让 dumpbin 之类工具直接失败。所以统一复制到 sdk_dir。
     'sdk_src': {
-        'include': os.path.join(PROJECT, 'haikang', 'HCNetSDK_Win64',
+        'include': os.path.join(PROJECT, 'vendor', 'haikang', 'HCNetSDK_Win64',
                                 'HCNetSDKV6.1.11.30_build20260805_Win64_ZH',
                                 '头文件'),
-        'lib': os.path.join(PROJECT, 'haikang', 'HCNetSDK_Win64',
+        'lib': os.path.join(PROJECT, 'vendor', 'haikang', 'HCNetSDK_Win64',
                             'HCNetSDKV6.1.11.30_build20260805_Win64_ZH',
                             '库文件'),
-        'bin': os.path.join(PROJECT, 'haikang', 'HCNetSDK_Win64',
+        'bin': os.path.join(PROJECT, 'vendor', 'haikang', 'HCNetSDK_Win64',
                             'HCNetSDKV6.1.11.30_build20260805_Win64_ZH',
                             '库文件'),
     },
-    # SDK 副本：与 config/dahua.py 完全同构 —— <厂商>/sdk_win64/{include,lib,bin}。
+    # SDK 副本：与 config/dahua.py 完全同构 —— vendor/<厂商>/sdk_win64/{include,lib,bin}。
     # 两边结构对不齐，后来的人就得猜哪个是有意的，所以哪怕大华原本就是纯 ASCII，
     # 也一起走这个布局。用 tools/sync_sdk.py 同步。
-    'sdk_dir': os.path.join(PROJECT, 'haikang', 'sdk_win64'),
-    'header': os.path.join(PROJECT, 'haikang', 'sdk_win64', 'include',
+    'sdk_dir': os.path.join(PROJECT, 'vendor', 'haikang', 'sdk_win64'),
+    'header': os.path.join(PROJECT, 'vendor', 'haikang', 'sdk_win64', 'include',
                            'HCNetSDK.h'),
-    'dll': os.path.join(PROJECT, 'haikang', 'sdk_win64', 'bin', 'HCNetSDK.dll'),
-    'lib_dir': os.path.join(PROJECT, 'haikang', 'sdk_win64', 'lib'),
-    'include_dir': os.path.join(PROJECT, 'haikang', 'sdk_win64', 'include'),
-    'bin_dir': os.path.join(PROJECT, 'haikang', 'sdk_win64', 'bin'),
+    'dll': os.path.join(PROJECT, 'vendor', 'haikang', 'sdk_win64', 'bin', 'HCNetSDK.dll'),
+    'lib_dir': os.path.join(PROJECT, 'vendor', 'haikang', 'sdk_win64', 'lib'),
+    'include_dir': os.path.join(PROJECT, 'vendor', 'haikang', 'sdk_win64', 'include'),
+    'bin_dir': os.path.join(PROJECT, 'vendor', 'haikang', 'sdk_win64', 'bin'),
     # 产物目录与 config/dahua.py 同一套命名规则：gen_<厂商缩写>，
     # 与 file_prefix（hk_bind_*）、module（unify_hk_gen）保持一致。
     'out_dir': os.path.join(PROJECT, 'native', 'src', 'gen_hk'),
@@ -76,7 +76,7 @@ HAIKANG = {
     # 否则"全部未导出"会是 DLL 加载失败的假象）。
     'probe_funcs': ('NET_DVR_Init', 'NET_DVR_Login_V30', 'NET_DVR_Cleanup',
                     'NET_DVR_GetLastError'),
-    # 头文件声明了但 HCNetSDK.dll 未导出（tools/check_exports.py --sdk haikang
+    # 头文件声明了但 HCNetSDK.dll 未导出（native/codegen/check_exports.py --sdk haikang
     # 实测 789 声明 / 4 缺失）。不填会 LNK2019。
     'skip_funcs': {
         'NET_DVR_GetAirCondition',

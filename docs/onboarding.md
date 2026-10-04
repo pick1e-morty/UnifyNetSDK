@@ -16,7 +16,7 @@
 
 | 模块 | 来源 | 说明 |
 |---|---|---|
-| `unify_dh_gen` | 生成产物（`tools/gen_bind.py --sdk dahua`）| 大华，**主力模块** |
+| `unify_dh_gen` | 生成产物（`native/codegen/gen_bind.py --sdk dahua`）| 大华，**主力模块** |
 | `unify_dh` | 手写（`native/src/dh_netsdk.cpp`）| 只剩登录链路 + `log_open` + GIL 探针 |
 | `unify_hk_gen` | 生成产物（`--sdk haikang`）| 海康，**尚未接 CMake 编译** |
 
@@ -46,10 +46,10 @@
 
 | 想改什么 | 改哪个文件 | 注意 |
 |---|---|---|
-| 回调运行时（GIL、槽位注册表、borrowed view）| `tools/common/cb_runtime.py` | 它的 `HEADER` 常量就是生成物 `dh_bind_cb.h` 的内容 |
-| 回调参数怎么分类成 `bytes`/`list`/单对象 | `tools/common/parse.py` 的 `classify_cb_params` | 判定**靠参数名**；靠位置会误判 150/289 个回调 |
-| 生成什么代码（thunk、分片、注册语句）| `tools/common/emit.py` | 改这里会影响编译规模，见第四节 |
-| 大华特有的路径/函数正则/跳过名单 | `tools/config/dahua.py` | 厂商差异**只能**加在这里，`common/` 保持厂商无关 |
+| 回调运行时（GIL、槽位注册表、borrowed view）| `native/codegen/common/cb_runtime.py` | 它的 `HEADER` 常量就是生成物 `dh_bind_cb.h` 的内容 |
+| 回调参数怎么分类成 `bytes`/`list`/单对象 | `native/codegen/common/parse.py` 的 `classify_cb_params` | 判定**靠参数名**；靠位置会误判 150/289 个回调 |
+| 生成什么代码（thunk、分片、注册语句）| `native/codegen/common/emit.py` | 改这里会影响编译规模，见第四节 |
+| 大华特有的路径/函数正则/跳过名单 | `native/codegen/config/dahua.py` | 厂商差异**只能**加在这里，`common/` 保持厂商无关 |
 | 手写登录链路、GIL 探针 | `native/src/dh_netsdk.cpp` | |
 | 生成物 | **不要直接改** `native/src/gen_dh/` | 下次生成就被覆盖，且不入库 |
 
@@ -62,7 +62,7 @@
 
 ```powershell
 # 1. 生成（秒级）
-.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua
 
 #    输出末尾会报告分片 diff —— 这决定第 3 步要花多久：
 #      分片 diff: 无变化，编译会直接跳过
@@ -75,9 +75,9 @@ Select-String -Path native\src\gen_dh\dh_bind_part*.cpp -Pattern '"新字段名"
 cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 8
 
 # 4. 验证
-cd ..; .venv\Scripts\python.exe tests\test_e2e_generated.py   # 端到端（需模拟器）
-.venv\Scripts\python.exe tests\test_cb_bindings.py          # 绑定层 268 个钩子
-.venv\Scripts\python.exe tools\check_coverage.py             # 覆盖边界统计
+cd ..; .venv\Scripts\python.exe native\tests\e2e\test_login_callback.py   # 端到端（需模拟器）
+.venv\Scripts\python.exe native\tests\test_callbacks.py          # 绑定层 268 个钩子
+.venv\Scripts\python.exe native/codegen\check_coverage.py             # 覆盖边界统计
 ```
 
 ### 编译由谁来跑
@@ -128,14 +128,14 @@ cd ..; .venv\Scripts\python.exe tests\test_e2e_generated.py   # 端到端（需�
 
 ```powershell
 # 生成
-.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua
-.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua --no-selftest  # 少 1.5MB 产物
-.venv\Scripts\python.exe tools\gen_bind.py --sdk dahua --dry-run
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua --no-selftest  # 少 1.5MB 产物
+.venv\Scripts\python.exe native/codegen\gen_bind.py --sdk dahua --dry-run
 
 # 覆盖边界统计（升级 SDK 后重跑，刷新文档里的数字）
-.venv\Scripts\python.exe tools\check_coverage.py
+.venv\Scripts\python.exe native/codegen\check_coverage.py
 
 # 校验 DLL 导出表（头文件声明但实际未导出的函数）
-.venv\Scripts\python.exe tools\check_exports.py
+.venv\Scripts\python.exe native/codegen\check_exports.py
 ```
 

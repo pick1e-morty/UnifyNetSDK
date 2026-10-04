@@ -17,34 +17,19 @@ import time
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-UNIFY = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SIM = os.path.join(os.path.dirname(UNIFY), "Dahua_NVR_Simulator")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import _paths  # noqa: E402
 
-server_script = r'''
-import sys, time
-sys.path.insert(0, r"%s\\src")
-from config import DeviceConfig
-from dahua_netsdk import DahuaNetSDKServer
-cfg = DeviceConfig()
-cfg.ip = "127.0.0.1"
-cfg.dahua_port = 37778
-cfg.username = "admin"
-cfg.password = "admin123"
-cfg.set_channel_count(3)
-srv = DahuaNetSDKServer(lambda: cfg, log_cb=lambda s, level="INFO": print("  [srv]", s, flush=True))
-srv.start()
-time.sleep(3)
-print("[srv] 主动断开所有连接...", flush=True)
-srv.stop()
-time.sleep(3)
-''' % SIM
+SERVER = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                      "simulator", "server.py")
 
-proc = subprocess.Popen([sys.executable, "-c", server_script])
+# 模拟器胶水已从字符串字面量挪成真文件（e2e/simulator/server.py）：改端口/账号
+# 直接编辑那个文件，不用在测试脚本的字符串里翻找。模拟器仓库路径由 _paths 给出。
+proc = subprocess.Popen([sys.executable, SERVER, _paths.SIMULATOR])
 time.sleep(1.5)
 
-os.add_dll_directory(os.path.join(UNIFY, "dahua", "C_Win64", "Bin"))
-sys.path.insert(0, os.path.join(UNIFY, "native", "build"))
-import unify_dh_gen as g  # noqa: E402
+_paths.add_sdk_dll_dirs("dahua")
+g = _paths.import_pyd("unify_dh_gen")
 
 _t0 = time.time()
 fails = []

@@ -22,11 +22,12 @@ import traceback
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.add_dll_directory(os.path.join(ROOT, "dahua", "C_Win64", "Bin"))
-sys.path.insert(0, os.path.join(ROOT, "native", "build"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _paths  # noqa: E402
 
-import unify_dh_gen as G
+# 路径与 DLL 加载的知识都在 _paths 里；本文件只关心回调绑定本身。
+_paths.add_sdk_dll_dirs("dahua")
+G = _paths.import_pyd("unify_dh_gen")
 
 # 进度打点：native 线程/GIL 相关调用可能卡死或崩，必须能在日志里看到
 # 停在哪一个 _selftest_ 之前（flush=True 是关键，否则卡住时缓冲区里啥都没有）。
@@ -49,7 +50,7 @@ if not _selftests:
     print("=" * 70)
     print("缺少 _selftest_* 钩子：当前产物是用 --no-selftest 生成的。")
     print()
-    print("  .venv\\Scripts\\python.exe tools\\gen_bind.py --sdk dahua")
+    print("  .venv\\Scripts\\python.exe native\\codegen\\gen_bind.py --sdk dahua")
     print("  cd native")
     print("  powershell -ExecutionPolicy Bypass -File .\\build.ps1 -SkipTest -Jobs 8")
     print()
