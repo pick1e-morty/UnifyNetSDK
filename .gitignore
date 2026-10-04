@@ -1,7 +1,18 @@
-# ===== 厂商 SDK 原始发行包（体积大，不入库）=====
-# 需要时从厂商渠道重新取得；仓库只保留调用它们的代码
-/dahua/
-/haikang/
+# ===== 厂商 SDK（体积大，内容不入库）=====
+# 原始发行包需要时从厂商渠道重新取得；仓库只保留调用它们的代码。
+#
+# 但 <厂商>/sdk_win64/ 会入库一个 .keep —— 让 clone 后能看到这个目录存在，
+# 并从 .keep 里读到“内容从哪来、用什么命令重新同步”。
+# 写法上有个坑：父目录被整条忽略时，子目录的例外规则不生效（git 不会进
+# 去看），所以要用 /dahua/* 而不是 /dahua/。
+/dahua/*
+/haikang/*
+!/dahua/sdk_win64/
+!/haikang/sdk_win64/
+/dahua/sdk_win64/*
+/haikang/sdk_win64/*
+!/dahua/sdk_win64/.keep
+!/haikang/sdk_win64/.keep
 
 # ===== 虚拟环境（项目根统一一份，native/ 与 bench_nanobind 共用）=====
 .venv/

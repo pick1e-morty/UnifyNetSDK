@@ -1,0 +1,25 @@
+本目录是**同步副本**，内容由 tools/sync_sdk.py 从 vendor 原始包复制而来。
+
+不要手工改动这里的文件 —— 下次同步会被覆盖。要改绑定行为，改 tools/ 下的源头。
+
+来源（vendor 原始发行包，只读，不入库）：
+    dahua/C_Win64/Include/Common/  ->  include/   （*.h）
+    dahua/C_Win64/Lib/Win64/       ->  lib/       （*.lib）
+    dahua/C_Win64/Bin/             ->  bin/       （*.dll）
+
+同步命令（在项目根跑）：
+    python tools/sync_sdk.py            # 全量同步，只复制变化的
+    python tools/sync_sdk.py --check    # 只校验，不复制；不一致时非零退出（可进 CI）
+    python tools/sync_sdk.py --sdk dahua
+
+为什么要有这个副本：
+    1. 两个厂商结构统一（<厂商>/sdk_win64/{include,lib,bin}），全 ASCII 路径。
+       海康 vendor 包的目录名是中文（"头文件"/"库文件"），MSVC 编译能过（内部走
+       Unicode）但 CMake 的 message() 会打印乱码、bat 里传中文路径会让 dumpbin
+       之类工具直接失败。
+    2. 大华的原始路径本来已是纯 ASCII，但两边结构对不齐，后来的人就得猜哪个是有
+       意的，所以两边一起走这个布局。
+    3. 原始包与本副本都不入库（除本 .keep 文件），仓库里保存的是"调用它们的代码"。
+
+换了 vendor SDK 版本后**必须重新同步**，否则编译/运行用的是旧头文件与旧 DLL，
+症状是结构体字段与 DLL 行为对不上这类难查的问题。

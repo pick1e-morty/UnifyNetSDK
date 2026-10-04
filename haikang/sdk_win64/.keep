@@ -1,0 +1,33 @@
+本目录是**同步副本**，内容由 tools/sync_sdk.py 从 vendor 原始包复制而来。
+
+不要手工改动这里的文件 —— 下次同步会被覆盖。要改绑定行为，改 tools/ 下的源头。
+
+来源（vendor 原始发行包，只读，不入库）：
+    haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/头文件/
+        ->  include/   （*.h）
+    haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH/库文件/
+        ->  lib/       （*.lib）
+        ->  bin/       （*.dll）
+
+注意源目录名是**中文**（"头文件" / "库文件"）——这正是要复制一份的原因。
+
+同步命令（在项目根跑）：
+    python tools/sync_sdk.py            # 全量同步，只复制变化的
+    python tools/sync_sdk.py --check    # 只校验，不复制；不一致时非零退出（可进 CI）
+    python tools/sync_sdk.py --sdk haikang
+
+为什么要有这个副本：
+    1. 路径全 ASCII。MSVC 编译能过（内部走 Unicode），但 CMake 的 message() 会打印
+       乱码、bat 里传中文路径会让 dumpbin 之类工具直接失败。
+    2. 与大华同构（<厂商>/sdk_win64/{include,lib,bin}），两边结构对不齐，后来的人
+       就得猜哪个是有意的。
+    3. 原始包与本副本都不入库（除本 .keep 文件）。
+
+关于 bin/ 里复制了哪些 DLL：**全复制**，只按 *.dll 过滤。曾想用解析 PE import 表算
+依赖闭包来只复制"必需的"，结果它报告 HCNetSDK.dll 与大华 dhnetsdk.dll 都"无本
+目录依赖"——因为 OpenSSL 等库是**延迟加载（delay-load）**的，静态 import 表里根本
+看不到，等到运行时才会报"找不到指定模块"。所以不靠静态分析判断，按扩展名全复制。
+
+换了 vendor SDK 版本后**必须重新同步**（本 .keep 里的源路径含版本号，换版本后
+sync_sdk.py 会自动指向 config/haikang.py 里 sdk_src 记录的新路径），否则编译/运行
+用的是旧头文件与旧 DLL。
