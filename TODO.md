@@ -40,6 +40,17 @@ def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能�
 
 逐个结构体：构造不崩、`dwSize` 填对、每个字段可读写且写回原值往返。
 
+```python
+@pytest.mark.parametrize("name", ALL_STRUCT_NAMES)
+def test_struct_smoke(name):
+    cls = getattr(g, name)
+    obj = cls()                          # 构造不崩
+    if hasattr(obj, "dwSize"):
+        assert obj.dwSize == EXPECTED_SIZE[name]   # dwSize 自动填对
+    for f in FIELDS_OF[name]:             # 字段可读 + 写回原值往返
+        assert getattr(obj, f) == getattr(obj, f)
+```
+
 **必须逐个跑，不能抽样** —— nanobind 的 `def_rw` 是模板胶水，一个能跑不代表
 另一个能跑（本次那 6 个漏网的指针别名字段就是例证）。
 
@@ -65,9 +76,14 @@ def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能�
 - `tests/test_coverage_regression.py`：Phase 1
 - `tests/test_structs.py`：Phase 2
 - `tests/test_functions.py`：Phase 3
-- **结构体/函数清单从哪来**：建议让生成器额外输出 `gen_manifest.json`（名字 +
-  跳过原因），测试直接读它，免得测试里再解析一遍头文件
 - 现有 `tests/test_e2e_generated.py` 与 `tests/test_cb_bindings.py` 将来并入 pytest
+
+**结构体/函数清单从哪来**：让生成器输出 `gen_manifest.json`（名字 + 跳过原因 +
+字段列表），测试直接读它，免得测试里再解析一遍头文件。
+
+一份数据两用：现在 `emit.py` 的分片 diff 用的是 `_gen_manifest.json`（只有文件名
+hash，用于估算编译量），扩展成带字段列表的 manifest 后，同一个文件既服务编译期
+diff，也服务测试期断言。
 
 ### 1.4 现状
 
@@ -98,7 +114,43 @@ def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能�
 
 ---
 
-## 5. `.pyi` stub
+## 5. 错误码转 Exception
+
+把裸数字错误码变成可捕获的异常。上层 Python 的核心价值之一，也是"用户不必自己
+查厂商错误码表"的前提。
+
+落地时要定三件事：
+
+| 决策 | 选项 |
+|---|---|
+| 异常粒度 | 统一 `NetSdkError(code, name, message)` / 按类别细分（登录失败、网络、参数、状态）|
+| 触发方式 | 显式 `check_error()` 调用 / 包装层自动检查每次调用结果 |
+| 错误码表来源 | **建议从 `dhnetsdk.h` 自动生成** —— 扫 `NET_xxx_E` 系列宏/枚举，生成字典 + 异常类，和绑定同步更新 |
+
+自动生成能覆盖"有符号名"的错误；厂商很多错误是裸数字无符号名，那部分仍需按文档补。
+
+---
+
+## 6. 打包与分发
+
+目标形态（已确认）：
+
+- **一个厂商一个 wheel**：`unify-dh` 只含大华、`unify-hk` 只含海康。
+  理由是厂商 DLL 体积大，捆一起会让只需要单家的用户白下载另一家的 SDK。
+- **`unify` 是可选的上层抽象**：依赖厂商 wheel，抽象掉厂商差异。
+  用户不需要 `unify` 时可以只装 `unify-dh` 自己拼，自由度最高。
+- **平台范围先只打通 `win_amd64` + `cp313`**，证明整条路线可行，多平台/多 Python
+  版本日后按需再扩。
+- `unify` 的 `pyproject.toml` 写清版本依赖限制，三个包用同一套版本号
+  （避免"unify-dh 能装、unify-hk 装不上"）。
+
+DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` 指向包内目录。
+**大华官方 Python SDK 也是这么做的**（手动 add dll path），所以这是厂商生态的
+既有做法，不是我们自创的负担。
+
+---
+
+## 7. `.pyi` stub
 
 纯生成工作，IDE 补全 + 错误码有类型。与 pytest 无关，但两者都依赖「从 IR 生成
 元数据」，可以合并成同一个生成步骤。
