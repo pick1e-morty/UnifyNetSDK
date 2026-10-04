@@ -20,6 +20,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <thread>
 
 #include <dhnetsdk.h>
 
@@ -39,6 +40,27 @@ void write_cstr(char (&buf)[N], const std::string &v) {
     std::size_t n = v.size() < N - 1 ? v.size() : N - 1;
     std::memcpy(buf, v.data(), n);
     std::memset(buf + n, 0, N - n);
+}
+
+// ---------------------------------------------------------------------------
+// Callback adapter (minimal hand-written proof of concept).
+// The Python callable is kept alive in a module-level nb::object; we hand the
+// SDK a plain C function pointer whose signature matches fDisConnect. On
+// invoke: acquire the GIL, forward the args, swallow any Python exception so
+// nothing can propagate across the C boundary.
+// ---------------------------------------------------------------------------
+nb::object g_disconnect_cb;
+
+void disconnect_adapter(LLONG lLoginID, char *pchDVRIP, LONG nDVRPort, LDWORD dwUser) {
+    nb::gil_scoped_acquire gil;
+    if (!g_disconnect_cb.is_none()) {
+        try {
+            g_disconnect_cb(lLoginID, pchDVRIP, nDVRPort, dwUser);
+        } catch (nb::python_error &e) {
+            e.restore();
+            PyErr_Print();
+        }
+    }
 }
 
 }  // namespace
@@ -206,4 +228,78 @@ NB_MODULE(unify_dh, m) {
           nb::arg("path"), "CLIENT_LogOpen (SDK log to file)");
 
     m.def("log_close", []() { CLIENT_LogClose(); }, "CLIENT_LogClose");
+
+    // --- GIL / threading probes -------------------------------------------
+    // 保留这两个：它们是排查回调线程问题的第一手工具（绑定的回调正是从
+    // SDK 工作线程触发，那里没有 GIL，必须靠 acquire）。
+    m.def("_test_gil_roundtrip", [](nb::object cb) {
+        std::thread t([&]() {
+            nb::gil_scoped_acquire g;
+            cb();
+        });
+        nb::gil_scoped_release rel;
+        t.join();
+    });
+
+    // (attached, PyGILState_Check) -- 绑定的 GIL 判据用前者：
+    // PyGILState_Check() 在 ctypes 回调这类"自带 tstate"的线程上会误报。
+    m.def("_test_gil_state", []() {
+        return nb::make_tuple(PyThreadState_GetUnchecked() != nullptr,
+                              (long)PyGILState_Check());
+    });
+
+    m.def("set_disconnect_callback",
+          [](nb::object cb) -> std::uintptr_t {
+              g_disconnect_cb = cb;
+              return reinterpret_cast<std::uintptr_t>(&disconnect_adapter);
+          },
+          nb::arg("cb"),
+          "register the fDisConnect callback; returns the C callback address "
+          "(pass it to init as cb)");
+
+    // test helper: invoke cb with a NET_DEVICEINFO_Ex* to verify struct-pointer
+    // conversion inside a callback (does nb::cast pick up the registered class?)
+    m.def("_test_struct_ptr_callback",
+          [](nb::object cb) {
+              NET_DEVICEINFO_Ex info;
+              std::memset(&info, 0, sizeof(info));
+              info.nChanNum = 3;
+              info.nDVRType = 42;
+              cb(&info);
+          },
+          nb::arg("cb"));
+
+    // test helper: invoke cb with a BYTE* (unsigned char*) to see what it maps to
+    m.def("_test_byte_ptr_callback",
+          [](nb::object cb) {
+              BYTE buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+              cb(buf, 8);
+          },
+          nb::arg("cb"));
+
+    // test helper: explicit nb::bytes wrap of a BYTE* buffer
+    m.def("_test_byte_bytes_callback",
+          [](nb::object cb) {
+              BYTE buf[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+              cb(nb::bytes(reinterpret_cast<const char *>(buf), 8));
+          },
+          nb::arg("cb"));
+
+    // test helper: struct ARRAY (ptr + count) -> nb::list of borrowed views.
+    // Mirrors fQueryRecordFileCallBack(LPNET_RECORDFILE_INFO pFileinfos, int nFileNum).
+    m.def("_test_struct_array_callback",
+          [](nb::object cb) {
+              NET_DEVICEINFO_Ex arr[3];
+              for (int i = 0; i < 3; ++i) {
+                  std::memset(&arr[i], 0, sizeof(arr[i]));
+                  arr[i].nChanNum = i + 1;
+                  arr[i].nDVRType = 100 + i;
+              }
+              nb::list lst;
+              for (int i = 0; i < 3; ++i) {
+                  lst.append(nb::cast(&arr[i]));   // borrow, no copy
+              }
+              cb(lst, 3);
+          },
+          nb::arg("cb"));
 }

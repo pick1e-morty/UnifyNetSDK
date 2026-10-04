@@ -4,6 +4,12 @@
 同样**不含厂商特定逻辑**。厂商差异（头文件路径、模块名、include 指令、
 文件名前缀、函数正则、未导出函数名单）全部来自 config/*.py 传入的 cfg。
 
+**踩过的坑见 docs/implementation-notes.md** —— 本文件里几处"看起来可以简化"的
+写法是刻意为之，注释里标了原因，别合并/删除：
+  - `make_includes` 与 `make_cb_includes` 必须分开（第七节：12 分钟 vs 7 秒）
+  - `gen_callback_binding` 用 `m.attr` 而不是 `m.def`（第一节 1.1）
+  - `write_if_changed` 的 ASCII 断言（第三节 3.3）
+
 生成物结构（cfg['file_prefix'] 决定文件名前缀）：
 
     {prefix}.h              分片函数声明
@@ -14,8 +20,9 @@
 """
 import collections
 import os
+import re
 
-from common import parse
+from common import dhcb, parse
 
 
 # ------------------------------------------------------------ 字段代码生成
@@ -106,8 +113,165 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, indent='        ')
     return [l + '\n' for l in lines]
 
 
+def gen_callback(name, ret, params, kinds):
+    """生成单个回调的 thunk + 注册语句。
+
+    thunk 是交给 SDK 的 C 函数指针，签名与 typedef 逐字一致；内部把每个参数
+    转换成 nanobind 能转的形态后再交给 Python 回调。注册侧只占两行。
+    """
+    if params:
+        sig = ', '.join('%s a%d' % (p['type'], i) for i, p in enumerate(params))
+        args = []
+        for i, (kind, j) in enumerate(kinds):
+            if kind == 'value':
+                # 必须 nb::cast(...) 显式转：宏里 `nb::object _dh_args[] = {a0, ...}`
+                # 要求元素已是 nb::object，而 int/long long 没有隐式转换
+                # （直接传 a0 会 C2440）。
+                args.append('nb::cast(a%d)' % i)
+            elif kind == 'cstr':
+                # NULL 安全：SDK 偶尔给空串指针，不能让 nanobind 去解引用。
+                args.append('(a%d ? nb::cast(a%d) : nb::object())' % (i, i))
+            elif kind == 'bytes':
+                args.append('nb::bytes(reinterpret_cast<const char *>(a%d), '
+                            'static_cast<std::size_t>(a%d))' % (i, j))
+            elif kind == 'array':
+                args.append('dhcb::as_list(a%d, static_cast<long long>(a%d))' % (i, j))
+            elif kind == 'obj':
+                args.append('dhcb::view(a%d)' % i)
+            else:
+                args.append('nb::cast(reinterpret_cast<std::uintptr_t>(a%d))' % i)
+        call = ', '.join(args)
+    else:
+        sig, call = 'void', ''
+
+    lines = []
+    if ret and ret != 'void':
+        # 有返回值（一般是 int 状态码）：未订阅 / 抛异常时一律回 0。
+        lines.append('static int dh_thunk_%s(%s) {\n' % (name, sig))
+        if call:
+            lines.append('    return DH_CB_RET("%s", 0, %s);\n' % (name, call))
+        else:
+            lines.append('    return DH_CB_RET("%s", 0);\n' % name)
+    else:
+        lines.append('static void dh_thunk_%s(%s) {\n' % (name, sig))
+        if call:
+            lines.append('    DH_CB_VOID("%s", %s);\n' % (name, call))
+        else:
+            # 零参数回调：零长度数组不是合法 C++，用专门的 0 参数宏。
+            lines.append('    DH_CB_VOID0("%s");\n' % name)
+    lines.append('}\n')
+    return lines
+
+
+# 自测钩子能安全构造的标量类型（其余 value 参数多为传值结构体，放弃钩子）
+_SELFTEST_SCALARS = frozenset("""
+    void BOOL bool char short int long float double
+    BYTE WORD DWORD LONG LDWORD LLONG UINT ULONGLONG
+    unsigned signed
+""".split())
+
+
+def gen_selftest(name, params, kinds):
+    """生成自测钩子：从**真正的 C++ 线程**调用该 thunk。
+
+    为什么需要：ctypes 的 CFUNCTYPE 无法验证 GIL 路径。ctypes 回调会自己
+    swap 一个 thread state 进去（gilstate_counter == 0，且 PyThreadState_
+    GetUnchecked() 读不到它），于是判据"当前线程是否已附着"会误判成
+    "未附着" -> 再次 attach -> Fatal Python error。真实 SDK 工作线程不会这样，
+    所以只能用一个裸 std::thread 才能复现真实路径。
+
+    自测钩子按签名自动填好固定参数，所以每个回调都能被独立验证：
+        unify_dh_gen._selftest_fDataCallBack(b"\\x01\\x02")
+    默认不生成（--emit-selftest 开启），避免污染交付产物。
+    """
+    if not params:
+        return []
+    call = []
+    for i, (kind, j) in enumerate(kinds):
+        t = params[i]['type']
+        if kind == 'value':
+            # 传值结构体没法用常量构造（static_cast<T>(0x1234) 编译不过），
+            # 这类参数直接放弃整个钩子。
+            core = re.sub(r'\b(const|struct|enum)\b', ' ', t).strip()
+            if core not in _SELFTEST_SCALARS:
+                return []
+            call.append('static_cast<%s>(0x1234)' % t)
+        elif kind == 'cstr':
+            call.append('static_cast<%s>("probe")' % t)
+        elif kind == 'bytes':
+            call.append('reinterpret_cast<%s>(probe_bytes)' % t)
+        elif kind in ('array', 'obj'):
+            call.append('reinterpret_cast<%s>(probe_objs)' % t)
+        else:
+            call.append('static_cast<%s>(0)' % t)
+    # 紧邻的字节长度 / 元素个数参数
+    for i, (kind, j) in enumerate(kinds):
+        if j is not None:
+            n = 2 if kind == 'array' else 4
+            call[j] = 'static_cast<%s>(%d)' % (params[j]['type'], n)
+    return [
+        '    m.attr("_selftest_%s") = nb::cpp_function([](nb::bytes payload) {\n' % name,
+        '        BYTE probe_bytes[4] = {1, 2, 3, 4};\n',
+        '        static char probe_objs[65536];\n',
+        '        std::memset(probe_objs, 0, sizeof(probe_objs));\n',
+        '        {\n',
+        '            // Stage 1: bare thread + GIL round trip.\n',
+        '            std::thread _probe([]() { nb::gil_scoped_acquire _g; });\n',
+        '            nb::gil_scoped_release _rel0;\n',
+        '            _probe.join();\n',
+        '        }\n',
+        '        if (payload.size() == 0)\n',
+        '            return;   // stage-1-only mode, for bisecting crashes\n',
+        '        std::thread _t([&]() { dh_thunk_%s(%s); });\n' % (name, ', '.join(call)),
+        '        {\n',
+        '            // Release the GIL before join: the thunk runs on the worker\n',
+        '            // thread and must acquire it, so joining while this thread\n',
+        '            // still holds it deadlocks (observed: CPU 0%, 3 threads stuck).\n',
+        '            // A real SDK caller never hits this -- it returns right after\n',
+        '            // registering, which drops the GIL -- so simulate that here.\n',
+        '            nb::gil_scoped_release _rel;\n',
+        '            _t.join();\n',
+        '        }\n',
+        '    });\n',
+    ]
+
+
+def gen_callback_binding(name):
+    """注册侧：三个入口，Python 侧都是普通函数调用。
+
+      set_fXxx(cb)    只订阅
+      unbind_fXxx()   退订（不传 None：nb::object / nb::handle 都不接受 None）
+      bind_fXxx(cb)   订阅并返回 C 函数指针，可直接交给 CLIENT_xxx
+
+    必须用 `m.attr(name) = ...` 而不是 `m.def(name, ...)`：m.def 走
+    analyze_method 去提取 lambda 的签名，而这里绑定的是**已经构造好的
+    类型擦除 callable**（nb::object），没有签名可提取，会触发
+    "analyze_method 使用类模板需要模板参数列表"。Python 侧调用形式完全一样。
+    """
+    return [
+        '    m.attr("set_%s") = dhcb::setter("%s");\n' % (name, name),
+        '    m.attr("unbind_%s") = dhcb::unbinder("%s");\n' % (name, name),
+        '    m.attr("bind_%s") = dhcb::binder("%s",\n'
+        '        reinterpret_cast<void *>(&dh_thunk_%s));\n' % (name, name, name),
+    ]
+
+
 def write_if_changed(path, text):
-    """内容不变就不写文件，避免 mtime 变化导致 ninja 无谓重编整个分片。"""
+    """内容不变就不写文件，避免 mtime 变化导致 ninja 无谓重编整个分片。
+
+    同时强制 ASCII：生成物是给 MSVC 读的，非 ASCII 会触发 C4819；而
+    `open(..., 'w', encoding='ascii')` 是写到第一个非 ASCII 字符时才抛
+    UnicodeEncodeError，报错里完全看不出是哪句注释写的。
+    """
+    try:
+        text.encode('ascii')
+    except UnicodeEncodeError as e:
+        bad = text[max(0, e.start - 60):e.start + 60]
+        raise ValueError(
+            '生成内容含非 ASCII 字符（写入 %s 会因此崩溃）。\n'
+            '  位置: %r\n  上下文: ...%s...\n'
+            '  生成代码里的注释必须用 ASCII；中文说明请留在 Python 侧 docstring。'
+            % (os.path.basename(path), e.start, bad.replace('\n', '\\n')))
     if os.path.isfile(path):
         try:
             with open(path, 'r', encoding='ascii', errors='replace') as f:
@@ -135,6 +299,17 @@ def make_includes(cfg):
     )
 
 
+def make_cb_includes(cfg):
+    """回调分片额外需要的运行时头。
+
+    刻意与 make_includes 分开：回调运行时头只被 *_cbsNNN.cpp 需要，若混进
+    公共 include，dh_bind_cb.h 一改就会把 146 个结构体/枚举/函数分片全部拖去
+    重编（实测 612s vs 6.9s）。
+    """
+    return ('#include "%s_cb.h"\n\n' % cfg['file_prefix']
+            + '#include <thread>\n\n')
+
+
 # ------------------------------------------------------------------ 主流程
 
 def generate(cfg, args):
@@ -146,7 +321,8 @@ def generate(cfg, args):
         return 1
 
     print('解析[%s]:' % cfg['name'], header)
-    enums, enum_names, structs, struct_names, fp_types, stats, typedef_names, union_names = parse.parse_header(header)
+    (enums, enum_names, structs, struct_names, fp_types, stats,
+     typedef_names, union_names, ptr_aliases) = parse.parse_header(header)
     total_fields = sum(len(f) for _, f in structs)
     n_arr = sum(1 for _, f in structs for _, _, a in f if a)
     print('  枚举      : %d 个' % len(enums))
@@ -208,6 +384,23 @@ def generate(cfg, args):
         print('  每片字段  : min %d / max %d / avg %.0f'
               % (min(sizes), max(sizes), sum(sizes) / len(sizes)))
 
+    # ---- 回调：解析 + 参数分类 ----
+    # 分类规则全在 parse.classify_cb_params 里（靠参数名而非位置判断数量），
+    # 这里只负责统计和分片。
+    callbacks = parse.parse_callbacks(text)
+    cb_stat = collections.Counter()
+    bindable_cbs = []
+    for cname, cret, cparams in callbacks:
+        kinds = parse.classify_cb_params(cparams, struct_names, enum_names, ptr_aliases)
+        for k, _ in kinds:
+            cb_stat[k] += 1
+        bindable_cbs.append((cname, cret, cparams, kinds))
+    print('  回调      : %d 个（共 %d 个参数）'
+          % (len(bindable_cbs), sum(cb_stat.values())))
+    print('    参数分类: value %d / obj %d / uintptr %d / cstr %d / bytes %d / array %d'
+          % (cb_stat['value'], cb_stat['obj'], cb_stat['uintptr'],
+             cb_stat['cstr'], cb_stat['bytes'], cb_stat['array']))
+
     if args.dry_run:
         print('\n--dry-run，未写文件。')
         return 0
@@ -220,6 +413,7 @@ def generate(cfg, args):
 
     BANNER = '// AUTO-GENERATED by tools/gen_bind.py -- DO NOT EDIT\n'
     INCLUDES = make_includes(cfg)
+    CB_INCLUDES = make_cb_includes(cfg)
 
     # ---- 枚举分片 ----
     # 1873 个枚举挤在一个 TU 里是约 150 秒的死疙瘩，且 /Od 救不了它
@@ -229,6 +423,9 @@ def generate(cfg, args):
     func_shards = [bindable_funcs[i:i + args.funcs_per_tu]
                    for i in range(0, len(bindable_funcs), args.funcs_per_tu)] or [[]]
 
+    cb_shards = [bindable_cbs[i:i + args.cbs_per_tu]
+                 for i in range(0, len(bindable_cbs), args.cbs_per_tu)] or [[]]
+
     # ---- {prefix}.h ----
     lines = [BANNER, '#pragma once\n', '#include <nanobind/nanobind.h>\n\n']
     for i in range(len(enum_shards)):
@@ -237,6 +434,8 @@ def generate(cfg, args):
         lines.append('void init_part%03d(nanobind::module_ &m);\n' % i)
     for i in range(len(func_shards)):
         lines.append('void init_funcs%03d(nanobind::module_ &m);\n' % i)
+    for i in range(len(cb_shards)):
+        lines.append('void init_cbs%03d(nanobind::module_ &m);\n' % i)
     keep.add('%s.h' % prefix)
     write_if_changed(os.path.join(out_dir, '%s.h' % prefix), ''.join(lines))
 
@@ -294,6 +493,28 @@ def generate(cfg, args):
         keep.add(fname)
         write_if_changed(os.path.join(out_dir, fname), ''.join(lines))
 
+    # ---- 回调运行时支持（槽位注册表 + GIL/异常隔离宏）----
+    cb_header_name = '%s_cb.h' % prefix
+    keep.add(cb_header_name)
+    write_if_changed(os.path.join(out_dir, cb_header_name), dhcb.HEADER)
+
+    # ---- 回调 thunk + 注册 ----
+    for i, chunk in enumerate(cb_shards):
+        lines = [BANNER, INCLUDES, CB_INCLUDES]
+        # thunk 必须定义在**文件作用域**：C++ 不允许在函数体内定义函数
+        # （MSVC C2601 "本地函数定义是非法的"）。init 里只放注册语句。
+        for cname, cret, cparams, kinds in chunk:
+            lines += gen_callback(cname, cret, cparams, kinds)
+        lines.append('\nvoid init_cbs%03d(nb::module_ &m) {\n' % i)
+        for cname, cret, cparams, kinds in chunk:
+            lines += gen_callback_binding(cname)
+            if args.emit_selftest:
+                lines += gen_selftest(cname, cparams, kinds)
+        lines.append('}\n')
+        fname = '%s_cbs%03d.cpp' % (prefix, i)
+        keep.add(fname)
+        write_if_changed(os.path.join(out_dir, fname), ''.join(lines))
+
     # ---- main ----
     lines = [BANNER, '#include "%s.h"\n\n' % prefix,
              'NB_MODULE(%s, m) {\n' % cfg['module'],
@@ -304,6 +525,8 @@ def generate(cfg, args):
         lines.append('    init_part%03d(m);\n' % i)
     for i in range(len(func_shards)):
         lines.append('    init_funcs%03d(m);\n' % i)
+    for i in range(len(cb_shards)):
+        lines.append('    init_cbs%03d(m);\n' % i)
     lines.append('}\n')
     keep.add('%s_main.cpp' % prefix)
     write_if_changed(os.path.join(out_dir, '%s_main.cpp' % prefix), ''.join(lines))

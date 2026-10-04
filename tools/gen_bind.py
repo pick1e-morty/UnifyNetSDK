@@ -31,6 +31,13 @@ def main():
                     help='每个枚举分片的枚举数上限（默认 250）')
     ap.add_argument('--funcs-per-tu', type=int, default=200,
                     help='每个函数分片的函数数上限（默认 200）')
+    ap.add_argument('--cbs-per-tu', type=int, default=30,
+                    help='每个回调分片的回调数上限（默认 30）')
+    ap.add_argument('--emit-selftest', action='store_true',
+                    help='为每个回调额外生成 _selftest_fXxx(payload) 钩子，'
+                         '从真正的 C++ 线程调用该 thunk。默认关闭：它只是验证'
+                         '绑定层的过渡脚手架（ctypes 无法触发无 GIL 的线程路径），'
+                         '功能验收应走真实 SDK 端到端')
     ap.add_argument('--limit', type=int, default=0,
                     help='只生成前 N 个字段（试编译用，0=全量）')
     ap.add_argument('--out-dir', default=None,

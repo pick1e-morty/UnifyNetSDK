@@ -16,7 +16,14 @@ IR 结构（元组，保持与旧 gen_dh_bind.py 完全一致）：
   enums        [(name, [(item_name, value_expr_or_None), ...]), ...]
   structs      [(name, [(ftype, fname, arr_or_None), ...]), ...]
   funcs        [(name, ret, [param_dict, ...]), ...]
-"""
+  callbacks    [(name, ret, [param_dict, ...]), ...]
+
+  **踩过的坑见 docs/implementation-notes.md**。本文件里几处"看起来可以简化"的
+  判定全是踩出来的，注释标了原因，别"优化"掉：
+  - 回调参数分类靠**参数名**而非位置，且数量关键词 `$` 锚定（第四节 4.2/4.4）
+  - `ptr_aliases`：厂商用 `LPNET_X` 写指针，类型名里没有 `*`（第四节 4.1）
+  - 生成代码必须纯 ASCII，否则 MSVC 报 C4819（第三节 3.3）
+  """
 import collections
 import re
 
@@ -141,21 +148,30 @@ def _normalize(ftype):
 
 
 def _split_decl_names(decl):
-    """拆分 typedef 结尾的名字列表：'NET_TIME, *LPNET_TIME' -> ['NET_TIME']。
+    """拆分 typedef 结尾的名字列表：'NET_TIME, *LPNET_TIME'。
 
-    指针别名（*LPNET_TIME）不构成新类型，丢弃；其余名字是同一类型的别名，
-    不能重复注册 nb::class_，但必须进白名单，否则用别名的字段会被当成未知
-    类型整个跳过，功能静默缺失。
+    返回 (类型名列表, 指针别名列表)。
+
+    指针别名（*LPNET_TIME）不构成新类型，不能注册 nb::class_，但**必须单独
+    收集起来**：厂商头文件写回调签名时经常直接用别名而不带星号，例如
+        fQueryRecordFileCallBack(LLONG, LPNET_RECORDFILE_INFO pFileinfos, int nFileNum, ...)
+    只看 "参数类型里有没有 *" 会把 LPNET_RECORDFILE_INFO 误判成非指针的传值
+    结构体，从而丢掉数组语义、并生成 static_cast<T>(0x1234) 这类编译不过的代码。
     """
-    names = []
+    names, ptr_aliases = [], []
     for part in decl.split(','):
         part = part.strip()
-        if not part or part.startswith('*'):
+        if not part:
+            continue
+        if part.startswith('*'):
+            mm = re.match(r'\*\s*([A-Za-z_]\w*)', part)
+            if mm:
+                ptr_aliases.append(mm.group(1))
             continue
         mm = re.match(r'([A-Za-z_]\w*)', part)
         if mm:
             names.append(mm.group(1))
-    return names
+    return names, ptr_aliases
 
 
 def _collect_type_names(text):
@@ -189,30 +205,35 @@ def _collect_enums(text):
 def _collect_structs(text):
     """收集结构体。先收全部名字再回头提字段：白名单需要完整名字集合。
 
-    返回 (raw_structs, struct_names, struct_aliases)。"""
+    返回 (raw_structs, struct_names, struct_aliases, ptr_aliases)。"""
     raw_structs = []
     struct_names = set()
     struct_aliases = set()
+    ptr_aliases = set()
     for body, decl in _find_typedef_structs(text):
-        names = _split_decl_names(decl)
+        names, ptrs = _split_decl_names(decl)
         if not names:
             continue
         name = names[0]
         struct_aliases.update(names[1:])
+        ptr_aliases.update(ptrs)
         if name in struct_names:
             continue
         struct_names.add(name)
         raw_structs.append((name, body))
-    return raw_structs, struct_names, struct_aliases
+    return raw_structs, struct_names, struct_aliases, ptr_aliases
 
 
 def _collect_unions(text):
     """收集有名 union 类型名（typedef union {...} NAME;）。只进白名单，字段由 emit 按 bytes 暴露。"""
     union_names = set()
+    union_ptr_aliases = set()
     for m in UNION_RE.finditer(text):
         _ubody, decl = m.group(1), m.group(2)
-        union_names.update(_split_decl_names(decl))
-    return union_names
+        names, ptrs = _split_decl_names(decl)
+        union_names.update(names)
+        union_ptr_aliases.update(ptrs)
+    return union_names, union_ptr_aliases
 
 
 def _scan_body(body, bindable, fp_types, stats):
@@ -296,15 +317,16 @@ def parse_header(path):
 
     fp_types, typedef_names, define_names = _collect_type_names(text)
     enums, enum_names = _collect_enums(text)
-    raw_structs, struct_names, struct_aliases = _collect_structs(text)
-    union_names = _collect_unions(text)
+    raw_structs, struct_names, struct_aliases, ptr_aliases = _collect_structs(text)
+    union_names, union_ptr_aliases = _collect_unions(text)
 
     bindable = (struct_names | struct_aliases | enum_names | union_names
                 | typedef_names | define_names | BASE_TYPES)
 
     structs, stats = _extract_fields(raw_structs, bindable, fp_types)
 
-    return enums, enum_names, structs, struct_names, fp_types, stats, typedef_names, union_names
+    return (enums, enum_names, structs, struct_names, fp_types, stats,
+            typedef_names, union_names, ptr_aliases | union_ptr_aliases)
 
 
 # ------------------------------------------------------------------ 函数
@@ -458,3 +480,121 @@ def topo_order(structs, deps):
     if len(order) < len(names):
         order += [n for n in names if n not in set(order)]
     return order
+
+
+# ------------------------------------------------------------------ 回调
+
+# typedef ret (CALLBACK *fXxx)(params);
+# 调用约定在头文件里是宏（CALLBACK / CALL_METHOD / CALL_METHOD_WITH_RESULT ...），
+# 不能写死列表，漏一个就会让整个回调漏绑。
+CB_RE = re.compile(
+    r'typedef\s+([^(;]*?)\s*\(\s*(?:[A-Za-z_]\w*\s+)?\*\s*(\w+)\s*\)\s*\(([^)]*)\)\s*;')
+
+# 整型参数名 -> 语义判定。三条规则，每条都对应 docs/implementation-notes.md 第四节。
+#
+# 1) **必须靠参数名，不能靠"指针后面跟个整数"**。
+#    289 个回调里 150 个形如 (NET_X *pInfo, LDWORD dwUser) —— 那个整数是
+#    回调注册时传给 SDK 的用户数据，不是数量。按位置判断会把这 150 个全误判成数组。
+_NOT_QTY_NAME = re.compile(
+    r'(user|error|err|reserved|flag|type|state|reason|code|index|handle|status|port|channel)', re.I)
+#
+# 2) **数量/长度关键词必须 $ 锚定在名字末尾**，不能子串搜索。
+#    'nFileNum' 的第 4~6 字符是 l/e/N，忽略大小写正好凑出 "leN" 命中 `len`，
+#    于是 COUNT 命中、LEN 也命中，is_count 被否 —— fQueryRecordFileCallBack 的数组
+#    语义就丢了。末尾锚定后 nInfoNum / nBufLen / dwBufSize / nItemCount 仍正确。
+_QTY_NAME = re.compile(r'(num|count|size|len|length)$', re.I)
+#
+# 3) 命中 Num/Count -> 元素个数（数组）；命中 Len/Size -> **sizeof 字节长度**。
+#    后者按数组处理会越界读，实证：
+#      fAddFileStateCB(..., NET_CB_ADDFILESTATE *pBuf, int nBufLen)   单结构体+字节长度
+#      fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *p, int nInfoNum)     数组+元素个数
+_COUNT_NAME = re.compile(r'(num|count)$', re.I)
+_LEN_NAME = re.compile(r'(len|size)$', re.I)
+
+
+def parse_callbacks(text):
+    """提取全部回调签名。返回 [(name, ret, [param_dict, ...]), ...]"""
+    out, seen = [], set()
+    for m in CB_RE.finditer(text):
+        ret, name, args_s = m.group(1).strip(), m.group(2), m.group(3).strip()
+        if name in seen:
+            continue
+        seen.add(name)
+        params = []
+        bad = False
+        if args_s and args_s not in ('void', 'VOID'):
+            for part in args_s.split(','):
+                p = parse_param(part)
+                if p is None:
+                    bad = True
+                    break
+                params.append(p)
+        if not bad:
+            out.append((name, ret, params))
+    return out
+
+
+def _find_qty_index(params, start):
+    """从 start 起（最多看 2 个位置）找第一个『数量/长度』语义的整型参数下标。"""
+    for j in range(start, min(start + 2, len(params))):
+        p = params[j]
+        if '*' in p['type']:
+            continue
+        nm = p['name'] or ''
+        if not nm or _NOT_QTY_NAME.search(nm):
+            continue
+        if _QTY_NAME.search(nm):
+            return j
+    return None
+
+
+def classify_cb_params(params, struct_names, enum_names, ptr_aliases=frozenset()):
+    """把回调参数逐个分类，返回 [(kind, qty_index), ...]。
+
+    kind 语义（决定 Python 侧看到什么）：
+      value   标量/枚举，原样转发（枚举在 unify_dh_gen 里是 nb::enum_）
+      cstr    const char* -> str（NULL 转空串，不解引用空指针）
+      bytes   BYTE*/unsigned char* + 紧邻长度 -> bytes
+      array   结构体指针 + 紧邻**元素个数** -> list of 借用视图
+      obj     结构体指针 -> 单个借用视图
+      uintptr 其他指针（void*/HANDLE/int*...） -> 整数地址
+
+    ptr_aliases 是"名字里没有星号的指针别名"（LPNET_XXX / LPBYTE ...）。厂商
+    头文件大量这么写回调签名，漏掉它会把指针当成传值结构体 —— 详见
+    docs/implementation-notes.md 4.1（实测 value 824→820、array 5→7）。
+    """
+    kinds = []
+    for i, p in enumerate(params):
+        core = re.sub(r'^const\s+', '', p['type']).strip()
+        base = core.replace('*', '').strip()
+        # 注意是 `in ptr_aliases` 而不是只看 '*'：LPNET_X 展开后没有星号
+        ptr = '*' in core or base in ptr_aliases
+
+        if not ptr:
+            kinds.append(('value', None))
+            continue
+        if base in OPAQUE_PTR or base == 'void':
+            kinds.append(('uintptr', None))
+            continue
+        if base == 'char':
+            kinds.append(('cstr', None))
+            continue
+        j = _find_qty_index(params, i + 1)
+        if base in ('BYTE', 'unsigned char') or base in ptr_aliases and base == 'BYTE':
+            # BYTE* 的紧邻整数是缓冲区字节数（fDataCallBack 的 dwBufSize 实证）
+            kinds.append(('bytes', j) if j is not None else ('uintptr', None))
+            continue
+        if base in enum_names or base in ptr_aliases and base in enum_names:
+            # 枚举没有 nb::class_，view() 会失败；一律按地址暴露。
+            kinds.append(('uintptr', None))
+            continue
+        if base in struct_names or base in ptr_aliases:
+            nm = (params[j]['name'] or '') if j is not None else ''
+            # 只认"个数"（Num/Count）。nBufLen / dwBufSize 这类是 sizeof 字节长度
+            # （fAddFileStateCB、fVideoStatSumCallBack 实证），按数组处理会越界读。
+            is_count = (j is not None and _COUNT_NAME.search(nm)
+                        and not _LEN_NAME.search(nm))
+            kinds.append(('array', j) if is_count else ('obj', None))
+            continue
+        kinds.append(('uintptr', None))
+    return kinds
