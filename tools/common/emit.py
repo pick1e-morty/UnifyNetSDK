@@ -564,4 +564,102 @@ def generate(cfg, args):
           % (len(out_files), len(enum_shards), len(shards)))
     print('  字段绑定  : 标量 %d / 数组 %d / 指针 %d' % (n_scalar, n_array, n_ptr))
     print('  产物大小  : %.0f KB' % total_kb)
+
+    report_shard_diff(out_dir, prefix, keep)
     return 0
+
+
+# 单个 TU 的实测编译耗时（Ryzen 9 5900HX, MSVC, /Od, -Jobs 8 的墙钟折算）。
+# 用于把"变了几个分片"换算成"大概要编多久"，让编译前就能有预期。
+SEC_PER_TU = 5.5
+
+MANIFEST = '_gen_manifest.json'
+
+
+def report_shard_diff(out_dir, prefix, keep):
+    """对比本次与上次的分片内容，给出"会重编几个、预计多久"。
+
+    为什么需要：编译时长的唯一决定因素是**有多少分片的内容真的变了**
+    （write_if_changed 内容不变就不动 mtime，ninja 直接跳过）。而"内容变了多少"
+    在改生成器时往往不可预期 —— 实测把 ptr_aliases 纳入 build_deps 后依赖拓扑序
+    变化，95 个分片内容跟着变，重编花了 523 s（预期只有 30 s）。
+
+    所以在生成末尾做一次内容级 diff，把结果和耗时估算一起打出来。
+    manifest 存在产物目录（不入库），丢了就退化成"全部为新增"，是安全的。
+    """
+    import hashlib
+    import json
+
+    def digest(path):
+        h = hashlib.md5()
+        with open(path, 'rb') as f:
+            for chunk in iter(lambda: f.read(65536), b''):
+                h.update(chunk)
+        return h.hexdigest()
+
+    mpath = os.path.join(out_dir, MANIFEST)
+    try:
+        with open(mpath, 'r', encoding='ascii') as f:
+            old = json.load(f)
+    except (OSError, ValueError):
+        old = None
+
+    new = {}
+    for fn in sorted(keep):
+        p = os.path.join(out_dir, fn)
+        if os.path.isfile(p) and fn.endswith(('.cpp', '.h')):
+            new[fn] = digest(p)
+
+    if old is None:
+        print()
+        print('分片 diff: 无历史 manifest（首次生成或 manifest 已删除），')
+        print('          本次全部按新增处理；下次生成起会报告变化数量。')
+        with open(mpath, 'w', encoding='ascii') as f:
+            json.dump(new, f, indent=0, sort_keys=True)
+        return
+
+    added = sorted(set(new) - set(old))
+    removed = sorted(set(old) - set(new))
+    modified = sorted(f for f in set(new) & set(old) if new[f] != old[f])
+    unchanged = len(set(new) & set(old)) - len(modified)
+    need_build = len(added) + len(modified) + len(removed)
+
+    with open(mpath, 'w', encoding='ascii') as f:
+        json.dump(new, f, indent=0, sort_keys=True)
+
+    if need_build == 0:
+        print()
+        print('分片 diff: 无变化，编译会直接跳过（ninja 无事可做）。')
+        return
+
+    print()
+    print('分片 diff（决定这次编译要重编多少）:')
+    if modified:
+        # 按类别聚合，便于判断"是结构体变了还是回调变了"
+        by_kind = collections.Counter()
+        for f in modified:
+            kind = ('part' if '_part' in f else
+                    'cbs' if '_cbs' in f else
+                    'enums' if '_enums' in f else
+                    'funcs' if '_funcs' in f else
+                    'main/头')
+            by_kind[kind] += 1
+        detail = ' / '.join('%s %d' % (k, v) for k, v in sorted(by_kind.items()))
+        print('  修改 %d 个  (%s)' % (len(modified), detail))
+        if len(modified) <= 12:
+            print('         %s' % ', '.join(modified))
+        else:
+            print('         %s ... %s' % (', '.join(modified[:4]), modified[-1]))
+    if added:
+        print('  新增 %d 个%s' % (len(added),
+                                (': ' + ', '.join(added)) if len(added) <= 8 else ''))
+    if removed:
+        print('  删除 %d 个: %s' % (len(removed), ', '.join(removed)))
+    print('  未变 %d 个' % unchanged)
+    print('  => 预计重编 %d 个 TU' % need_build)
+    if need_build <= 15:
+        print('     预计 %.0f s（按 %.1f s/TU 实测折算）' % (need_build * SEC_PER_TU, SEC_PER_TU))
+    else:
+        print('     预计 %.0f s ≈ %.1f min（按 %.1f s/TU 实测折算）'
+              % (need_build * SEC_PER_TU, need_build * SEC_PER_TU / 60.0, SEC_PER_TU))
+
