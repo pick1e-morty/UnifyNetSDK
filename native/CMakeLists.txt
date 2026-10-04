@@ -16,33 +16,58 @@ project(unify_native LANGUAGES CXX)
 set(UNIFY_SDK "all" CACHE STRING "构建哪些厂商: dahua / haikang / all")
 set_property(CACHE UNIFY_SDK PROPERTY STRINGS dahua haikang all)
 if(NOT UNIFY_SDK MATCHES "^(dahua|haikang|all)$")
-    message(FATAL_ERROR "UNIFY_SDK 只能是 dahua / haikang / all，收到: ${UNIFY_SDK}")
+    message(FATAL_ERROR "UNIFY_SDK must be dahua / haikang / all, got: ${UNIFY_SDK}")
 endif()
 
 # ============================================================
-# 厂商 SDK 路径（SDK 原始包不入库，见 .gitignore）
+# 厂商 SDK 路径
+#
+# 两个厂商都指向 tools/sync_sdk.py 同步出来的副本 <厂商>/sdk_win64/{include,lib,bin}，
+# 结构同构、全 ASCII 路径。vendor 原始包保持不动，只作为复制源。
+#
+# 为什么大华也要走副本：它的原始路径本来已是纯 ASCII，但海康的"头文件/库文件"
+# 是中文 —— CMake 的 message() 会打印乱码、bat 里传中文路径会让 dumpbin 之类
+# 工具直接失败。两边结构对不齐，后来的人就得猜哪个是有意的，索性一起统一。
+#
+# 换了 vendor SDK 后先跑：  python tools/sync_sdk.py
+# 原始包与副本都不入库，见 .gitignore。
 # ============================================================
-set(DH_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../dahua/C_Win64" CACHE PATH "大华 SDK 根目录")
-set(DH_INCLUDE "${DH_ROOT}/Include/Common")
-set(DH_LIB "${DH_ROOT}/Lib/Win64")
-set(DH_BIN "${DH_ROOT}/Bin")
+set(DH_ROOT_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/../dahua/sdk_win64"
+    CACHE PATH "大华 SDK（sync_sdk.py 同步的副本）")
+# CACHE 变量有个陷阱：改了这里的默认值，已有 build/CMakeCache.txt 里的旧值
+# **不会**跟着更新（set(... CACHE) 只在 cache 里没有该变量时才生效）。目录改名
+# 后旧值仍指向已不存在的路径，configure 就会报"找不到 dhnetsdk.h"而看不出真因。
+# 所以先探测旧值是否还有效，无效则 FORCE 更新为默认值。用户显式传对的路径不受影响。
+if(NOT EXISTS "${DH_ROOT}/include/dhnetsdk.h"
+   AND EXISTS "${DH_ROOT_DEFAULT}/include/dhnetsdk.h")
+    message(STATUS "DH_ROOT stale path, updating to ${DH_ROOT_DEFAULT}")
+    set(DH_ROOT "${DH_ROOT_DEFAULT}" CACHE PATH "大华 SDK" FORCE)
+endif()
+set(DH_ROOT "${DH_ROOT_DEFAULT}" CACHE PATH "大华 SDK（sync_sdk.py 同步的副本）")
+set(DH_INCLUDE "${DH_ROOT}/include")
+set(DH_LIB "${DH_ROOT}/lib")
+set(DH_BIN "${DH_ROOT}/bin")
 
-# 海康 SDK 的目录名是中文（"头文件" / "库文件"），且版本号带构建号，
-# 所以整条路径只能用 CACHE 变量传进来，无法像大华那样拼相对路径。
-set(HK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../haikang/HCNetSDK_Win64/HCNetSDKV6.1.11.30_build20260805_Win64_ZH"
-    CACHE PATH "海康 SDK 根目录（含 头文件/ 与 库文件/）")
-set(HK_INCLUDE "${HK_ROOT}/头文件")
-set(HK_LIB "${HK_ROOT}/库文件")
-set(HK_BIN "${HK_ROOT}/库文件")
+set(HK_ROOT_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/../haikang/sdk_win64"
+    CACHE PATH "海康 SDK（sync_sdk.py 同步的副本）")
+if(NOT EXISTS "${HK_ROOT}/include/HCNetSDK.h"
+   AND EXISTS "${HK_ROOT_DEFAULT}/include/HCNetSDK.h")
+    message(STATUS "HK_ROOT stale path, updating to ${HK_ROOT_DEFAULT}")
+    set(HK_ROOT "${HK_ROOT_DEFAULT}" CACHE PATH "海康 SDK" FORCE)
+endif()
+set(HK_ROOT "${HK_ROOT_DEFAULT}" CACHE PATH "海康 SDK（sync_sdk.py 同步的副本）")
+set(HK_INCLUDE "${HK_ROOT}/include")
+set(HK_LIB "${HK_ROOT}/lib")
+set(HK_BIN "${HK_ROOT}/bin")
 
 if(UNIFY_SDK STREQUAL "all" OR UNIFY_SDK STREQUAL "dahua")
     if(NOT EXISTS "${DH_INCLUDE}/dhnetsdk.h")
-        message(FATAL_ERROR "找不到 dhnetsdk.h，检查 DH_ROOT: ${DH_ROOT}")
+        message(FATAL_ERROR "missing ${DH_INCLUDE}/dhnetsdk.h -- run: python tools/sync_sdk.py")
     endif()
 endif()
 if(UNIFY_SDK STREQUAL "all" OR UNIFY_SDK STREQUAL "haikang")
     if(NOT EXISTS "${HK_INCLUDE}/HCNetSDK.h")
-        message(FATAL_ERROR "找不到 HCNetSDK.h，检查 HK_ROOT: ${HK_ROOT}")
+        message(FATAL_ERROR "missing ${HK_INCLUDE}/HCNetSDK.h -- run: python tools/sync_sdk.py")
     endif()
 endif()
 
@@ -60,8 +85,8 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
     RESULT_VARIABLE NB_RESULT)
 if(NOT NB_RESULT EQUAL 0)
-    message(FATAL_ERROR "`${NB_PYTHON} -m nanobind --cmake_dir` 失败。"
-                        "请先: uv venv --python 3.13 && uv pip install nanobind ninja")
+    message(FATAL_ERROR "`${NB_PYTHON} -m nanobind --cmake_dir` failed. "
+                        "Run: uv venv --python 3.13 && uv pip install nanobind ninja")
 endif()
 message(STATUS "nanobind cmake dir: ${NB_CMAKE_DIR}")
 list(APPEND CMAKE_PREFIX_PATH "${NB_CMAKE_DIR}")
@@ -81,7 +106,7 @@ if(UNIFY_SDK STREQUAL "all" OR UNIFY_SDK STREQUAL "dahua")
 
     message(STATUS "DH header: ${DH_INCLUDE}")
     message(STATUS "DH lib   : ${DH_LIB}/dhnetsdk.lib")
-    message(STATUS "DH dll   : ${DH_BIN}  (运行时需要，smoke_test.py 会 add_dll_directory)")
+    message(STATUS "DH dll   : ${DH_BIN}  (runtime: smoke_test.py calls add_dll_directory)")
 else()
     message(STATUS "unify_dh: skipped (UNIFY_SDK=${UNIFY_SDK})")
 endif()
@@ -126,5 +151,5 @@ if(UNIFY_SDK STREQUAL "all" OR UNIFY_SDK STREQUAL "haikang")
                    "${HK_INCLUDE}" "${HK_LIB}/HCNetSDK.lib")
     message(STATUS "HK header: ${HK_INCLUDE}")
     message(STATUS "HK lib   : ${HK_LIB}/HCNetSDK.lib")
-    message(STATUS "HK dll   : ${HK_BIN}  (运行时需要)")
+    message(STATUS "HK dll   : ${HK_BIN}  (runtime: add_dll_directory)")
 endif()
