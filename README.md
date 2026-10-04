@@ -6,10 +6,10 @@
 
 ## 当前状态
 
-| SDK | 结构体 | 字段 | 枚举 | 函数 | 状态 |
-|---|---|---|---|---|---|
-| 大华 `dhnetsdk` | 10558 | 62886 | 1873 | 2515 | ✅ 完成 |
-| 海康 `HCNetSDK` | 2669 | 18640 | 264 | 789 | 🚧 生成器就绪，待接 CMake 编译 |
+| SDK | 结构体 | 字段 | 枚举 | 函数 | 回调 | 状态 |
+|---|---|---|---|---|---|---|
+| 大华 `dhnetsdk` | 10558 | 62886 | 1873 | 2515 | 289 | ✅ 完成 |
+| 海康 `HCNetSDK` | 2669 | 18640 | 264 | 789 | 待验证 | 🚧 生成器就绪，待接 CMake 编译 |
 
 两家各自独立模块：大华 `unify_dh_gen`、海康 `unify_hk_gen`（命名空间天然隔离，同名结构体不冲突）。
 
@@ -41,16 +41,26 @@ UnifyNetSDK/
 │   ├── smoke_test.py          # 冒烟测试
 │   ├── src/dh_netsdk.cpp      # 手写登录链路（最小端到端验证）
 │   └── src/gen/               # 生成产物（不入库，可重建）
+│       ├── dh_bind.h          #   分片函数声明
+│       ├── dh_bind_cb.h       #   回调运行时（模板源 common/dhcb.py）
+│       ├── dh_bind_cbsNNN.cpp #   回调 thunk + 绑定
+│       ├── dh_bind_partNNN.cpp#   结构体分片
+│       ├── dh_bind_enumsNNN.cpp
+│       └── dh_bind_funcsNNN.cpp
 ├── tools/
 │   ├── gen_bind.py            # 生成器入口（--sdk dahua|haikang）
 │   ├── common/                # 通用解析 + 代码生成（厂商无关）
 │   │   ├── parse.py
-│   │   └── emit.py
+│   │   ├── emit.py
+│   │   └── dhcb.py            #   回调运行时模板（槽位注册表 / GIL 宏）
 │   ├── config/                # 厂商配置（路径 / 函数正则 / 跳过名单）
 │   │   ├── dahua.py
 │   │   └── haikang.py
 │   └── check_exports.py       # 检查 DLL 导出表，发现未导出函数
-├── docs/                      # 技术选型评估等文档
+├── docs/                      # 技术文档
+│   ├── binding-tech-evaluation.md  # 技术选型评估
+│   ├── binding-tech-debt.md        # 技术债清单（活文档，修完就打勾）
+│   └── implementation-notes.md     # 实测踩坑笔记（nanobind / C API / MSVC / 大华 SDK）
 ├── dahua/                     # 大华 SDK 原始包（不入库）
 └── haikang/                   # 海康 SDK 原始包（不入库）
 ```
@@ -100,6 +110,43 @@ print('登录句柄:', handle, '错误码:', out.nError)
 g.CLIENT_Cleanup()
 ```
 
+## 回调
+
+预览、报警、布防、实时流全靠回调。289 个回调 typedef 已全部生成绑定：
+
+```python
+# 订阅 + 拿 C 函数指针，一步完成（不会弄错顺序）
+ptr = unify_dh_gen.bind_fRealDataCallBack(on_data)
+unify_dh_gen.CLIENT_SetRealDataCallBack(login, 0, ptr, 0)
+
+unify_dh_gen.set_fRealDataCallBack(on_data)      # 只订阅
+unify_dh_gen.unbind_fRealDataCallBack()          # 退订
+```
+
+参数映射（1146 个参数实测零误判，判定靠参数名而非位置）：
+
+| C 签名 | Python 收到 |
+|---|---|
+| `BYTE *pBuffer, DWORD dwBufSize` | `bytes` |
+| `NET_X *p, int nNum` | `list` of `NET_X`（借用视图） |
+| `NET_X *p, LDWORD dwUser` | `NET_X`（`dwUser` 原样透传） |
+| `const char *p` | `str` |
+| `void *pReserved` | `int` 地址 |
+
+> 结构体参数是**借用视图**：SDK 回调返回后底层缓冲即失效，需要留存的数据请在回调内取走字段。细节见 `docs/binding-tech-debt.md`。
+
+## 测试
+
+```powershell
+# 端到端：生成版登录模拟器 + 验证回调在真实 SDK 线程上触发
+.venv\Scripts\python.exe test_e2e_generated.py
+
+# 绑定层参数分类（bytes / obj / array / 指针别名 / 退订 / 异常隔离）
+.venv\Scripts\python.exe test_cb_bindings.py
+```
+
+`test_e2e_generated.py` 需要模拟器在 `..\Dahua_NVR_Simulator`，它会自己拉起 server。
+
 ## 参数映射约定
 
 生成器把 C 参数映射成 Python 可用的形式：
@@ -131,4 +178,5 @@ CLIENT_ModifyBroadcastPlan
 ## 下一步
 
 - [ ] 海康 `HCNetSDK`：接 CMake + 编译验证（生成器已支持 `--sdk haikang`，dry-run 通过）
-- [ ] Python 高层封装：错误码表、回调 ctypes 桥、输出缓冲自动读回
+- [ ] Python 高层封装：错误码表、输出缓冲自动读回（`outptr` → Python 可读）
+- [ ] `.pyi` stub：IDE 补全

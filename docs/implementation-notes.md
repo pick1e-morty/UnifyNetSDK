@@ -1,0 +1,334 @@
+# 实现笔记：实测踩出来的坑
+
+> 2026-10-04 做「289 个回调绑定」时踩出来的结论。每条都是 **现象 → 根因 → 正确做法**，
+> 报错信息均为原文。**多数不在官方文档里**，属于踩一次记一次。
+>
+> 涉及四层：nanobind / CPython C API / MSVC+Windows / 大华 SDK。
+> 后三者叠加时症状互相伪装，本文按"最终定位点"归类。
+
+---
+
+## 一、nanobind
+
+### 1.1 `m.def` 不能绑"已经构造好的 callable"
+
+**现象**
+```
+nb_func.h(445): error C3556: "detail::api<handle>::operator ()": "decltype"的参数不正确
+nb_func.h(447): error C2955: "analyze_method": 使用类模板需要模板参数列表
+```
+
+**根因**　`m.def(name, f)` 走 `analyze_method<decltype(&F::operator())>` 提取**函数签名**，
+好让 Python 侧有 `__doc__` / 关键字参数名。传进去的如果是**类型擦除后**的
+`nb::object`（`nb::cpp_function(...)` 的返回值），已经没有签名可提取了。
+
+**做法**　已构造的 callable 用属性赋值，两者对 Python 侧完全一样：
+
+```cpp
+m.attr("bind_fRealDataCallBack") = dhcb::binder("fRealDataCallBack", (void*)&thunk);
+// Python: g.bind_fRealDataCallBack(cb)  ← 一样是普通函数
+```
+
+**判断依据**　有签名的 lambda 用 `m.def`；`nb::object` / 包装器用 `m.attr`。
+
+---
+
+### 1.2 `nb::borrow<T>()` **不持引用** —— 头号杀手
+
+**现象**　绑定层一切正常，但一回调就 `0xC0000005`（访问冲突）。
+二分发现：空注册表时不崩、绑了回调就崩；二分到"参数转换 OK / 调用回调崩"；
+再用"模块级函数（永不被回收）也崩"排除了悬垂指针，最后定位到 `PyObject_CallObject`
+（见 2.1）—— 但**修 2.1 之前，先踩的是这个坑**。
+
+**根因**
+```cpp
+registry().emplace(name, nb::borrow<nb::object>(cb));   // borrow_t: 不 inc_ref
+```
+`nb::borrow` 走 `borrow_t` 构造，**不增加引用计数**。Python 侧
+`bind_fXxx(lambda: ...)` 返回后 lambda 被回收，注册表里就是野指针。
+
+**做法**　注册表按值持有，把所有权接过去：
+```cpp
+inline void set(const char *name, nb::object cb) {   // 参数按值
+    registry()[name] = std::move(cb);                 // 转移进容器
+}
+```
+
+> `nb::object` 没有"从单个 handle"的隐式构造（`C2665`）。要自己 inc_ref 就写
+> `nb::borrow<nb::object>(h)` + `holder.inc_ref()`，别写 `nb::object(h)`。
+
+---
+
+### 1.3 `nb::object` / `nb::handle` 都**不接受 None**
+
+**现象**
+```
+TypeError: fDataCallBack(): incompatible function arguments.
+    1. fDataCallBack(arg: object, /) -> int
+  Invoked with types: NoneType
+```
+
+**根因**　它们的 caster 是 `from_python() { if (!isinstance<T>(src)) return false; }`，
+而 `nb::object` / `nb::handle` 没有 `handle_type`，`isinstance` 恒为 false。
+
+**做法**　退订用**独立的零参函数**，别用 `None` 当哨兵：
+```python
+g.unbind_fRealDataCallBack()      # 而不是 g.bind_fRealDataCallBack(None)
+```
+类型安全，语义也更清楚。
+
+---
+
+### 1.4 `nb::object` 作为**返回值**时要求 `isinstance`
+
+**现象**　回调 `return None` / `return "x"` → `bad cast`；`return 0` 却正常。
+
+**根因**　同 1.3，`type_caster<nb::object>::from_python` 要求
+`isinstance<nb::object>(src)`。`0` 恰好能过 isinstance 检查（它有 caster），
+`None` / `str` 过不了。
+
+**做法**　**绕过 nanobind 的返回值转换**：参数仍由 nanobind 转好
+（`nb::cast` / `nb::bytes` / `nb::list`），最后用 CPython 的
+`PyObject_Vectorcall` 调，**直接丢弃返回值**。这样返回什么都接受、行为可预测。
+（需要返回值时用 `PyLong_Check` 手动取，见 `dh_bind_cb.h` 的 `DH_CB_RET`。）
+
+---
+
+### 1.5 `nb::print` 只收**单个** handle
+
+**现象**　`error C2661: "nanobind::print": 没有重载函数接受 4 个参数`
+
+**根因**　签名是 `print(handle value, handle end = handle(), handle file = handle())`，
+后两个参数是"批量打印的结束位置 / 目标文件"，**不是拼接**。
+
+**做法**　先 `snprintf` 成一个 C 字符串再 `nb::print(buf)`。
+
+---
+
+### 1.6 `gil_scoped_acquire` 可重入
+
+`nb::gil_scoped_acquire` = `PyGILState_Ensure`，**同一线程连续 acquire 两次不会崩**
+（实测通过）。它内部的 `NB_CALL(tstate_ensure)` 是 nanobind 的 backend slot，
+import 时填充，worker 线程上可正常调用。
+
+---
+
+### 1.7 `nb::cast` 在 worker 线程可用
+
+只要**持有 GIL**，`nb::cast(long long)` / `nb::bytes(p, n)` 在裸 `std::thread` 上
+实测正常（`got=[4660]`）。`nb::cast` 内部**不** acquire GIL——头文件里
+`gil_scoped_acquire` 只出现在 `nb_misc.h` 的类定义处，无人调用。
+
+**但** `nb::cast` 返回的是**原始类型**，`nb::object args[] = { nb::cast(x), ... }`
+靠 `nb::object` 的模板构造二次转换，能编译通过且运行正常。
+
+---
+
+## 二、CPython C API
+
+### 2.1 `PyObject_CallObject` 第二参数是 **tuple**（最隐蔽）
+
+**现象**　`0xC0000005`，崩在调用 Python 回调处。二分定位很干净：
+只构造参数数组 → 正常；同一数组 + `PyObject_CallObject` → 崩。
+
+**根因**　名字有迷惑性，但文档写得很清楚：
+> `PyObject* PyObject_CallObject(PyObject *callable, PyObject *args)`
+> **Call a callable object with the argument tuple args.**
+
+`args` 是**已经构造好的 tuple**，不是 execl 风格的 NULL 结尾数组。
+传 `PyObject*[]` 进去，CPython 会去读首元素的 `ob_size` 当 tuple 长度 → 垃圾值 → 崩。
+
+**做法**
+```cpp
+PyObject_Vectorcall(fn.ptr(),
+                    reinterpret_cast<PyObject *const *>(args),  // 已有数组
+                    n,                                        // 显式个数
+                    nullptr);                                  // 无关键字
+```
+`PyObject_Vectorcall` 直接吃"数组 + 个数"，正是我们手上有的东西，
+连中间的栈/vector 搬运都省了。
+
+---
+
+### 2.2 `PyObject_Call` 第三参数在 3.13 是 `kwargs`
+
+```c
+PyObject* PyObject_Call(PyObject *callable, PyObject *args, PyObject *kwargs);
+```
+不是 `nargs`。想传"数组 + 个数"只能走 `PyObject_Vectorcall`。
+
+---
+
+### 2.3 判断"线程是否已附着"用 `PyThreadState_GetUnchecked()`
+
+**不要用 `PyGILState_Check()`**。它的实现是
+`tstate != NULL && tstate->gilstate_counter > 0`，而**调用方自己 swap 进去的
+tstate 的 `gilstate_counter` 是 0**（ctypes 的 `CFUNCTYPE` 回调就是这样），
+于是会误报"无 GIL" → 再次 attach → `Fatal Python error: _PyThreadState_Attach:
+non-NULL old thread state`。
+
+```cpp
+inline bool attached() { return PyThreadState_GetUnchecked() != nullptr; }
+```
+三种场景都正确：SDK 工作线程（无 tstate → attach）/ ctypes 回调（自带 tstate →
+不 attach）/ Python 主线程（有 tstate → 不 attach）。
+
+---
+
+## 三、MSVC / Windows
+
+### 3.1 `small` 是 Windows 头里的宏
+
+**现象**　`error C2062: 意外的类型"char"`，报在完全无辜的一行。
+
+**根因**　`#define small char`（来自 objbase / rpcndr），于是
+```cpp
+PyObject *small[12];      // → PyObject *char[12];
+```
+参数暂存数组**必须改名**（`stack_args`）。
+
+---
+
+### 3.2 `reinterpret_cast` 不能作用于常量表达式
+
+`nb::cast(reinterpret_cast<std::uintptr_t>(0))` → `C2440 无法从 int 转换为 uintptr_t`。
+MSVC 拒绝把 `reinterpret_cast` 用在常量上。生成代码里传的是变量所以没事，
+但写示例/探针时会撞上。改用变量或直接 `nb::cast(0)`。
+
+---
+
+### 3.3 生成的 C++ 必须**纯 ASCII**
+
+MSVC 对非 ASCII 源文件可能报 C4819；而 `write_if_changed` 用
+`open(..., encoding='ascii')`，是**写到第一个非 ASCII 字符才抛**
+`UnicodeEncodeError`，报错里完全看不出是哪句注释。
+
+**做法**　生成代码的注释一律 ASCII，中文说明留在 Python 侧 docstring；
+并在 `write_if_changed` 里加前置断言，把失败点连同上下文一起报出来。
+
+---
+
+### 3.4 C++ 不允许在函数体内定义函数
+
+生成 thunk 时若缩进进了 `init_cbsNNN()` 里：
+```
+error C2267: "dh_thunk_xxx": 具有块范围的静态函数非法
+error C2601: "dh_thunk_xxx": 本地函数定义是非法的
+```
+thunk 必须在**文件作用域**，`init` 里只放注册语句。
+
+---
+
+## 四、大华 SDK 头文件的脾气
+
+### 4.1 指针有两种写法，`LPNET_X` 不是 `NET_X *`
+
+```c
+typedef void (CALLBACK *fQueryRecordFileCallBack)(
+    LLONG lQueryHandle, LPNET_RECORDFILE_INFO pFileinfos, int nFileNum, ...);
+```
+厂商大量直接用**指针别名**（`*LPNET_XXX`），类型名里**没有 `*`**。
+只按 `ptr = '*' in type` 判断，会把指针当成**传值结构体**：
+
+- 后果：`static_cast<NET_X>(0x1234)` 之类编译错误；数组判定失效
+- 修法：`_split_decl_names` 改为返回 `(类型名, 指针别名)`，别名进 `ptr_aliases` 集合
+- 实测影响：`value 824→820`、`obj 222→226`、`array 5→7`
+
+### 4.2 `LDWORD dwUser` 是**用户数据**，不是数量
+
+289 个回调里 **150 个**形如：
+```c
+(..., NET_VIDEOANALYSE_STATE *pAnalyseStateInfos, LDWORD dwUser)
+```
+"指针后面跟个整数就当数组"会把这 150 个全误判。
+
+### 4.3 `nBufLen` / `dwBufSize` 是 **sizeof 字节长度**，不是元素个数
+
+```c
+fAddFileStateCB(..., NET_CB_ADDFILESTATE *pBuf, int nBufLen, ...)            // 单结构体 + 字节长度
+fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *pstuCarPassInfos, int nInfoNum, ...) // 数组 + 元素个数
+```
+按数组处理会越界读。所以只认 `Num|Count`（排除 `Len|Size`）。
+
+### 4.4 数量/长度关键词**必须 `$` 锚定在名字末尾**
+
+`nFileNum` 的第 4~6 个字符是 `l`、`e`、`N`（`nFi**leN**um`），忽略大小写后
+**正好凑出 `len`**，命中长度关键词 → 数组语义被吃掉。末尾锚定后
+`nInfoNum` / `nBufLen` / `dwBufSize` / `nItemCount` 都仍正确。
+
+**统计口径**（289 回调 / 1146 参数，零误判）：
+`value 820 / obj 224 / uintptr 48 / cstr 28 / bytes 19 / array 7`
+
+### 4.5 `dwUser` 就是传给注册函数的那个值
+
+端到端实测：`CLIENT_Init(cb_addr, 0x1234)` → 回调收到 `user=4660`（=0x1234）✓
+这是验证参数透传是否正确的天然断言。
+
+---
+
+## 五、ctypes 的限制
+
+`ctypes.CFUNCTYPE` 回调会**自建并 swap 一个 thread state**，导致 2.3 的判据误判，
+进而二次 attach 崩溃。所以 **ctypes 无法验证"无 GIL 线程调 thunk"** 这条路径。
+
+这也是 `--emit-selftest` 存在的唯一理由：从裸 `std::thread` 调 thunk。
+不过现在 `test_e2e_generated.py`（真实 SDK 线程）已经覆盖，selftest 默认关闭。
+
+---
+
+## 六、线程与死锁
+
+### 6.1 `join()` 之前必须释放 GIL
+
+**现象**　进程不死但完全卡住：`CPU=0.015s, threads=3`，日志停在调用点。
+
+**根因**
+```
+主线程: 持 GIL ──▶ std::thread 创建 ──▶ join() 等待
+worker : 需要 GIL ◀─┘                    ↑ 互等
+```
+
+**做法**
+```cpp
+std::thread t([&]{ thunk(); });
+{
+    nb::gil_scoped_release rel;   // 先放 GIL
+    t.join();
+}
+```
+真实 SDK 路径不会这样（注册完就返回、顺带释放了 GIL），但**自测脚手架必须模拟
+那个释放动作**，否则根本测不出来。
+
+> 顺带一提：这个死锁本身就是"thunk 确实在 acquire GIL"的证据。
+
+---
+
+## 七、工程：编译时间
+
+| 操作 | 耗时 |
+|---|---|
+| 全量（160 TU / 62878 字段 / 125 结构体分片） | **612 s** |
+| 增量：只改回调分片 | **7–12 s** |
+| 增量：只改手写模块单文件 | **3 s** |
+
+两条来之不易的结论：
+
+1. **回调运行时头（`dh_bind_cb.h`）只能被 `*_cbsNNN.cpp` include**。
+   混进公共 `make_includes` 会让它一改就把 146 个结构体/枚举/函数分片全部拖去重编
+   （12 分钟 vs 7 秒）。所以 `emit.py` 里 `make_includes` 与 `make_cb_includes`
+   是分开的，别合并回去。
+2. **`write_if_changed`**：内容不变不重写文件、不动 mtime，ninja 直接跳过整个分片。
+   生成器每次全量重写的话，mtime 全变 → 每次都全量重编。
+
+---
+
+## 八、生成代码的自我约束
+
+1. **thunk 一律 `static`**，定义在文件作用域；`init_cbsNNN()` 里只放 `m.attr(...)`。
+2. **注册用 `m.attr`**，不用 `m.def`（见 1.1）。
+3. **注释一律 ASCII**（见 3.3）。
+4. **注册表故意泄漏**：`static auto *r = new std::unordered_map<...>()`。
+   否则模块卸载时（解释器已部分销毁）跑 `~nb::object` 会 `0xC0000005`——
+   而且是**在脚本已经打印完结果之后**才崩，最难查。退订靠 `unbind_fXxx`。
+5. **回调对象是借用视图**：`nb::cast(ptr)` 不拥有内存，SDK 回调返回后底层缓冲即失效。
+   上游必须在回调内取走字段。文档和测试都按这个语义写。
