@@ -56,8 +56,13 @@ DAHUA = {
     # 回调参数语义钩子（见上）。common/classify_cb_params 用它们判断
     # 「紧邻的整型是数量还是错误码」。**大华的规律不适用于海康**，
     # 所以它们属于本文件而不是 common/。
+    # cb_qty_pred / cb_count_pred 见文件顶部说明。
     'cb_qty_pred': dahua_qty_pred,
     'cb_count_pred': dahua_count_pred,
+    # 头文件预处理过滤器（parse.load_header 的钩子）。大华**不需要**裁剪条件
+    # 编译分支：25 个 #if 里没有 Linux/POSIX 专属块，那些条件（如
+    # _WIN64、__cplusplus、DHNETSDK_H）在 Windows 下本就为真。
+    'text_filters': [],
     # check_exports.py 的连通性探针：随便几个必然已导出的函数，用来确认
     # GetProcAddress 查得到（否则"全部未导出"是 DLL 加载失败的假象）。
     'probe_funcs': ('CLIENT_Init', 'CLIENT_Login', 'CLIENT_Cleanup',

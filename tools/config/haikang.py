@@ -18,7 +18,7 @@ fXxx 前缀），大华那套"靠参数名猜数量"的规律照搬过来只会�
 """
 import os
 
-from common.parse import make_func_re
+from common.parse import make_func_re, strip_inactive_branches
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -36,6 +36,24 @@ HAIKANG = {
     'file_prefix': 'hk_bind',
     'doc': 'auto-generated Hikvision NetSDK binding (structs + enums)',
     # cb_qty_pred / cb_count_pred **故意不设** —— 见模块 docstring。
+    #
+    # text_filters：裁掉非活动的条件编译分支。海康头文件把 DC / INITINFO 等
+    # 类型放在 `#if defined(__linux__)` 里，Windows 下不存在，绑定它们会报
+    # C2653 "不是类或命名空间名称"，是 121 处编译错误的主因。
+    #
+    # 开启前踩过一个很隐蔽的坑，务必留意：裁剪本身是对的（Windows 下这些基础
+    # 类型由 windows.h 提供），但**白名单一度依赖"头文件里写了哪些 typedef"**，
+    # 而 DWORD / BYTE / LONG 这些别名恰好就住在 Linux 分支里。裁掉之后白名单
+    # 断裂，所有 DWORD 字段被判未知类型，结构体因提不出字段被整体跳过 ——
+    # 海康字段从 18635 掉到 3225（-82.7%），而**编译错误数反而下降**，
+    # 看起来像"修好了"。修法是把 Windows SDK 的整数别名显式列进
+    # common.parse.BASE_TYPES（它们来自 windows.h，不是厂商知识）。
+    #
+    # parse.parse_header 里有自检：裁剪导致可提取字段数下跌超过 10% 就直接
+    # 抛异常中止，不让残缺的绑定被静默生成。当前实测 -0.2%，健康。
+    'text_filters': [strip_inactive_branches],
+    # check_exports.py 的连通性探针（确认 GetProcAddress 查得到，
+    # 否则"全部未导出"会是 DLL 加载失败的假象）。
     'probe_funcs': ('NET_DVR_Init', 'NET_DVR_Login_V30', 'NET_DVR_Cleanup',
                     'NET_DVR_GetLastError'),
     # 头文件声明了但 HCNetSDK.dll 未导出（tools/check_exports.py --sdk haikang

@@ -343,8 +343,12 @@ def generate(cfg, args):
         return 1
 
     print('解析[%s]:' % cfg['name'], header)
+    # text_filters 是厂商钩子：大华/海康的 SDK 头文件需要的预处理步骤不同，
+    # 必须由各自 config 显式声明，见 parse.load_header 的说明。
+    filters = cfg.get('text_filters')
     (enums, enum_names, structs, struct_names, fp_types, stats,
-     typedef_names, union_names, ptr_aliases) = parse.parse_header(header)
+     typedef_names, union_names, ptr_aliases) = parse.parse_header(
+         header, filters=filters)
     total_fields = sum(len(f) for _, f in structs)
     n_arr = sum(1 for _, f in structs for _, _, a in f if a)
     print('  枚举      : %d 个' % len(enums))
@@ -359,7 +363,9 @@ def generate(cfg, args):
     print('  函数指针类型 %d 个（不参与结构体字段）' % len(fp_types))
 
     # ---- 函数：先分类，能安全绑的才生成 ----
-    text = parse.strip_comments(open(header, encoding='latin-1', errors='replace').read())
+    # 走 load_header 且传同一份 filters：结构体与函数必须看到同一份文本，
+    # 否则 filters 对两边的作用不一致（曾因此漏掉裁剪）。
+    text = parse.load_header(header, filters)
     funcs = parse.parse_funcs(text, cfg['func_re'])
     func_stat = collections.Counter()
     bindable_funcs = []
