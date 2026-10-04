@@ -346,11 +346,20 @@ def parse_param(part):
     """解析单个参数文本：'const char *pName' / 'LLONG lLoginID' / 'unsigned char'。
 
     返回 dict(type/name/has_default)，type 是完整类型（含 const/unsigned/指针），
-    name 可能为 None（有些函数只有类型没有参数名）。"""
+    name 可能为 None（有些函数只有类型没有参数名）。
+
+    必须先归一化**后置 const**：海康写 `char const *sServerIP`，大华写
+    `const char *pBuffer`。两者语义相同，但下面的正则只认前置形式，直接解析
+    后置写法会把 `const` 当成参数名、把 `*sServerIP` 整个丢掉，生成出
+    `char const` 这种非法代码（实测 C2059 + C2660 连环报）。
+    这是标准 C++ 语法而非厂商方言，所以归一化放在 common/ 而不是 config/。
+    """
     has_default = '=' in part
     part = re.sub(r'\s*=\s*.+$', '', part).strip()
     if not part:
         return None
+    # 'char const *p' -> 'const char *p'（只改前两个记号，不碰指针部分）
+    part = re.sub(r'\b([A-Za-z_]\w*)\s+const\b(?=\s*[\*\w])', r'const \1', part)
     m = re.match(
         r'((?:const\s+)?(?:unsigned\s+|signed\s+|long\s+|short\s+)?'
         r'[A-Za-z_]\w*\s*\**)\s*([A-Za-z_]\w*)?', part)
@@ -501,33 +510,16 @@ def topo_order(structs, deps):
 
 
 # ------------------------------------------------------------------ 回调
+#
+# 本节只回答"这个回调 typedef 长什么样"——纯 C 语法，各厂商同构。
+# **不回答"这个整型参数是数量还是错误码"**——那是厂商语义，由 config/<sdk>.py
+# 以 qty_pred / count_pred 钩子提供。见 classify_cb_params 的参数说明。
 
 # typedef ret (CALLBACK *fXxx)(params);
 # 调用约定在头文件里是宏（CALLBACK / CALL_METHOD / CALL_METHOD_WITH_RESULT ...），
 # 不能写死列表，漏一个就会让整个回调漏绑。
 CB_RE = re.compile(
     r'typedef\s+([^(;]*?)\s*\(\s*(?:[A-Za-z_]\w*\s+)?\*\s*(\w+)\s*\)\s*\(([^)]*)\)\s*;')
-
-# 整型参数名 -> 语义判定。三条规则，每条都对应 docs/implementation-notes.md 第四节。
-#
-# 1) **必须靠参数名，不能靠"指针后面跟个整数"**。
-#    289 个回调里 150 个形如 (NET_X *pInfo, LDWORD dwUser) —— 那个整数是
-#    回调注册时传给 SDK 的用户数据，不是数量。按位置判断会把这 150 个全误判成数组。
-_NOT_QTY_NAME = re.compile(
-    r'(user|error|err|reserved|flag|type|state|reason|code|index|handle|status|port|channel)', re.I)
-#
-# 2) **数量/长度关键词必须 $ 锚定在名字末尾**，不能子串搜索。
-#    'nFileNum' 的第 4~6 字符是 l/e/N，忽略大小写正好凑出 "leN" 命中 `len`，
-#    于是 COUNT 命中、LEN 也命中，is_count 被否 —— fQueryRecordFileCallBack 的数组
-#    语义就丢了。末尾锚定后 nInfoNum / nBufLen / dwBufSize / nItemCount 仍正确。
-_QTY_NAME = re.compile(r'(num|count|size|len|length)$', re.I)
-#
-# 3) 命中 Num/Count -> 元素个数（数组）；命中 Len/Size -> **sizeof 字节长度**。
-#    后者按数组处理会越界读，实证：
-#      fAddFileStateCB(..., NET_CB_ADDFILESTATE *pBuf, int nBufLen)   单结构体+字节长度
-#      fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *p, int nInfoNum)     数组+元素个数
-_COUNT_NAME = re.compile(r'(num|count)$', re.I)
-_LEN_NAME = re.compile(r'(len|size)$', re.I)
 
 
 def parse_callbacks(text):
@@ -552,25 +544,31 @@ def parse_callbacks(text):
     return out
 
 
-def _find_qty_index(params, start):
-    """从 start 起（最多看 2 个位置）找第一个『数量/长度』语义的整型参数下标。"""
+def _find_qty_index(params, start, qty_pred=None):
+    """从 start 起（最多看 2 个位置）找第一个『数量/长度』语义的整型参数下标。
+
+    qty_pred 由厂商 config 提供（见 classify_cb_params）。**None = 保守退化**：
+    认为没有任何整型参数是数量，于是 BYTE* 不取长度（只给地址）、结构体指针
+    一律给单对象。宁可少给，绝不给错。
+    """
+    if qty_pred is None:
+        return None
     for j in range(start, min(start + 2, len(params))):
         p = params[j]
         if '*' in p['type']:
             continue
         nm = p['name'] or ''
-        if not nm or _NOT_QTY_NAME.search(nm):
-            continue
-        if _QTY_NAME.search(nm):
+        if nm and qty_pred(nm):
             return j
     return None
 
 
-def classify_cb_params(params, struct_names, enum_names, ptr_aliases=frozenset()):
+def classify_cb_params(params, struct_names, enum_names, ptr_aliases=frozenset(),
+                       qty_pred=None, count_pred=None):
     """把回调参数逐个分类，返回 [(kind, qty_index), ...]。
 
     kind 语义（决定 Python 侧看到什么）：
-      value   标量/枚举，原样转发（枚举在 unify_dh_gen 里是 nb::enum_）
+      value   标量/枚举，原样转发（枚举在生成模块里是 nb::enum_）
       cstr    const char* -> str（NULL 转空串，不解引用空指针）
       bytes   BYTE*/unsigned char* + 紧邻长度 -> bytes
       array   结构体指针 + 紧邻**元素个数** -> list of 借用视图
@@ -580,6 +578,16 @@ def classify_cb_params(params, struct_names, enum_names, ptr_aliases=frozenset()
     ptr_aliases 是"名字里没有星号的指针别名"集合或 {别名: 目标} 映射。厂商
     头文件大量这么写回调签名，漏掉它会把指针当成传值结构体 —— 详见
     docs/implementation-notes.md 4.1（实测 value 824→820、array 5→7）。
+
+    qty_pred(name) -> bool：**厂商钩子**。判断一个整型参数名是否表示
+    「数量/长度」。决定 BYTE* 能不能取紧邻整数当缓冲区长度。
+
+    count_pred(name) -> bool：**厂商钩子**。判断一个整型参数名是否表示
+    「元素个数」（而非字节长度）。决定结构体指针给 list 还是给单对象。
+
+    两个钩子都是**可选**的，缺省 None = 保守退化：BYTE* 只给地址、结构体
+    指针只给单对象。这样未适配的厂商不会静默拿到错误的 list —— 少给可接受，
+    给错无法排查。各厂商的经验规则写在 config/<sdk>.py，不在这里。
     """
     alias_keys = set(ptr_aliases)
     kinds = []
@@ -598,21 +606,18 @@ def classify_cb_params(params, struct_names, enum_names, ptr_aliases=frozenset()
         if base == 'char':
             kinds.append(('cstr', None))
             continue
-        j = _find_qty_index(params, i + 1)
-        if base in ('BYTE', 'unsigned char') or base in ptr_aliases and base == 'BYTE':
-            # BYTE* 的紧邻整数是缓冲区字节数（fDataCallBack 的 dwBufSize 实证）
+        j = _find_qty_index(params, i + 1, qty_pred)
+        if base in ('BYTE', 'unsigned char'):
             kinds.append(('bytes', j) if j is not None else ('uintptr', None))
             continue
-        if base in enum_names or base in ptr_aliases and base in enum_names:
+        if base in enum_names:
             # 枚举没有 nb::class_，view() 会失败；一律按地址暴露。
             kinds.append(('uintptr', None))
             continue
-        if base in struct_names or base in ptr_aliases:
+        if base in struct_names or base in alias_keys:
             nm = (params[j]['name'] or '') if j is not None else ''
-            # 只认"个数"（Num/Count）。nBufLen / dwBufSize 这类是 sizeof 字节长度
-            # （fAddFileStateCB、fVideoStatSumCallBack 实证），按数组处理会越界读。
-            is_count = (j is not None and _COUNT_NAME.search(nm)
-                        and not _LEN_NAME.search(nm))
+            is_count = (j is not None and count_pred is not None
+                        and count_pred(nm))
             kinds.append(('array', j) if is_count else ('obj', None))
             continue
         kinds.append(('uintptr', None))

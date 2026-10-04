@@ -32,7 +32,7 @@ import collections
 import os
 import re
 
-from common import dhcb, parse
+from common import cb_runtime, parse
 
 
 # ------------------------------------------------------------ 字段代码生成
@@ -128,18 +128,23 @@ def gen_fields(struct_name, fields, with_dwsize, union_names, ptr_aliases=frozen
     return [l + '\n' for l in lines]
 
 
-def gen_callback(name, ret, params, kinds):
+def gen_callback(prefix, name, ret, params, kinds):
     """生成单个回调的 thunk + 注册语句。
 
     thunk 是交给 SDK 的 C 函数指针，签名与 typedef 逐字一致；内部把每个参数
     转换成 nanobind 能转的形态后再交给 Python 回调。注册侧只占两行。
+
+    prefix 是 cfg['file_prefix']（dh_bind / hk_bind），thunk 名跟着它走 ——
+    thunk 是 static（文件作用域内部链接），所以海康产物里出现 dh_thunk_ 不会
+    链接出错，但那是大华字样混进了海康文件，属于我们的口径错误。
     """
+    thunk = '%s_thunk_%s' % (prefix, name)
     if params:
         sig = ', '.join('%s a%d' % (p['type'], i) for i, p in enumerate(params))
         args = []
         for i, (kind, j) in enumerate(kinds):
             if kind == 'value':
-                # 必须 nb::cast(...) 显式转：宏里 `nb::object _dh_args[] = {a0, ...}`
+                # 必须 nb::cast(...) 显式转：宏里 `nb::object _cbt_args[] = {a0, ...}`
                 # 要求元素已是 nb::object，而 int/long long 没有隐式转换
                 # （直接传 a0 会 C2440）。
                 args.append('nb::cast(a%d)' % i)
@@ -150,9 +155,9 @@ def gen_callback(name, ret, params, kinds):
                 args.append('nb::bytes(reinterpret_cast<const char *>(a%d), '
                             'static_cast<std::size_t>(a%d))' % (i, j))
             elif kind == 'array':
-                args.append('dhcb::as_list(a%d, static_cast<long long>(a%d))' % (i, j))
+                args.append('unifycb::as_list(a%d, static_cast<long long>(a%d))' % (i, j))
             elif kind == 'obj':
-                args.append('dhcb::view(a%d)' % i)
+                args.append('unifycb::view(a%d)' % i)
             else:
                 args.append('nb::cast(reinterpret_cast<std::uintptr_t>(a%d))' % i)
         call = ', '.join(args)
@@ -162,18 +167,18 @@ def gen_callback(name, ret, params, kinds):
     lines = []
     if ret and ret != 'void':
         # 有返回值（一般是 int 状态码）：未订阅 / 抛异常时一律回 0。
-        lines.append('static int dh_thunk_%s(%s) {\n' % (name, sig))
+        lines.append('static int %s(%s) {\n' % (thunk, sig))
         if call:
-            lines.append('    return DH_CB_RET("%s", 0, %s);\n' % (name, call))
+            lines.append('    return UNIFY_CB_RET("%s", 0, %s);\n' % (name, call))
         else:
-            lines.append('    return DH_CB_RET("%s", 0);\n' % name)
+            lines.append('    return UNIFY_CB_RET("%s", 0);\n' % name)
     else:
-        lines.append('static void dh_thunk_%s(%s) {\n' % (name, sig))
+        lines.append('static void %s(%s) {\n' % (thunk, sig))
         if call:
-            lines.append('    DH_CB_VOID("%s", %s);\n' % (name, call))
+            lines.append('    UNIFY_CB_VOID("%s", %s);\n' % (name, call))
         else:
             # 零参数回调：零长度数组不是合法 C++，用专门的 0 参数宏。
-            lines.append('    DH_CB_VOID0("%s");\n' % name)
+            lines.append('    UNIFY_CB_VOID0("%s");\n' % name)
     lines.append('}\n')
     return lines
 
@@ -186,7 +191,7 @@ _SELFTEST_SCALARS = frozenset("""
 """.split())
 
 
-def gen_selftest(name, params, kinds):
+def gen_selftest(prefix, name, params, kinds):
     """生成自测钩子：从**真正的 C++ 线程**调用该 thunk。
 
     为什么需要：ctypes 的 CFUNCTYPE 无法验证 GIL 路径。ctypes 回调会自己
@@ -196,7 +201,7 @@ def gen_selftest(name, params, kinds):
     所以只能用一个裸 std::thread 才能复现真实路径。
 
     自测钩子按签名自动填好固定参数，所以每个回调都能被独立验证：
-        unify_dh_gen._selftest_fDataCallBack(b"\\x01\\x02")
+        <模块名>._selftest_fDataCallBack(b"\\x01\\x02")
     默认不生成（--emit-selftest 开启），避免污染交付产物。
     """
     if not params:
@@ -237,7 +242,8 @@ def gen_selftest(name, params, kinds):
         '        }\n',
         '        if (payload.size() == 0)\n',
         '            return;   // stage-1-only mode, for bisecting crashes\n',
-        '        std::thread _t([&]() { dh_thunk_%s(%s); });\n' % (name, ', '.join(call)),
+        '        std::thread _t([&]() { %s_thunk_%s(%s); });\n'
+        % (prefix, name, ', '.join(call)),
         '        {\n',
         '            // Release the GIL before join: the thunk runs on the worker\n',
         '            // thread and must acquire it, so joining while this thread\n',
@@ -251,7 +257,7 @@ def gen_selftest(name, params, kinds):
     ]
 
 
-def gen_callback_binding(name):
+def gen_callback_binding(prefix, name):
     """注册侧：三个入口，Python 侧都是普通函数调用。
 
       set_fXxx(cb)    只订阅
@@ -264,10 +270,11 @@ def gen_callback_binding(name):
     "analyze_method 使用类模板需要模板参数列表"。Python 侧调用形式完全一样。
     """
     return [
-        '    m.attr("set_%s") = dhcb::setter("%s");\n' % (name, name),
-        '    m.attr("unbind_%s") = dhcb::unbinder("%s");\n' % (name, name),
-        '    m.attr("bind_%s") = dhcb::binder("%s",\n'
-        '        reinterpret_cast<void *>(&dh_thunk_%s));\n' % (name, name, name),
+        '    m.attr("set_%s") = unifycb::setter("%s");\n' % (name, name),
+        '    m.attr("unbind_%s") = unifycb::unbinder("%s");\n' % (name, name),
+        '    m.attr("bind_%s") = unifycb::binder("%s",\n'
+        '        reinterpret_cast<void *>(&%s_thunk_%s));\n'
+        % (name, name, prefix, name),
     ]
 
 
@@ -318,8 +325,8 @@ def make_cb_includes(cfg):
     """回调分片额外需要的运行时头。
 
     刻意与 make_includes 分开：回调运行时头只被 *_cbsNNN.cpp 需要，若混进
-    公共 include，dh_bind_cb.h 一改就会把 146 个结构体/枚举/函数分片全部拖去
-    重编（实测 612s vs 6.9s）。
+    公共 include，{file_prefix}_cb.h 一改就会把 146 个结构体/枚举/函数分片
+    全部拖去重编（实测 612s vs 6.9s）。
     """
     return ('#include "%s_cb.h"\n\n' % cfg['file_prefix']
             + '#include <thread>\n\n')
@@ -406,7 +413,10 @@ def generate(cfg, args):
     cb_stat = collections.Counter()
     bindable_cbs = []
     for cname, cret, cparams in callbacks:
-        kinds = parse.classify_cb_params(cparams, struct_names, enum_names, ptr_aliases)
+        kinds = parse.classify_cb_params(cparams, struct_names, enum_names,
+                                        ptr_aliases,
+                                        qty_pred=cfg.get('cb_qty_pred'),
+                                        count_pred=cfg.get('cb_count_pred'))
         for k, _ in kinds:
             cb_stat[k] += 1
         bindable_cbs.append((cname, cret, cparams, kinds))
@@ -511,7 +521,8 @@ def generate(cfg, args):
     # ---- 回调运行时支持（槽位注册表 + GIL/异常隔离宏）----
     cb_header_name = '%s_cb.h' % prefix
     keep.add(cb_header_name)
-    write_if_changed(os.path.join(out_dir, cb_header_name), dhcb.HEADER)
+    write_if_changed(os.path.join(out_dir, cb_header_name),
+                    cb_runtime.header(cfg['module']))
 
     # ---- 回调 thunk + 注册 ----
     for i, chunk in enumerate(cb_shards):
@@ -519,12 +530,12 @@ def generate(cfg, args):
         # thunk 必须定义在**文件作用域**：C++ 不允许在函数体内定义函数
         # （MSVC C2601 "本地函数定义是非法的"）。init 里只放注册语句。
         for cname, cret, cparams, kinds in chunk:
-            lines += gen_callback(cname, cret, cparams, kinds)
+            lines += gen_callback(prefix, cname, cret, cparams, kinds)
         lines.append('\nvoid init_cbs%03d(nb::module_ &m) {\n' % i)
         for cname, cret, cparams, kinds in chunk:
-            lines += gen_callback_binding(cname)
+            lines += gen_callback_binding(prefix, cname)
             if args.emit_selftest:
-                lines += gen_selftest(cname, cparams, kinds)
+                lines += gen_selftest(prefix, cname, cparams, kinds)
         lines.append('}\n')
         fname = '%s_cbs%03d.cpp' % (prefix, i)
         keep.add(fname)
@@ -569,22 +580,70 @@ def generate(cfg, args):
     return 0
 
 
-# 单个 TU 的实测编译耗时（Ryzen 9 5900HX, MSVC, /Od, -Jobs 8 的墙钟折算）。
-# 用于把"变了几个分片"换算成"大概要编多久"，让编译前就能有预期。
-SEC_PER_TU = 5.5
+# 单个 TU 的编译耗时（秒）。**必须按分片类型分权重**，统一值会严重失真：
+#
+#   实测 part 121 TU = 612 s  -> 5.06 s/TU（单片 124 KB，nb::class_ 模板实例化很重）
+#   实测 cbs   10 TU = 6.6 s -> 0.66 s/TU（单片  48 KB，thunk 几乎不产生实例化）
+#
+# 差 8 倍。早先统一按 5.5 s/TU 估，"改回调运行时头"会报成 60 s、实际 6.6 s，
+# 误差 9 倍 —— 用户据此判断要等多久，估错就是让他白等。
+#
+# 标注「估」的是尚无实测数据的类型，按单文件大小在两个实测锚点之间插值；
+# 首次编译后应回来用真实数字替换。
+SEC_PER_TU = {
+    'part':  5.0,   # 实测 5.06
+    'enums': 5.0,   # 估：单片 204 KB，比 part 还大
+    'funcs': 1.5,   # 估：单片 65 KB，介于 cbs 与 part 之间
+    'cbs':   0.7,   # 实测 0.66
+    'main':  0.5,   # 估：单文件，编译量可忽略，耗时主要是链接
+}
+SEC_PER_TU_DEFAULT = 2.0   # 未识别的分片类型的保守值
 
 MANIFEST = '_gen_manifest.json'
+
+
+def _shard_kind(fname, prefix):
+    """分片类型 -> SEC_PER_TU 的键。识别不出来返回 None。"""
+    for k in ('part', 'cbs', 'enums', 'funcs'):
+        if ('_%s' % k) in fname:
+            return k
+    if fname in ('%s_main.cpp' % prefix, '%s.h' % prefix,
+                 '%s_cb.h' % prefix):
+        return 'main'
+    return None
+
+
+def _header_consumers(out_dir, header):
+    """哪些 .cpp 直接 #include 了这个头文件。
+
+    为什么需要：manifest 只数"内容变了的文件份数"，而编译依赖是 include 关系。
+    改一个被 10 个分片 include 的头文件，manifest 说"1 个 TU"，实际要重编 10 个
+    —— ninja 通过 depfile 知道这件事，manifest 不知道，于是报数偏小 10 倍。
+    """
+    pat = re.compile(r'^\s*#\s*include\s+"%s"' % re.escape(header))
+    out = []
+    for fn in sorted(os.listdir(out_dir)):
+        if not fn.endswith('.cpp'):
+            continue
+        with open(os.path.join(out_dir, fn), 'r', encoding='ascii',
+                  errors='replace') as f:
+            if any(pat.search(line) for line in f):
+                out.append(fn)
+    return out
 
 
 def report_shard_diff(out_dir, prefix, keep):
     """对比本次与上次的分片内容，给出"会重编几个、预计多久"。
 
-    为什么需要：编译时长的唯一决定因素是**有多少分片的内容真的变了**
-    （write_if_changed 内容不变就不动 mtime，ninja 直接跳过）。而"内容变了多少"
+    为什么需要：编译时长的唯一决定因素是**有多少 TU 的输入真的变了**
+    （write_if_changed 内容不变就不动 mtime，ninja 直接跳过）。而"输入变了多少"
     在改生成器时往往不可预期 —— 实测把 ptr_aliases 纳入 build_deps 后依赖拓扑序
     变化，95 个分片内容跟着变，重编花了 523 s（预期只有 30 s）。
 
-    所以在生成末尾做一次内容级 diff，把结果和耗时估算一起打出来。
+    两个容易算错的地方，都在这里处理掉了：
+      1. **头文件变更要展开成它的 consumers**（见 _header_consumers）。
+      2. **耗时按分片类型加权**（见 SEC_PER_TU），不能一个值打天下。
+
     manifest 存在产物目录（不入库），丢了就退化成"全部为新增"，是安全的。
     """
     import hashlib
@@ -622,10 +681,22 @@ def report_shard_diff(out_dir, prefix, keep):
     removed = sorted(set(old) - set(new))
     modified = sorted(f for f in set(new) & set(old) if new[f] != old[f])
     unchanged = len(set(new) & set(old)) - len(modified)
-    need_build = len(added) + len(modified) + len(removed)
 
     with open(mpath, 'w', encoding='ascii') as f:
         json.dump(new, f, indent=0, sort_keys=True)
+
+    # ---- 把头文件变更展开成它的 consumers ----
+    # 改一个被 N 个分片 include 的头文件，真实要重编 N 个 TU。manifest 直接
+    # 数"内容变了的文件"会漏掉这层传递关系（dh_bind_cb.h -> 10 个 cbs 分片）。
+    tu_set = set()
+    for fn in added + modified:
+        if fn.endswith('.cpp'):
+            tu_set.add(fn)
+        else:
+            for c in _header_consumers(out_dir, fn):
+                tu_set.add(c)
+    # 删除的文件：其 TU 不再存在，也算一次"要动"
+    need_build = len(tu_set) + len(removed)
 
     if need_build == 0:
         print()
@@ -635,17 +706,11 @@ def report_shard_diff(out_dir, prefix, keep):
     print()
     print('分片 diff（决定这次编译要重编多少）:')
     if modified:
-        # 按类别聚合，便于判断"是结构体变了还是回调变了"
         by_kind = collections.Counter()
         for f in modified:
-            kind = ('part' if '_part' in f else
-                    'cbs' if '_cbs' in f else
-                    'enums' if '_enums' in f else
-                    'funcs' if '_funcs' in f else
-                    'main/头')
-            by_kind[kind] += 1
+            by_kind[_shard_kind(f, prefix) or '其他'] += 1
         detail = ' / '.join('%s %d' % (k, v) for k, v in sorted(by_kind.items()))
-        print('  修改 %d 个  (%s)' % (len(modified), detail))
+        print('  内容变化 %d 个文件  (%s)' % (len(modified), detail))
         if len(modified) <= 12:
             print('         %s' % ', '.join(modified))
         else:
@@ -656,10 +721,28 @@ def report_shard_diff(out_dir, prefix, keep):
     if removed:
         print('  删除 %d 个: %s' % (len(removed), ', '.join(removed)))
     print('  未变 %d 个' % unchanged)
+
+    # 头文件变更导致的额外重编，单独点出来 —— 这是最容易让人低估的地方。
+    via_hdr = [fn for fn in modified + added
+               if not fn.endswith('.cpp') and _header_consumers(out_dir, fn)]
+    if via_hdr:
+        for h in via_hdr:
+            print('  头文件 %s 变更 -> 连带重编 %d 个 TU'
+                  % (h, len(_header_consumers(out_dir, h))))
+
+    # 耗时按分片类型加权
+    secs = collections.Counter()
+    for fn in tu_set:
+        secs[_shard_kind(fn, prefix) or '其他'] += 1
+    est = sum(n * SEC_PER_TU.get(k, SEC_PER_TU_DEFAULT)
+              for k, n in secs.items())
     print('  => 预计重编 %d 个 TU' % need_build)
-    if need_build <= 15:
-        print('     预计 %.0f s（按 %.1f s/TU 实测折算）' % (need_build * SEC_PER_TU, SEC_PER_TU))
+    detail = ', '.join('%s %d' % (k, n) for k, n in sorted(secs.items()))
+    print('     构成: %s' % detail)
+    if est < 90:
+        print('     预计 %.0f s' % est)
     else:
-        print('     预计 %.0f s ≈ %.1f min（按 %.1f s/TU 实测折算）'
-              % (need_build * SEC_PER_TU, need_build * SEC_PER_TU / 60.0, SEC_PER_TU))
+        print('     预计 %.0f s ≈ %.1f min' % (est, est / 60.0))
+    print('     （按分片类型加权：%s）'
+          % ', '.join('%s %.1f' % (k, v) for k, v in sorted(SEC_PER_TU.items())))
 
