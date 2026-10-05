@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hkbind"
+version = "1.0.0"
+description = "Hikvision NetSDK thick binding: bundles the generated pyd + vendor DLLs (skeleton; Client pending device/simulator, see docs/testing-plan.md)"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.setuptools]
+packages = ["hkbind"]
+
+[tool.setuptools.package-dir]
+hkbind = "."
+
+[tool.setuptools.package-data]
+hkbind = ["_binding/*.pyd", "_binding/*.dll"]

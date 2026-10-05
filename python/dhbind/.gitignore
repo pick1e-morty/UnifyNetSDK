@@ -1,0 +1,8 @@
+# 构建时填充（tools/fill_binding.py）：pyd + 厂商 DLL，不入库
+_binding/*.pyd
+_binding/*.dll
+
+# 打包产物
+dist/
+build/
+*.egg-info/

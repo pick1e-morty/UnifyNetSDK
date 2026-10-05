@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unify-netsdk"
+version = "1.0.0"
+description = "Cross-vendor abstraction over dhbind/hkbind (skeleton; interface freeze deferred until both vendors' login is verified, see TODO 0.5 / docs/testing-plan.md)"
+requires-python = ">=3.13"
+# 三包同一套版本号（TODO 第 4 节）：dhbind / hkbind 未上 PyPI 前，此依赖
+# 仅在本地打包/私有源场景生效。
+dependencies = [
+    "dhbind==1.0.0",
+    "hkbind==1.0.0",
+]
+
+[tool.setuptools]
+packages = ["unify_netsdk"]
+
+[tool.setuptools.package-dir]
+unify_netsdk = "."
