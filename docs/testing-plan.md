@@ -1,9 +1,9 @@
 # 测试建设计划（pytest 全面测试绑定层）
 
-> 对应 TODO 第 1 节。状态：**计划已定，待实施**（2026-10-04）。
-> 实施前事实：`pytest.ini` 已就位（testpaths + e2e marker + `addopts = -m "not e2e"`）；
-> `native/tests/conftest.py` 已有 `pyd(sdk)` fixture；**pytest 依赖未安装**；
-> `native/tests/` 下是三个脚本（未转 pytest）。
+> 对应 TODO 第 1 节。状态：**第 1 层已实施完毕**（Phase 1/2/3 完成，2026-10-05），
+> Phase 4（设备功能）待模拟器。
+> 实施后事实：`pytest.ini` 就位；`pytest` 依赖已声明（根目录 `requirements-dev.txt`）；
+> `native/tests/` 下 pytest 测试齐备（`pytest native/tests -q` → 13250 passed）。
 
 ---
 
@@ -20,19 +20,21 @@
 
 | Step | 内容 | 位置 | 验证 |
 |---|---|---|---|
-| 0 | `uv pip install pytest`；README 构建前置行补 pytest | — | `pytest --version` |
+| 0 | ✅ `pytest` 依赖声明：根目录 `requirements-dev.txt`（nanobind / ninja / tqdm / pytest），README 构建步骤改用它 | — | `pytest --version` |
 | 1 | ✅ `test_callbacks.py` 转正：7 个 `def test_*`（bytes / obj / array / 数组经指针别名 / 退订+异常隔离 / 钩子覆盖 / 268 钩子 sweep），print+fails → assert；保留"钩子缺失打印重生成命令"检测 | native/tests | `pytest native/tests` 全绿 |
-| 2 | Phase 1：`emit.py` 的 manifest 扩展为完整 IR 清单（结构体→字段、枚举、函数、回调数、各类 skip 计数），新增 `test_coverage_regression.py` 四断言：unknown==0 / 回调数一致 / pyd 字段总数不缩水 / skip 计数持平。断言读 manifest + import pyd 对拍，**不解析头文件** | native/tests + codegen | 覆盖断言全绿；重跑 gen 分片 diff 为零 |
-| 3 | Phase 2：`test_structs.py` 逐个结构体 parametrize（10557 + 2668，不抽样）：构造、字段读写往返（读 v → 写 v → 再读 == v；TODO 示例的 `getattr == getattr` 是恒真式，不照抄）、dwSize 基线断言。**`_paths.py` 并入 conftest、`verify_runtime.py` → `test_runtime_roundtrip.py` 已于 2026-10-05 提前完成**；Phase 2 本体（`test_structs.py`）未做 | native/tests | 全量跑通；`test_runtime_roundtrip.py` 原断言逐条确认有归属 |
+| 2 | ✅ Phase 1：`emit.py` 的 manifest 扩展为完整 IR 清单（结构体→字段、函数、回调数、各类 skip 计数）→ `gen_manifest.json`，`test_coverage_regression.py` 四断言。注意**实现上仍读了头文件**（`check_coverage.collect()`，与打印共用同一口径、只需一处维护）；`gen_manifest.json` 改由 Phase 2/3 消费 | native/tests + codegen | 覆盖断言全绿；重跑 gen 分片 diff 为零 |
+| 3 | ✅ Phase 2：`test_structs.py` 逐个结构体（10557 + 2668，不抽样）：构造、字段「读 v → 写 v → 再读 == v」、dwSize 对照 committed golden。已知不可读字段记进 golden（只减不增） | native/tests | 13231 passed（约 16s） |
 | 4 | ✅ e2e 迁移：`native/tests/e2e/` → **`python/dhbind/tests/`**（模拟器胶水 `tests/simulator/server.py`），加 `@pytest.mark.e2e`，模拟器 `Popen` 挪进 fixture，路径推导改为"项目根的兄弟目录 `Dahua_NVR_Simulator`" | python/dhbind | 默认收集不含 e2e；有模拟器时 `-m e2e` 实跑 |
 | 5 | ✅ 文档同步：README 测试命令改 pytest；onboarding §四§七；TODO 0.2 目录树（e2e 归 dhbind、`_paths.py`/`verify_runtime.py` 移除）与 §1 勾选 | docs | — |
+| 6 | ✅ Phase 3：`test_functions.py` 全量空参调用，**子进程隔离**（`_zeroarg_sweep.py`）；实测海康 `NET_DVR_LoadAllCom()` 空参即 ACCESS_VIOLATION，黑名单 + "名单必须仍崩"的反向断言 | native/tests | 4 passed（约 33s） |
 
 ## 三、已定决策
 
 1. **e2e 归 `python/dhbind/tests/`**（用户定，2026-10-04）——理由见第一节。
-2. **dwSize 用 committed golden file**（`native/tests/baseline_sizes.json`）：首跑生成、之后断言相等；换 SDK 刷新基线是升级流程的一部分。
-3. **Phase 3（函数签名冒烟，2515 个）单独一轮**：黑名单 + 试点先行，风险高（真改设备状态/崩溃），本轮不碰。
-4. `verify_runtime.py` 已转正为 `native/tests/test_runtime_roundtrip.py`（2026-10-05）；Phase 2 的 `test_structs.py` 落地后把其中的字段往返断言并入本文件。
+2. **dwSize 用 committed golden file**（`native/tests/baseline_sizes.json`）：首跑生成、之后断言相等；换 SDK 刷新基线是升级流程的一部分。已知不可读字段（大华 44 / 海康 6）也记在这里，只减不增。
+3. ~~Phase 3 本轮不碰~~ **已做**（2026-10-05）：实测"全量空参调用"并不危险 —— 大华 2515 个里 2506 个、海康 785 里 757 个在 nanobind 派发层就因参数个数不符抛 `TypeError`，**根本没进 C**；真正执行的是少数 0 参数函数。唯一实测崩溃是海康 `NET_DVR_LoadAllCom()`（ACCESS_VIOLATION）。
+4. **函数空参扫描必须在子进程里跑**（新增，2026-10-05）：崩溃会带走整个 python 进程，在 pytest 进程内循环等于"一个函数崩溃 = 整个会话无输出地死掉"。执行体 `native/tests/_zeroarg_sweep.py`，父进程靠退出码 + 崩溃前最后一行 `CALL` 定位元凶。黑名单条目另配"必须仍崩"的反向断言，防止名单过期变摆设。
+5. `verify_runtime.py` → `test_runtime_roundtrip.py`（2026-10-05 转正）→ **已退役**（2026-10-05）：字段往返/类型通道/枚举并入 `test_structs.py`，SDK 版本号断言并入 `test_functions.py`。
 
 ## 四、海康模拟器调研（2026-10-04，上网多轮检索）
 
@@ -53,7 +55,7 @@
 |---|---|---|
 | A. 真机 | 拿一台海康设备跑登录/断线回调 e2e | 要有设备在手上 |
 | B. 自研协议模拟器 | 抓包逆向海康私有登录协议，仿照大华模拟器实现 | 大工程，协议无文档是硬门槛 |
-| C. 降级保底 | 海康 e2e 缺位期间，靠无设备测试保底：`NET_DVR_Init/GetLastError` + 结构体往返 + 回调 selftest 钩子（test_runtime_roundtrip / test_callbacks 已覆盖） | 覆盖不了"真实 SDK 线程登录"链路 |
+| C. 降级保底 | 海康 e2e 缺位期间，靠无设备测试保底：结构体逐项冒烟 + 函数空参冒烟 + 回调 selftest 钩子（`test_structs` / `test_functions` / `test_callbacks` 已覆盖） | 覆盖不了"真实 SDK 线程登录"链路 |
 
 **倾向**：C 先行（已覆盖），A 按设备到位情况，B 仅在确有需要时立项。
 海康 e2e 的缺口由此计划显式记录，不假装已覆盖。

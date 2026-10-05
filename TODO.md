@@ -42,9 +42,13 @@ UnifyNetSDK/
 │   └── tests/                       # ★ 测本层（只测绑定层，不做 e2e）
 │       ├── conftest.py              #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
 │       │                            #   （原 _paths.py 内容，2026-10-05 并入）
+│       ├── _manifest.py             #   gen_manifest.json 读取器（Phase 2/3 共用）
+│       ├── _zeroarg_sweep.py        #   空参扫描执行体（必须子进程跑，见 test_functions）
 │       ├── test_callbacks.py        #   289 个 bind_/set_ 分类 / 退订 / 异常隔离
-│       ├── test_runtime_roundtrip.py #  两厂商 .pyd 读写往返【test_structs.py 落地后退役】
-│       ├── test_coverage_regression.py / test_structs.py / test_functions.py
+│       ├── test_coverage_regression.py  # 头文件 -> pyd 覆盖边界断言（Phase 1）
+│       ├── test_structs.py          #   Phase 2：逐个结构体冒烟
+│       ├── baseline_sizes.json      #     committed golden：dwSize + 已知不可读字段
+│       └── test_functions.py        #   Phase 3：逐个函数空参冒烟（子进程隔离防崩）
 │
 ├── python/                          # 上层：三个待打包的包
 │   ├── dhbind/                      # → 第 2 层，wheel 1
@@ -197,7 +201,7 @@ class LoginArgs(BaseModel):
 
 ---
 
-## 1. 用 pytest 全面测试绑定层 ⭐
+## 1. 用 pytest 全面测试绑定层 ⭐（Phase 1/2/3 ✅ 2026-10-05；Phase 4 待模拟器）
 
 > 目标：在上层 Python 用 pytest 把头文件里的函数、结构体尽可能逐项测一遍。
 
@@ -241,12 +245,13 @@ class LoginArgs(BaseModel):
 
 | 文件 | 去向 |
 |---|---|
-| `native/tests/verify_runtime.py` | 转正为 `native/tests/test_runtime_roundtrip.py`；DLL 加载知识已在 `conftest.py`，字段往返待 `test_structs.py` 落地后并入 |
+| `native/tests/verify_runtime.py` | → `test_runtime_roundtrip.py`（2026-10-05 转正）→ **已退役**（2026-10-05）：字段往返并入 `test_structs.py`，类型通道（`char[N]`→str / `BYTE[N]`→bytes）、枚举注册、SDK 版本号断言分别并入 `test_structs.py` / `test_functions.py` |
 | `native/tests/_paths.py` | 内容并入 `native/tests/conftest.py` |
 | `native/tests/e2e/test_login_callback.py` | 转正为 `python/dhbind/tests/test_disconnect_callback_e2e.py`（e2e 归 python 层）|
 
-`native/tests/` 现在只有：`conftest.py`、`test_callbacks.py`、`test_coverage_regression.py`、
-`test_runtime_roundtrip.py`。
+`native/tests/` 现在只有：`conftest.py`、`_manifest.py`、`_zeroarg_sweep.py`（后两个是
+辅助模块，不叫 `test_*` 所以不被收集）、`test_callbacks.py`、`test_coverage_regression.py`、
+`test_structs.py`（+ `baseline_sizes.json`）、`test_functions.py`。
 
 **新增测试时的自检三问**：① 测的是哪一层？放对目录了吗？② 它是 pytest 测试还是
 手工脚本（决定文件名）？③ 依赖外部东西吗（决定要不要 marker）？
@@ -287,34 +292,55 @@ def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能�
 - 基线数字写在测试的 `BASELINE` 里，方向性断言：完全对上的只增不减，跳过的只减不增。
 - 该测试只解析头文件与生成物、不 import pyd，所以不需要 `pyd` fixture。
 
-#### Phase 2：结构体冒烟（10557 个）
+#### Phase 2：结构体冒烟（10557 + 2668 个）✅ 2026-10-05
 
-逐个结构体：构造不崩、`dwSize` 填对、每个字段可读写且写回原值往返。
+逐个结构体：构造不崩、`dwSize` 填对、每个字段可读且写回原值往返。
 
 ```python
-@pytest.mark.parametrize("name", ALL_STRUCT_NAMES)
-def test_struct_smoke(name):
-    cls = getattr(g, name)
-    obj = cls()                          # 构造不崩
-    if hasattr(obj, "dwSize"):
-        assert obj.dwSize == EXPECTED_SIZE[name]   # dwSize 自动填对
-    for f in FIELDS_OF[name]:             # 字段可读 + 写回原值往返
-        assert getattr(obj, f) == getattr(obj, f)
+def test_struct_smoke(pyd, sdk, struct_name, baseline):
+    size, unreadable, bad = _probe(getattr(g, struct_name), FIELDS_OF[struct_name])
+    assert not bad                                    # 逐字段「读 -> 写回 -> 再读」
+    if size is not None:
+        assert size == baseline[sdk]["sizes"][struct_name]   # dwSize == sizeof（golden）
 ```
 
 **必须逐个跑，不能抽样** —— nanobind 的 `def_rw` 是模板胶水，一个能跑不代表
-另一个能跑（本次那 6 个漏网的指针别名字段就是例证）。
+另一个能跑（未知类型归零那次一下就找出 6 个漏网的指针别名字段）。
 
-#### Phase 3：函数签名冒烟（2515 个，**有风险**）
+**落地情况**（`native/tests/test_structs.py`，13231 passed，约 16s）：
+- 数据源是生成器的 `gen_manifest.json`（名字 -> 字段列表），测试期不再解析头文件，
+  避免第二套口径（`_manifest.py` 是共用的读取器）。
+- 「读 -> 原样写回 -> 再读」这条对 `str` / `bytes` / 指针 / 数组 / 内嵌结构体 / 枚举
+  全都成立，所以不必按类型分支；类型通道另有显式断言（`char[N]`→str、`BYTE[N]`→bytes）。
+- `dwSize` 对照 committed 的 `native/tests/baseline_sizes.json`（大华 5983 / 海康 1540
+  个带 `dwSize` 的结构体）。换 SDK 后布局变了当场红，不必等接设备。文件缺失会全量扫一遍
+  重新生成并提醒提交（见 testing-plan 已定决策 2）。
+- **已知读不出来的字段也记在该基线里**（大华 44 / 海康 6），只减不增：新出现的当场红。
+  两类成因 —— ① memset 归零后读枚举，`0` 不是合法枚举项（nanobind 固有行为，非绑定缺陷）；
+  ② `_DHDEVTIME` 之类类型未注册（真实缺口，可修）。
 
-用「全 0 / 空指针」调用，检查不崩溃、返回合理错误码。
+#### Phase 3：函数签名冒烟（2515 + 785 个）✅ 2026-10-05
 
-**必须先设计黑名单**，否则会真的改设备状态：`CLIENT_Reboot` / `CLIENT_Shutdown` /
-`CLIENT_SetupAlarmChan` / `CLIENT_StartRecord` 之类有副作用的一律排除。也要接受
-「部分函数传 0 会崩」——C API 常见，需逐个甄别。
+空参调用每个函数，检查不崩、不漏绑。
 
-**这是四阶段里最需要小心的**，建议先做一批试点摸清有多少函数能安全空参调用，
-再决定是否全量跑。
+**关键实测量**：绝大多数函数在 nanobind 派发层就因"参数个数不符"抛 `TypeError`，
+**根本没进 C** —— 大华 2515 个里 2506 个如此、海康 785 里 757 个；真正执行的只有少数
+0 参数函数（大华 9 / 海康 26）。所以"全量空参调用"远没有想象中危险。
+
+**有副作用的函数不必单独列黑名单**：厂商把改设备状态的入口都设计成要传登录句柄
+（`CLIENT_Reboot(handle, ...)`），0 参数根本调不到；能覆盖到的天然是"无句柄也能跑"那批。
+
+**必须在子进程里跑**（`_zeroarg_sweep.py` + `test_functions.py`）：实测海康
+`NET_DVR_LoadAllCom()` 空参调用直接 ACCESS_VIOLATION（0xC0000005）把整个 python 进程
+带走。在 pytest 进程内循环 = 一个函数崩溃就让整个会话无输出地死掉。子进程化后，父进程
+靠退出码 + 崩溃前最后一行 `CALL` 定位元凶，报成一条可读的断言失败。
+
+**黑名单与"名单会过期"**：已崩过的函数进 `BLACKLIST`（当前仅海康 `NET_DVR_LoadAllCom`）。
+另有一条断言 `test_blacklist_still_crashes` 要求名单里的函数**至今仍崩** —— 一旦它开始
+不崩（SDK 修了 / 当初判错），测试就红，逼着清空名单，不让它变成摆设。
+
+**落地情况**（`native/tests/test_functions.py`，4 passed，约 33s）：不崩、`missing == []`
+（manifest 里的函数在 pyd 上全部存在）、三种结局（arity / called / raised）能对上账。
 
 #### Phase 4：设备功能测试
 
@@ -326,34 +352,45 @@ def test_struct_smoke(name):
 ### 1.3 需要的脚手架
 
 - `native/tests/conftest.py`：**已建**，提供 `pyd(sdk)` fixture（导入 .pyd，缺厂商自动 skip）
+- `native/tests/_manifest.py`：**已建**（2026-10-05），`gen_manifest.json` 读取器，
+  Phase 2/3 共用；不是 `test_*` 所以不被收集
 - `native/tests/test_coverage_regression.py`：**已建**（Phase 1 ✅）
-- `native/tests/test_structs.py`：Phase 2（落地后把 `test_runtime_roundtrip.py` 的字段往返并入）
-- `native/tests/test_functions.py`：Phase 3
+- `native/tests/test_structs.py` + `baseline_sizes.json`：**已建**（Phase 2 ✅）
+- `native/tests/test_functions.py` + `_zeroarg_sweep.py`：**已建**（Phase 3 ✅）
 - ~~现有三个脚本转 pytest~~ ✅ 已完成（2026-10-05）：`test_callbacks.py`（拆 7 个 test）、
-  `test_runtime_roundtrip.py`（原 `verify_runtime.py`）、`python/dhbind/tests/test_disconnect_callback_e2e.py`
+  `test_runtime_roundtrip.py`（原 `verify_runtime.py`，**已被 test_structs/test_functions 取代并退役**）、
+  `python/dhbind/tests/test_disconnect_callback_e2e.py`
   （原 `e2e/test_login_callback.py`，e2e 归 python 层）。详见 1.0 的"已退役的脚本"
 
-**结构体/函数清单从哪来**：让生成器输出 `gen_manifest.json`（名字 + 跳过原因 +
-字段列表），测试直接读它，免得测试里再解析一遍头文件。
+**结构体/函数清单从哪来** ✅ 已落地：生成器输出 `gen_manifest.json`（结构体 -> 字段列表、
+函数表、回调表、各类 skip 计数），测试直接读它，免得再解析一遍头文件
+（`emit.py` 的 `write_manifest`，随 `gen_bind.py` 产出）。
 
-一份数据两用：现在 `emit.py` 的分片 diff 用的是 `_gen_manifest.json`（只有文件名
-hash，用于估算编译量），扩展成带字段列表的 manifest 后，同一个文件既服务编译期
-diff，也服务测试期断言。
+一份数据两用：`emit.py` 的分片 diff 仍用 `_gen_manifest.json`（只有文件名 hash，用于估算
+编译量）；`gen_manifest.json` 是**语义清单**，服务测试期断言。两者刻意分开：前者是编译
+输入、后者不是。
 
 ### 1.4 现状
 
+**第 1 层（native）测试基建已全部落地**（2026-10-05）：四个阶段里 Phase 1/2/3 完成，
+Phase 4 依赖模拟器（e2e 归 python 层）。
+
 - `native/codegen/check_coverage.py` ✅ Phase 1 已落地：数字已变成断言，见
   `native/tests/test_coverage_regression.py`（`collect(sdk)` 为唯一口径）
-- `native/tests/` 已就位（`conftest.py` + `test_callbacks.py` + `test_coverage_regression.py`
-  + `test_runtime_roundtrip.py`）；`e2e/` 已整目录删除（移入 `python/dhbind/tests/`）；
-  顶层 `tests/` 已撤掉
-- ✅ 三脚本转 pytest 已落地，`pytest native/tests` 可整体跑：
-  `.venv\Scripts\python.exe -m pytest native/tests -q` → 21 passed
-  （此前 `test_callbacks.py` 在 import 期替换 `sys.stdout` 导致
-  `ValueError: I/O operation on closed file` / `no tests ran`，现已去掉）
-- `pytest` 依赖确实存在于 `.venv`（9.1.1），但**没有任何文件声明它**（无 requirements/dev 依赖）——
-  换台机器 clone 下来跑不了测试，需补进声明
-- 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/test_runtime_roundtrip.py` 报 72.9 MB / 3825 导出 / 26 回调
+- 生成器 ✅ 新增 `gen_manifest.json`（`emit.py` 的 `write_manifest`）：结构体 -> 字段列表、
+  函数表、回调表、skip 计数；`--limit` 模式跳过（产物不全时清单会撒谎）
+- `native/tests/` 已就位：`conftest.py` + `_manifest.py` + `_zeroarg_sweep.py` +
+  `test_callbacks.py` + `test_coverage_regression.py` + `test_structs.py`（+
+  `baseline_sizes.json`）+ `test_functions.py`；`e2e/` 已整目录删除（移入
+  `python/dhbind/tests/`）；顶层 `tests/` 已撤掉
+- `test_runtime_roundtrip.py` **已退役**：字段往返并入 `test_structs.py`，类型通道/枚举/
+  SDK 版本号断言分别并入 `test_structs.py` / `test_functions.py`
+- ✅ `pytest native/tests -q` → **13250 passed（约 54s）**；`pytest -q`（四层）→
+  **13254 passed, 5 deselected**
+- ✅ pytest 依赖已声明：根目录 `requirements-dev.txt`（nanobind / ninja / tqdm / pytest），
+  README「构建」步骤改用它 —— 此前只存在于 `.venv`，换台机器 clone 下来跑不了测试
+
+**第 1 层剩余**：Phase 4 设备功能测试（受 `Dahua_NVR_Simulator` 实现程度限制）。
 
 ---
 

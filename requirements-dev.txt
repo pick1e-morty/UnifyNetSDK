@@ -1,0 +1,13 @@
+# 开发 / 构建期依赖（项目根一份 venv，见 README「构建」）。
+#
+# 运行时没有第三方依赖：native 绑定是纯 C++（nanobind 只在编译期用到），
+# python/ 下的 wheel 依赖见各自的 pyproject.toml。
+#
+# 安装：
+#     uv venv --python 3.13
+#     uv pip install -r requirements-dev.txt
+
+nanobind==3.1.0     # .pyd 绑定；运行时不参与，仅编译期
+ninja==1.13.2       # build.ps1 的构建后端
+tqdm==4.70.1        # 生成器进度条
+pytest==9.1.1       # native/tests 与 python/*/tests

@@ -21,8 +21,10 @@
 > `docs/binding-tech-debt.md` 的覆盖边界表。
 
 两家各自独立模块：大华 `unify_dh_gen`、海康 `unify_hk_gen`（命名空间天然隔离，同名结构体不冲突）。
-两个 pyd 都通过了 `native/tests/test_runtime_roundtrip.py`：import、字段读写往返、不依赖设备的安全函数
-（`CLIENT_GetSDKVersion()` 返回 36192074 = 3.6.1.92074 的 build 号）。
+绑定层由 `native/tests/` 的 pytest 守护：逐个结构体冒烟（10557 + 2668 个：构造 / `dwSize` /
+字段读写往返）、逐个函数空参冒烟（2515 + 785 个，子进程隔离防崩）、头文件→pyd 覆盖边界断言。
+大华 `CLIENT_GetSDKVersion()` 返回 36192074，即 3.6.1.92074 的 build 号，一条断言钉住
+pyd 与 DLL 的版本一致。
 
 **GIL 语义与 `ctypes.CDLL` 等比**：两家**所有函数绑定**统一带
 `nb::call_guard<nb::gil_scoped_release>()` —— 每次外部调用都不持 GIL，
@@ -82,13 +84,17 @@ UnifyNetSDK/
 │   │   │   ├── dh_bind_partNNN.cpp#   结构体分片
 │   │   │   ├── dh_bind_enumsNNN.cpp
 │   │   │   ├── dh_bind_funcsNNN.cpp
-│   │   │   └── unify_dh_gen.pyi   #   IDE 补全存根（emit_stub.py，build 目录另有副本）
+│   │   │   ├── unify_dh_gen.pyi   #   IDE 补全存根（emit_stub.py，build 目录另有副本）
+│   │   │   └── gen_manifest.json  #   IR 语义清单（结构体->字段 / 函数表），Phase 2/3 测试读
 │   │   └── gen_hk/            # 海康生成产物（结构与 gen_dh 同构）
 │   └── tests/                 # ★ 测第 1 层：.pyd 绑定层（只测绑定，不做 e2e）
 │       ├── conftest.py            #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
 │       │                          #   （原 _paths.py 内容，2026-10-05 并入）
+│       ├── _manifest.py           #   gen_manifest.json 读取器（Phase 2/3 共用）
+│       ├── _zeroarg_sweep.py      #   空参扫描执行体（必须子进程跑，见 test_functions）
 │       ├── test_callbacks.py      #   289 个 bind_/set_ 分类 / 退订 / 异常隔离
-│       ├── test_runtime_roundtrip.py # 两厂商 .pyd 读写往返【test_structs.py 落地后退役】
+│       ├── test_structs.py        #   Phase 2：逐个结构体冒烟 + baseline_sizes.json
+│       ├── test_functions.py      #   Phase 3：逐个函数空参冒烟（子进程隔离防崩）
 │       └── test_coverage_regression.py # 头文件 -> pyd 覆盖边界断言
 ├── python/                   # 上层：三个待打包的 wheel（目前只有骨架，内容待填）
 │   ├── dhbind/              # → wheel dhbind：加载 unify_dh_gen + 大华错误码 + Client
@@ -111,6 +117,7 @@ UnifyNetSDK/
 │   ├── binding-tech-debt.md        # 技术债清单（活文档，修完就打勾）
 │   └── implementation-notes.md     # 实测踩坑笔记（nanobind / C API / MSVC / SDK）
 ├── pytest.ini                # testpaths（与上面的树一致）+ e2e marker（e2e 默认不跑）
+├── requirements-dev.txt      # 开发/构建期依赖：nanobind / ninja / tqdm / pytest
 └── vendor/                   # 厂商原始 SDK（体积大，不入库）
     ├── dahua/                     # 大华 3.6.1.92074
     │   ├── C_Win64/                   #   原始发行包（只读，sync_sdk.py 的源）
@@ -156,7 +163,7 @@ cd UnifyNetSDK
 
 # 1. 建 venv（项目根统一一份）
 uv venv --python 3.13
-uv pip install nanobind ninja tqdm
+uv pip install -r requirements-dev.txt     # nanobind / ninja / tqdm / pytest
 
 # 2. 同步 SDK 到纯 ASCII 副本（换过 SDK 版本后要重跑）
 .venv\Scripts\python.exe tools\sync_sdk.py
@@ -243,9 +250,15 @@ unify_dh_gen.unbind_fRealDataCallBack()          # 退订
 .venv\Scripts\python.exe -m pytest -m e2e -q
 ```
 
-`test_runtime_roundtrip.py`（原 `verify_runtime.py`）是判断"绑定是否真的可用"的最小
-成本手段 —— 编译通过只证明类型和语法正确，字段偏移错乱、数组维度算错这类问题只有
-跑起来才暴露。
+`test_structs.py` 逐个结构体验证「构造不崩 / `dwSize` 填对 / 字段读写往返」，`dwSize`
+对照 committed 的 `native/tests/baseline_sizes.json`（换 SDK 后布局变了当场红，不必等接设备
+才发现）；已知读不出来的字段（枚举 0 非法、类型未注册）在基线里只减不增。编译通过只证明
+类型和语法正确，字段偏移错乱、数组维度算错这类问题只有跑起来才暴露。
+
+`test_functions.py` 逐个函数空参调用。**必须在子进程里跑**：实测海康 `NET_DVR_LoadAllCom()`
+空参调用直接 ACCESS_VIOLATION 把整个 python 进程带走（执行体 `_zeroarg_sweep.py`）；父进程靠
+退出码 + 崩溃前最后一行 `CALL` 定位元凶。已崩过的函数进 `BLACKLIST`，另有一条断言要求名单
+里的函数**至今仍崩**，防止名单过期变摆设。
 
 `_selftest_fXxx(payload)` 钩子默认随绑定一起生成，从裸 `std::thread` 调真实
 thunk，因此**没有设备时也能验证回调处理逻辑**：`g._selftest_fRealDataCallBack(b"")`。

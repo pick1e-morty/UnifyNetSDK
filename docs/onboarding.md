@@ -31,7 +31,10 @@
 
 - 大华 10557 结构体 / 63353 字段（99.51%）/ 1873 枚举 / 2515 函数 / **289 回调**全部绑定
 - 海康 2668 结构体 / 18792 字段（99.94%）/ 264 枚举 / 785 函数 / **26 回调**绑定完成
-  （`native/tests/test_runtime_roundtrip.py` 通过；回调走保守退化，待接设备后照实际行为补规则）
+  （回调走保守退化，待接设备后照实际行为补规则）
+- **第 1 层测试基建完成**（2026-10-05，对应 TODO 1.2 的 Phase 1/2/3）：覆盖边界断言、
+  逐项结构体冒烟（10557 + 2668：构造 / `dwSize` / 字段往返）、逐项函数空参冒烟
+  （子进程隔离防崩）。`.venv\Scripts\python.exe -m pytest native/tests -q` → **13250 passed**
 - 未知类型已归零（大华 0 / 海康 0，2026-10-04）
 - `.pyi` stub 随生成产出（`common/emit_stub.py`，IR 的第二个消费者；
   pyd 同目录自动生效，`--no-stub` 可关）
@@ -105,7 +108,8 @@ cd ..
 |---|---|
 | 回调运行时（`cb_runtime.py`）| 端到端 + 绑定层（覆盖 GIL / 生命周期 / 参数转换）|
 | 回调参数分类（`parse.py`）| 绑定层（逐项断言分类结果）|
-| 结构体字段生成（`emit.gen_fields`）| 绑定层 + 手工验一个该字段的读写 |
+| 结构体字段生成（`emit.gen_fields`）| 绑定层（`test_structs` 逐项往返；改了字段暴露方式就动 `baseline_sizes.json`）|
+| 生成器 IR 清单（`emit.write_manifest`）| 绑定层（`test_structs` / `test_functions` 直接读 `gen_manifest.json`）|
 | 依赖图 / 拓扑序（`build_deps` / `topo_order`）| 端到端（顺序错了运行时才暴露）|
 | 纯文档 | 不用跑 |
 

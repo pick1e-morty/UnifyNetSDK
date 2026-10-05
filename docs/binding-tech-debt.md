@@ -157,6 +157,20 @@ guard 在**返回值转成 Python 之前**析构 —— 参数转换（Python→
 
 **验证**：后台线程 tick 从 1 涨到 ~274（持 GIL 时被饿死 vs 释放后可跑）。
 
+### 9. 少数字段「能绑、能写，但一读就抛异常」（大华 44 / 海康 6）
+
+Phase 2 全量扫描（`native/tests/test_structs.py`）实测出来的，清单记在
+`native/tests/baseline_sizes.json` 的 `unreadable`，**只减不增**（新出现的当场红）。
+两类成因要分开看：
+
+| 成因 | 数量 | 性质 |
+|---|---|---|
+| 枚举字段：memset 归零后 `0` 不是合法枚举项（`ValueError: 0 is not a valid XXX`）| 大华 35 / 海康 6 | **nanobind 固有行为，不是缺陷** —— 构造后先赋一个合法枚举值即可正常读 |
+| 大华 `_DHDEVTIME`（`stuXxxTime` / `time` 字段）| 大华 9 | **真实缺口**：该类型未注册到 pyd，读时 `TypeError: Unable to convert ... -> _DHDEVTIME`，可修 |
+
+> 这两类都只在「刚构造、字段全 0」时出现；正常业务先填值再读不受影响。所以优先级不高，
+> 但必须留痕：`hasattr` 只吞 `AttributeError`，这类异常会直接穿透（排查时容易误判成崩溃）。
+
 ## 其他
 
 - ~~两套回调注册表并存~~ ✅ 已收敛（2026-10-04）。手写版 `set_disconnect_callback`
@@ -168,6 +182,9 @@ guard 在**返回值转成 Python 之前**析构 —— 参数转换（Python→
   （`EM_LOGIN_SPAC_CAP_TYPE` / `EM_LOGIN_TLS_TYPE` / `NET_DEVICEINFO_Ex` /
   两个登录结构体）在两份 pyd 里重复注册、后加载方静默丢属性的隐患。
 - 生成物 `native/src/gen_dh/` 不入库（可重建），改代码请改 `native/codegen/` 下的源头。
+- 海康 `NET_DVR_LoadAllCom()` 空参调用直接 ACCESS_VIOLATION（0xC0000005，Phase 3 实测）。
+  厂商实现问题，不归绑定层；已进 `native/tests/test_functions.py` 的 `BLACKLIST`，
+  并配一条"名单里的函数必须仍崩"的反向断言，防止名单过期变摆设。
 
 ## 优先级
 
@@ -180,3 +197,4 @@ guard 在**返回值转成 Python 之前**析构 —— 参数转换（Python→
 | ~~5~~ | ~~`.pyi` stub~~ | ✅ 已完成（2026-10-04，`common/emit_stub.py`，随 gen_bind 自动产出）|
 | 6 | **高层封装** | 错误码表、输出缓冲自动读回（技术债 #1）|
 | 7 | **成员函数指针**（301 个）| 最贵，且要解决生命周期托管；实际影响有限 |
+| 8 | **字段类型未注册**（大华 `_DHDEVTIME`，9 个字段）| 见技术债 #9；补进类型注册即可，小 |
