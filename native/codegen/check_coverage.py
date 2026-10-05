@@ -30,10 +30,16 @@ def collect(sdk):
     cfg = get_config(sdk)
     hdr = cfg['header']
 
+    # filters 必须传：厂商 filter（海康的"条件编译裁剪"）会改文本，生成器用的是
+    # 裁剪后的文本。不传的话这里的数字描述的是一个**并不存在的产物** —— 海康实测
+    # 差 2 个结构体 / 29 个字段（2670/18821 vs 实际 2668/18792）。
+    filters = cfg.get('text_filters')
     (enums, enum_names, structs, struct_names, _fp_types, stats,
-     _typedef_names, _union_names, ptr_aliases) = parse.parse_header(hdr)
+     _typedef_names, _union_names, ptr_aliases) = parse.parse_header(
+         hdr, filters=filters)
 
-    text = parse.strip_comments(open(hdr, encoding="latin-1", errors="replace").read())
+    # 与 emit.generate 读同一份文本（load_header = 去注释 + 厂商 filter）
+    text = parse.load_header(hdr, filters)
     funcs = parse.parse_funcs(text, cfg['func_re'])
     cbs = parse.parse_callbacks(text)
 
