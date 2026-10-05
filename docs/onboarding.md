@@ -16,9 +16,12 @@
 
 | 模块 | 来源 | 说明 |
 |---|---|---|
-| `unify_dh_gen` | 生成产物（`native/codegen/gen_bind.py --sdk dahua`）| 大华，**主力模块** |
-| `unify_dh` | 手写（`native/src/dh_netsdk.cpp`）| 只剩登录链路 + `log_open` + GIL 探针 |
+| `unify_dh_gen` | 生成产物（`native/codegen/gen_bind.py --sdk dahua`）| 大华，**唯一模块**（手写 `unify_dh` 已删）|
 | `unify_hk_gen` | 生成产物（`--sdk haikang`）| 海康，✅ 已编译并验证（2026-10-04）；26 回调保守退化 |
+
+两家都只有生成版：**所有函数绑定统一带 `nb::call_guard<nb::gil_scoped_release>()`**，
+每次外部调用都不持 GIL，语义与 `ctypes.CDLL` 等比（决策见 `binding-tech-debt.md`）。
+线程安全由 Python 上层负责，native 不做并发假设。
 
 ---
 
@@ -52,7 +55,7 @@
 | 回调参数怎么分类成 `bytes`/`list`/单对象 | `native/codegen/common/parse.py` 的 `classify_cb_params` | 判定**靠参数名**；靠位置会误判 150/289 个回调 |
 | 生成什么代码（thunk、分片、注册语句）| `native/codegen/common/emit.py` | 改这里会影响编译规模，见第四节 |
 | 大华特有的路径/函数正则/跳过名单 | `native/codegen/config/dahua.py` | 厂商差异**只能**加在这里，`common/` 保持厂商无关 |
-| 手写登录链路、GIL 探针 | `native/src/dh_netsdk.cpp` | |
+| GIL 释放策略（函数绑定模板）| `native/codegen/common/parse.py` 的函数绑定段 | 无条件 `gil_scoped_release`，见第五节 |
 | 生成物 | **不要直接改** `native/src/gen_dh/` | 下次生成就被覆盖，且不入库 |
 
 改 `common/` 里的厂商无关逻辑时，要问"海康需不需要额外分支"。需要 → 说明抽象漏了，
@@ -121,8 +124,8 @@ cd ..; .venv\Scripts\python.exe native\tests\e2e\test_login_callback.py   # 端�
    改它拖着 146 个分片重编（12 分钟 vs 7 秒）。
 5. **参数分类不能靠位置。** `(NET_X *p, LDWORD dwUser)` 里有 150 个，后者是用户数据
    不是数量；`nBufLen` 是字节长度不是元素个数。
-6. **`unify_dh` 与 `unify_dh_gen` 的回调注册表是独立的。** 同一订阅点混用会静默不触发。
-   统一用生成版。
+6. **回调注册表只有生成版一套。** 手写 `unify_dh` 已删 —— 之前两套注册表在同一个
+   SDK 订阅点混用会静默不触发，且 5 个类型重复注册会让后加载方丢属性。
 
 ---
 

@@ -839,7 +839,12 @@ def gen_func(name, ret, params, struct_names, enum_names, fp_types):
     sig = ', '.join(cpp_args)
     call = ', '.join(call_args)
     ret_ann = '' if ret == 'void' else ' -> %s' % ret
-    tail = (', ' + ', '.join(nb_args)) if nb_args else ''
+    # 无条件释放 GIL，与 ctypes.CDLL 语义等比：每次外部调用都不持 GIL。
+    # 参数转换与返回值构造仍在外层 lambda 里持 GIL（call_guard 包在裸调用外层），
+    # 线程安全/并发假设一律由 Python 上层负责，native 不掺和。
+    extra = list(nb_args)
+    extra.append('nb::call_guard<nb::gil_scoped_release>()')
+    tail = ', ' + ', '.join(extra)
     lines = [
         '    m.def("%s",' % name,
         '        [](%s)%s { return %s(%s); }%s)' % (sig, ret_ann, name, call, tail),

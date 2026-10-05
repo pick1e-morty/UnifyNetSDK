@@ -104,20 +104,16 @@ find_package(nanobind CONFIG REQUIRED)
 # 大华 NetSDK 绑定
 # ============================================================
 if(UNIFY_SDK STREQUAL "all" OR UNIFY_SDK STREQUAL "dahua")
-    nanobind_add_module(unify_dh src/dh_netsdk.cpp)
-    target_include_directories(unify_dh PRIVATE "${DH_INCLUDE}")
-    target_link_libraries(unify_dh PRIVATE "${DH_LIB}/dhnetsdk.lib")
-
     message(STATUS "DH header: ${DH_INCLUDE}")
     message(STATUS "DH lib   : ${DH_LIB}/dhnetsdk.lib")
-    message(STATUS "DH dll   : ${DH_BIN}  (runtime: smoke_test.py calls add_dll_directory)")
+    message(STATUS "DH dll   : ${DH_BIN}  (runtime: fill_binding.py copies it)")
 else()
-    message(STATUS "unify_dh: skipped (UNIFY_SDK=${UNIFY_SDK})")
+    message(STATUS "dahua: skipped (UNIFY_SDK=${UNIFY_SDK})")
 endif()
 
 # ============================================================
 # 全量生成绑定（由 native/codegen/gen_bind.py --sdk <sdk> 产出，不入库、可重建）
-# 没有生成产物时自动跳过，不影响对应手写模块的编译。
+# 没有生成产物时自动跳过。
 #
 # 大华与海康是两个独立 target：ninja 会把两边的 TU 混进同一个 -j N 池子
 # 并行编译，不是串行。它们各自只链自己厂商的 .lib，互不依赖。

@@ -1,5 +1,6 @@
 """大华 NetSDK nanobind 绑定 —— 冒烟测试
 
+针对**生成版** unify_dh_gen（`native/codegen/gen_bind.py --sdk dahua` 的产物）。
 不需要真实设备就能验证整条链路：
 
   1. import 成功            -> dhnetsdk.dll 及其依赖 DLL 加载正常、绑定注册成功
@@ -51,7 +52,7 @@ def section(title):
 
 def main():
     print('=' * 68)
-    print('大华 NetSDK nanobind 绑定 —— 冒烟测试')
+    print('大华 NetSDK nanobind 绑定（unify_dh_gen）—— 冒烟测试')
     print('=' * 68)
     print('项目根 :', PROJECT)
     print('DLL 目录:', DH_BIN if os.path.isdir(DH_BIN) else '(不存在!)')
@@ -63,11 +64,11 @@ def main():
     # Python 3.8+ 在 Windows 上不再搜索 PATH，必须显式声明 DLL 搜索目录
     os.add_dll_directory(DH_BIN)
 
-    pyds = glob.glob(os.path.join(BUILD, 'unify_dh*.pyd'))
+    pyds = glob.glob(os.path.join(BUILD, 'unify_dh_gen*.pyd'))
     if not pyds:
-        pyds = glob.glob(os.path.join(BUILD, '**', 'unify_dh*.pyd'), recursive=True)
+        pyds = glob.glob(os.path.join(BUILD, '**', 'unify_dh_gen*.pyd'), recursive=True)
     if not pyds:
-        print('\n在 %s 下找不到 unify_dh*.pyd，先编译。' % BUILD)
+        print('\n在 %s 下找不到 unify_dh_gen*.pyd，先编译。' % BUILD)
         return 1
     sys.path.insert(0, os.path.dirname(pyds[0]))
     print('扩展   :', pyds[0])
@@ -75,18 +76,18 @@ def main():
     # ------------------------------------------------------------------
     section('1. import 模块（等价于 dhnetsdk.dll 加载成功）')
     try:
-        import unify_dh
+        import unify_dh_gen as g
     except ImportError as e:
         print('  IMPORT FAILED:', e)
         return 1
-    check('import unify_dh', True)
-    check('模块文档存在', bool(unify_dh.__doc__))
+    check('import unify_dh_gen', True)
+    check('模块文档存在', bool(g.__doc__))
 
     # ------------------------------------------------------------------
     section('2. 结构体布局（dwSize 由 C++ sizeof 填写）')
-    in_ = unify_dh.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
-    out = unify_dh.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
-    dev = unify_dh.NET_DEVICEINFO_Ex()
+    in_ = g.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
+    out = g.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
+    dev = g.NET_DEVICEINFO_Ex()
     print('  sizeof(NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY)  = %d  (预期 %d)'
           % (in_.dwSize, EXPECT_IN_SIZE))
     print('  sizeof(NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY) = %d  (预期 %d)'
@@ -104,8 +105,8 @@ def main():
     in_.szPassword = 'admin123'
     in_.szLocalIP = '192.168.1.10'
     in_.nClientType = 3          # Windows
-    in_.emSpecCap = unify_dh.EMLoginSpecCapType.TCP
-    in_.emTLSCap = unify_dh.EMLoginTlsType.NO_TLS
+    in_.emSpecCap = g.EM_LOGIN_SPAC_CAP_TYPE.EM_LOGIN_SPEC_CAP_TCP
+    in_.emTLSCap = g.EM_LOGIN_TLS_TYPE.EM_LOGIN_TLS_TYPE_NO_TLS
     in_.pCapParam = 0
 
     check('szIP 回读一致', in_.szIP == '192.168.1.108', repr(in_.szIP))
@@ -115,9 +116,9 @@ def main():
     check('nPort 回读一致', in_.nPort == 37777)
     check('nClientType 回读一致', in_.nClientType == 3)
     check('emSpecCap 枚举回读一致',
-          in_.emSpecCap == unify_dh.EMLoginSpecCapType.TCP, str(in_.emSpecCap))
+          in_.emSpecCap == g.EM_LOGIN_SPAC_CAP_TYPE.EM_LOGIN_SPEC_CAP_TCP, str(in_.emSpecCap))
     check('emTLSCap 枚举回读一致',
-          in_.emTLSCap == unify_dh.EMLoginTlsType.NO_TLS, str(in_.emTLSCap))
+          in_.emTLSCap == g.EM_LOGIN_TLS_TYPE.EM_LOGIN_TLS_TYPE_NO_TLS, str(in_.emTLSCap))
     check('pCapParam(void*) 回读一致', in_.pCapParam == 0)
 
     # 边界：超出 char[64] 必须被截断到 63 + NUL，绝不能溢出
@@ -127,7 +128,7 @@ def main():
     in_.szUserName = 'admin'   # 还原
 
     check('嵌套结构体字段类型正确',
-          isinstance(out.stuDeviceInfo, unify_dh.NET_DEVICEINFO_Ex))
+          isinstance(out.stuDeviceInfo, g.NET_DEVICEINFO_Ex))
 
     # 嵌套结构体字段可写
     out.stuDeviceInfo.nChanNum = 8
@@ -136,13 +137,13 @@ def main():
 
     # ------------------------------------------------------------------
     section('4. SDK 生命周期')
-    code = unify_dh.init()
-    print('  CLIENT_Init() ->', code)
-    check('CLIENT_Init 返回 True', code is True)
-    err = unify_dh.get_last_error()
+    code = g.CLIENT_Init(0, 0)
+    print('  CLIENT_Init(0, 0) ->', code)
+    check('CLIENT_Init 返回非 0', code != 0)
+    err = g.CLIENT_GetLastError()
     print('  CLIENT_GetLastError() ->', err, '(0 = 无错误)')
     check('CLIENT_Init 后无错误码', err == 0)
-    unify_dh.set_connect_time(5000, 3)
+    g.CLIENT_SetConnectTime(5000, 3)
     check('CLIENT_SetConnectTime(5000, 3) 未抛异常', True)
 
     # ------------------------------------------------------------------
@@ -156,24 +157,25 @@ def main():
         port = int(os.environ.get('DH_PORT', '37777'))
         user = os.environ.get('DH_USER', 'admin')
         pwd = os.environ.get('DH_PASSWORD', '')
-        li = unify_dh.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
+        li = g.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY()
         li.szIP = host
         li.nPort = port
         li.szUserName = user
         li.szPassword = pwd
         li.nClientType = 3
-        handle, res = unify_dh.login(li)
+        res = g.NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY()
+        handle = g.CLIENT_LoginWithHighLevelSecurity(li, res)
         print('  登录句柄 :', handle)
         print('  错误码   :', res.nError)
         print('  通道数   :', res.stuDeviceInfo.nChanNum)
         print('  序列号   :', res.stuDeviceInfo.sSerialNumber[:16].hex())
         if handle != 0:
             check('登录成功', True, 'handle=%d' % handle)
-            check('注销成功', unify_dh.logout(handle) is True)
+            check('注销成功', bool(g.CLIENT_Logout(handle)))
         else:
             print('  （登录未成功，错误码 %d —— 属于预期内，若设备不可达也正常）' % res.nError)
 
-    unify_dh.cleanup()
+    g.CLIENT_Cleanup()
     check('CLIENT_Cleanup 未抛异常', True)
 
     # ------------------------------------------------------------------

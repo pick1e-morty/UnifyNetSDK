@@ -1,4 +1,4 @@
-﻿# 厂商 NetSDK nanobind 绑定：配置 + 编译 + 冒烟测试
+# 厂商 NetSDK nanobind 绑定：配置 + 编译 + 冒烟测试
 #
 # 用法:
 #   powershell -ExecutionPolicy Bypass -File build.ps1
@@ -130,7 +130,7 @@ if ($r.Code -ne 0) { Write-Host "configure FAILED (exit $($r.Code))" -Foreground
 # 而日常一次只改一个厂商，另一个 ninja 直接跳过，墙钟基本不受影响。
 # ---------------------------------------------------------------
 $VENDOR_TARGETS = @{
-    'dahua'   = @('unify_dh', 'unify_dh_gen')
+    'dahua'   = @('unify_dh_gen')
     'haikang' = @('unify_hk_gen')
 }
 

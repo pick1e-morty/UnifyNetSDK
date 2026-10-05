@@ -16,7 +16,7 @@
 |---|---|
 | 用户没有可 import 的入口 | 要用必须知道 `os.add_dll_directory` → `sys.path.insert(native/build)` → 手动构造结构体填 `dwSize` |
 | Python 测试曾散在三处 | 顶层 `tests/` 已撤掉、模拟器代码已拆出 `e2e/simulator/server.py`；`native/smoke_test.py` 因构建需要留在 C++ 侧；`python/` 三层 tests 待填 |
-| 手写与生成混在一层 | `native/src/dh_netsdk.cpp`（手写）与 `native/src/gen_dh/`（生成）职责已不同 |
+| ~~手写与生成混在一层~~ | ✅ 已解决（2026-10-05）：手写 `native/src/dh_netsdk.cpp` 删除，只剩 `native/src/gen_dh/`（生成）|
 | 没有对外承诺 | README 讲了怎么做，没讲"用户会得到什么" |
 
 ### 0.2 目标形态：四层产品结构
@@ -38,8 +38,7 @@ UnifyNetSDK/
 ├── native/                          # 第 1 层：C++ 绑定（nanobind）
 │   ├── CMakeLists.txt / build.ps1
 │   ├── codegen/                     # 构建期生成器：common/（通用语法）+ config/（厂商语义）
-│   ├── src/dh_netsdk.cpp            # 手写部分（登录链路 / 排障工具）
-│   ├── src/gen_dh/                  # 生成产物（不入库）
+│   ├── src/gen_dh/                  # 生成产物（不入库；手写 dh_netsdk.cpp 已删）
 │   └── tests/                       # ★ 测本层
 │       ├── conftest.py              #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
 │       ├── _paths.py                #   脚本阶段的路径 helper，转 pytest 后并入 conftest
@@ -392,11 +391,14 @@ DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` �
 ## 5. 那个大华模拟器有空了fork一下，后面还要实现录像下载。
 然后记得还有海康模拟器，上网搜一搜有没有现成的。
 
-## 6. `dh_netsdk.cpp` 的定位与清理
+## 6. ~~`dh_netsdk.cpp` 的定位与清理~~ ✅ 已完成（2026-10-05）
 
-它是"GIL 安全的阻塞调用封装"（第 2 层 `dhbind` 的 C++ 侧），两件事没做完：
+原计划保留它做"GIL 安全的阻塞调用封装"。实际做法反过来了 —— **删掉它**，
+把 GIL 释放下沉到生成器的函数绑定模板（`common/parse.py` 给每个 `m.def` 加
+`nb::call_guard<nb::gil_scoped_release>()`），理由与判据见
+`docs/binding-tech-debt.md` 技术债 #8「等比 ctypes」：
 
-- **接线**：里面的登录链路要接到 `python/dhbind/client.py`，成为 `Client.login()`
-  的底层实现。释放 GIL + 填 `dwSize` 这两件它已经做了，缺的是 Python 侧去调它
-  （现在是 `native/tests/e2e/test_login_callback.py` 在直接用生成版 pyd 绕着走）。
-- **清理**：`_test_gil_*` 两个探针无人使用，可移除。
+- **接线**：已完成。`python/dhbind/client.py` 的 `Client.login()` 改走生成版
+  `CLIENT_LoginWithHighLevelSecurity`，底层不再有手写 pyd。
+- **清理**：已完成。模块整体删除，`_test_gil_*` 探针、`init/log_open` 等一并消失；
+  同时消除了 5 个类型在两份 pyd 里重复注册的隐患。

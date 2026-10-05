@@ -134,12 +134,39 @@ bytes 19 / array 7`。判定必须**靠参数名**而非位置 —— 289 个回
 IDE 补全已由随生成产出的 `{module}.pyi` 解决（pyd 同目录自动生效）。
 剩余：厂商错误码无符号名，调用方只能拿到裸数字 —— 待错误码表（优先级表第 6 项高层封装）。
 
+### ~~8. 函数调用持 GIL 阻塞其他线程~~ ✅ 2026-10-05（无条件 `gil_scoped_release`）
+
+**决策**：native 只负责复刻 `ctypes.CDLL` 的语义 —— **每次外部调用都不持 GIL**；
+线程安全 / 并发语义不在 native 职责内，由 Python 上层自己加锁。验收判据原文：
+「只要能等比 ctypes 的效果就行，其他问题有 python 上层解决。我们 native 不考虑。」
+
+**实现**：`native/codegen/common/parse.py` 的函数绑定模板给每个 `m.def` 尾部追加
+`nb::call_guard<nb::gil_scoped_release>()`。落地范围：大华 2515/2515、海康 785/785，
+等于全部函数绑定（`m.def` 计数逐一吻合）。
+
+**为什么无条件、不挑"可能阻塞"的函数**：没法从声明上判断一个函数会不会长时间阻塞
+（除了反编译拿绝对证据），按名字/形态挑必然漏。既然判据是"等比 ctypes"，就一律放。
+
+**为什么安全**：`nb::call_guard` 被 nanobind 包在裸调用外层
+（`nb_func.h`：`typename Info::call_guard::type g; (void)g; return func(args...);`），
+guard 在**返回值转成 Python 之前**析构 —— 参数转换（Python→C）与返回值构造
+（C→Python）仍持 GIL，释放只覆盖那一次 C 调用，与 ctypes 精确等比。
+
+**排除项**（不能加 guard，因为会碰 Python 对象）：回调注册走 `m.attr`
+（`common/emit.py` 的 `gen_callback_binding`），结构体字段访问器走 `nb::class_`。
+
+**验证**：后台线程 tick 从 1 涨到 ~274（持 GIL 时被饿死 vs 释放后可跑）。
+
 ## 其他
 
 - ~~两套回调注册表并存~~ ✅ 已收敛（2026-10-04）。手写版 `set_disconnect_callback`
   与 4 个 `_test_*` 转换探针已删除，回调统一走生成版。此前两套注册表独立，
-  同一 SDK 订阅点混用会静默不触发。`unify_dh` 现在只剩登录链路、`log_open`、
-  GIL 探针。
+  同一 SDK 订阅点混用会静默不触发。
+- ~~手写 `unify_dh` 模块~~ ✅ 已删除（2026-10-05）。它的存在理由（登录释放 GIL、
+  自动填 `dwSize`）已被生成版完全覆盖：函数绑定统一带 `gil_scoped_release`
+  （见下节），结构体 `__init__` 自动填 `dwSize`。删除同时消除了 5 个类型
+  （`EM_LOGIN_SPAC_CAP_TYPE` / `EM_LOGIN_TLS_TYPE` / `NET_DEVICEINFO_Ex` /
+  两个登录结构体）在两份 pyd 里重复注册、后加载方静默丢属性的隐患。
 - 生成物 `native/src/gen_dh/` 不入库（可重建），改代码请改 `native/codegen/` 下的源头。
 
 ## 优先级

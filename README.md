@@ -24,6 +24,11 @@
 两个 pyd 都通过了 `native/tests/verify_runtime.py`：import、字段读写往返、不依赖设备的安全函数
 （`CLIENT_GetSDKVersion()` 返回 36192074 = 3.6.1.92074 的 build 号）。
 
+**GIL 语义与 `ctypes.CDLL` 等比**：两家**所有函数绑定**统一带
+`nb::call_guard<nb::gil_scoped_release>()` —— 每次外部调用都不持 GIL，
+阻塞函数（登录、连接、录像检索…）不会饿死同进程其他线程。释放只覆盖那一次 C 调用，
+参数转换与返回值构造仍持 GIL。线程安全/并发语义由 Python 上层自己加锁，native 不掺和。
+
 海康的 26 个回调目前走**保守退化**（不识别结构体数组，全部给单个对象）—— 那套
 "靠参数名判断数量"的规则是从大华 289 个回调归纳的，对海康不成立，等接上设备后照
 它的实际行为再补。
@@ -70,7 +75,6 @@ UnifyNetSDK/
 │   │       ├── dahua.py               #   含回调参数分类规则（从 289 个回调归纳）
 │   │       └── haikang.py             #   故意不设钩子 —— 缺省即保守退化
 │   ├── src/
-│   │   ├── dh_netsdk.cpp      # 手写登录链路（第 2 层封装：释放 GIL + 填 dwSize）
 │   │   ├── gen_dh/            # 大华生成产物（不入库，可重建）
 │   │   │   ├── dh_bind.h          #   分片函数声明
 │   │   │   ├── dh_bind_cb.h       #   回调运行时（模板源 common/cb_runtime.py）
