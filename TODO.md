@@ -15,7 +15,7 @@
 | 现象 | 现状 |
 |---|---|
 | 用户没有可 import 的入口 | 要用必须知道 `os.add_dll_directory` → `sys.path.insert(native/build)` → 手动构造结构体填 `dwSize` |
-| Python 测试曾散在三处 | 顶层 `tests/` 已撤掉、模拟器代码已拆出 `e2e/simulator/server.py`；`native/smoke_test.py` 因构建需要留在 C++ 侧；`python/` 三层 tests 待填 |
+| Python 测试曾散在三处 | 顶层 `tests/` 已撤掉、模拟器胶水已拆出并归到 `python/dhbind/tests/simulator/server.py`（e2e 归 python 层）；`native/smoke_test.py` 因构建需要留在 C++ 侧；`python/` 三层 tests 待填 |
 | ~~手写与生成混在一层~~ | ✅ 已解决（2026-10-05）：手写 `native/src/dh_netsdk.cpp` 删除，只剩 `native/src/gen_dh/`（生成）|
 | 没有对外承诺 | README 讲了怎么做，没讲"用户会得到什么" |
 
@@ -39,15 +39,12 @@ UnifyNetSDK/
 │   ├── CMakeLists.txt / build.ps1
 │   ├── codegen/                     # 构建期生成器：common/（通用语法）+ config/（厂商语义）
 │   ├── src/gen_dh/                  # 生成产物（不入库；手写 dh_netsdk.cpp 已删）
-│   └── tests/                       # ★ 测本层
+│   └── tests/                       # ★ 测本层（只测绑定层，不做 e2e）
 │       ├── conftest.py              #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
-│       ├── _paths.py                #   脚本阶段的路径 helper，转 pytest 后并入 conftest
+│       │                            #   （原 _paths.py 内容，2026-10-05 并入）
 │       ├── test_callbacks.py        #   289 个 bind_/set_ 分类 / 退订 / 异常隔离
-│       ├── verify_runtime.py        #   两厂商 .pyd 读写往返【Phase 2 落地后退役】
+│       ├── test_runtime_roundtrip.py #  两厂商 .pyd 读写往返【test_structs.py 落地后退役】
 │       ├── test_coverage_regression.py / test_structs.py / test_functions.py
-│       └── e2e/                     # 端到端（需模拟器，默认不跑）
-│           ├── simulator/server.py  #   模拟器胶水，从字符串字面量挪成真文件
-│           └── test_login_callback.py
 │
 ├── python/                          # 上层：三个待打包的包
 │   ├── dhbind/                      # → 第 2 层，wheel 1
@@ -57,7 +54,10 @@ UnifyNetSDK/
 │   │   ├── _binding/                #   构建时填充：.pyd + 厂商 DLL（不入库）
 │   │   │   ├── unify_dh_gen.cp313-win_amd64.pyd
 │   │   │   └── dhnetsdk.dll / libeay32.dll / ...
-│   │   └── tests/                   #   测本层：Client 流程 / 错误码 / outptr 读回
+│   │   └── tests/                   #   测本层：Client 流程 / 错误码 / e2e（连模拟器）
+│   │       ├── simulator/server.py  #     模拟器胶水（e2e 归本层，2026-10-05 从 native 搬来）
+│   │       ├── test_client_e2e.py   #     e2e：登录/登出（@pytest.mark.e2e，默认不跑）
+│   │       └── test_disconnect_callback_e2e.py  # e2e：真实 SDK 线程 -> thunk -> GIL
 │   │
 │   ├── hkbind/                      # → 第 3 层，wheel 2（同构，指向海康）
 │   │   ├── ... 同上
@@ -224,24 +224,29 @@ class LoginArgs(BaseModel):
 
 1. **叫 `test_*.py` 的文件必须是 pytest 测试**（含 `def test_*`）。手工脚本不许
    叫 `test_*.py` —— pytest 在 collection 阶段就 import 模块，顶层代码会被执行。
-   刚发生过的真事：`test_login_callback.py` 顶层会 `Popen` 拉起模拟器并
-   `sleep(20)`，跑一次 `pytest` 就意外启动外部进程并阻塞；而且因为没有
-   `def test_*`，最后报的还是 `no tests collected` —— 副作用全占了，断言一个没跑。
+   真事（已修复）：`test_login_callback.py` 顶层曾 `Popen` 拉起模拟器并 `sleep`，
+   跑一次 `pytest` 就意外启动外部进程并阻塞；而且因为没有 `def test_*`，最后报的
+   还是 `no tests collected` —— 副作用全占了，断言一个没跑。现已转正为
+   `python/dhbind/tests/test_disconnect_callback_e2e.py`（e2e 归 python 层）。
 2. **端到端测试必须标 `@pytest.mark.e2e`**。`pytest.ini` 已用
    `addopts = -m "not e2e"` 默认排除，因为它依赖项目外的 `Dahua_NVR_Simulator`。
 3. **`pytest.ini` 的 `testpaths` 必须与 TODO 0.2 的目录树一致**。两处不同步的后果
    是"某些测试永远不跑"或者"跑进 vendor/ 里去"。
 
-**待退役清单**（避免"落地了就忘"）：
+**e2e 归 python 层**：`native`（pyd）与 `python`（wheel）两个层级产物本质同构，
+但"连模拟器"这件事放在 python 层那三个 wheel 里更有归属性 —— native 只测绑定层
+本身，不做 e2e。原 `native/tests/e2e/` 已整目录删除。
 
-| 文件 | 退役触发条件 | 退役后价值去哪 |
-|---|---|---|
-| `native/tests/verify_runtime.py` | `native/tests/test_structs.py` 落地并跑通（本节 Phase 2）| DLL 加载知识 → `conftest.py` 的 fixture；字段往返 → `test_structs.py` |
-| `native/tests/_paths.py` | 三个脚本转成 pytest 之后 | 内容并入 `conftest.py` |
+**已退役的脚本**（2026-10-05，三个脚本全部转正）：
 
-**在退役条件达成之前不要删** —— 两厂商 pyd 均已编译验证，
-`verify_runtime.py` 是目前唯一能同时验证两个厂商 `.pyd` 可 import + 字段可读写
-的跨厂商回归工具，删早了就没有替代品。同一约定也写在该文件的 docstring 顶部。
+| 文件 | 去向 |
+|---|---|
+| `native/tests/verify_runtime.py` | 转正为 `native/tests/test_runtime_roundtrip.py`；DLL 加载知识已在 `conftest.py`，字段往返待 `test_structs.py` 落地后并入 |
+| `native/tests/_paths.py` | 内容并入 `native/tests/conftest.py` |
+| `native/tests/e2e/test_login_callback.py` | 转正为 `python/dhbind/tests/test_disconnect_callback_e2e.py`（e2e 归 python 层）|
+
+`native/tests/` 现在只有：`conftest.py`、`test_callbacks.py`、`test_coverage_regression.py`、
+`test_runtime_roundtrip.py`。
 
 **新增测试时的自检三问**：① 测的是哪一层？放对目录了吗？② 它是 pytest 测试还是
 手工脚本（决定文件名）？③ 依赖外部东西吗（决定要不要 marker）？
@@ -260,7 +265,7 @@ class LoginArgs(BaseModel):
 
 ### 1.2 分四阶段，按顺序做
 
-#### Phase 1：覆盖边界断言（★ 最先做，成本最低价值最高）
+#### Phase 1：覆盖边界断言（★ 最先做，成本最低价值最高）✅ 2026-10-05
 
 把现有的 `native/codegen/check_coverage.py` 改写成 pytest 断言，让**手写数字变成自动防线**：
 
@@ -273,6 +278,14 @@ def test_skipped_counts_stable():             # 位字段(8)属 C 限制只能�
 
 **为什么最先做**：以后换 SDK 或改生成器，测试立刻告诉你「这次漏了什么」，
 而不是靠人肉对比文档里的数字。
+
+**落地情况**（`native/tests/test_coverage_regression.py`，8 passed = 4 断言 × 2 厂商）：
+- `check_coverage.py` 拆成纯函数 `collect(sdk)` + `report(c)` + `main()`。
+  拆分前它 import 就 argparse、还改 `sys.stdout`，没法被测试复用。打印文案逐字未动
+  （改前改后输出做过逐字比对），所以 README / debt 文档里的数字口径不变。
+- 断言与打印**共用同一个 `collect()`**：口径只有一处，两边不会漂。
+- 基线数字写在测试的 `BASELINE` 里，方向性断言：完全对上的只增不减，跳过的只减不增。
+- 该测试只解析头文件与生成物、不 import pyd，所以不需要 `pyd` fixture。
 
 #### Phase 2：结构体冒烟（10557 个）
 
@@ -305,16 +318,20 @@ def test_struct_smoke(name):
 
 #### Phase 4：设备功能测试
 
-依赖 `Dahua_NVR_Simulator` 的实现程度。已覆盖登录 + 断线回调；待覆盖预览取流、
-报警、布防、录像查询、PTZ。**上限取决于模拟器实现了多少**，不是绑定层能单独决定的。
+依赖 `Dahua_NVR_Simulator` 的实现程度。已覆盖登录 + 断线回调（e2e 归 python 层：
+`python/dhbind/tests/test_client_e2e.py` / `test_disconnect_callback_e2e.py`）；待覆盖
+预览取流、报警、布防、录像查询、PTZ。**上限取决于模拟器实现了多少**，不是绑定层
+能单独决定的。
 
 ### 1.3 需要的脚手架
 
 - `native/tests/conftest.py`：**已建**，提供 `pyd(sdk)` fixture（导入 .pyd，缺厂商自动 skip）
-- `native/tests/test_coverage_regression.py`：Phase 1
-- `native/tests/test_structs.py`：Phase 2（**落地后按 1.0 的待退役清单处理 `verify_runtime.py`**）
+- `native/tests/test_coverage_regression.py`：**已建**（Phase 1 ✅）
+- `native/tests/test_structs.py`：Phase 2（落地后把 `test_runtime_roundtrip.py` 的字段往返并入）
 - `native/tests/test_functions.py`：Phase 3
-- 现有三个脚本转 pytest：`test_callbacks.py`（拆 6 个 test）、`verify_runtime.py`、`e2e/test_login_callback.py`（加 marker）。转正清单见 `native/tests/conftest.py` 的 docstring
+- ~~现有三个脚本转 pytest~~ ✅ 已完成（2026-10-05）：`test_callbacks.py`（拆 7 个 test）、
+  `test_runtime_roundtrip.py`（原 `verify_runtime.py`）、`python/dhbind/tests/test_disconnect_callback_e2e.py`
+  （原 `e2e/test_login_callback.py`，e2e 归 python 层）。详见 1.0 的"已退役的脚本"
 
 **结构体/函数清单从哪来**：让生成器输出 `gen_manifest.json`（名字 + 跳过原因 +
 字段列表），测试直接读它，免得测试里再解析一遍头文件。
@@ -325,10 +342,18 @@ diff，也服务测试期断言。
 
 ### 1.4 现状
 
-- `native/codegen/check_coverage.py` 已能输出完整覆盖边界，Phase 1 只需把数字改成断言
-- `native/tests/` 已就位（`conftest.py` + `_paths.py` + 三个脚本 + `e2e/`），顶层 `tests/` 已撤掉
-- `pytest.ini` 已就位但 **`pytest` 依赖尚未加入**，所以那三个脚本目前不被 pytest 收集（它们也没有 `def test_*`）
-- 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/verify_runtime.py` 报 72.9 MB / 3825 导出 / 26 回调
+- `native/codegen/check_coverage.py` ✅ Phase 1 已落地：数字已变成断言，见
+  `native/tests/test_coverage_regression.py`（`collect(sdk)` 为唯一口径）
+- `native/tests/` 已就位（`conftest.py` + `test_callbacks.py` + `test_coverage_regression.py`
+  + `test_runtime_roundtrip.py`）；`e2e/` 已整目录删除（移入 `python/dhbind/tests/`）；
+  顶层 `tests/` 已撤掉
+- ✅ 三脚本转 pytest 已落地，`pytest native/tests` 可整体跑：
+  `.venv\Scripts\python.exe -m pytest native/tests -q` → 21 passed
+  （此前 `test_callbacks.py` 在 import 期替换 `sys.stdout` 导致
+  `ValueError: I/O operation on closed file` / `no tests ran`，现已去掉）
+- `pytest` 依赖确实存在于 `.venv`（9.1.1），但**没有任何文件声明它**（无 requirements/dev 依赖）——
+  换台机器 clone 下来跑不了测试，需补进声明
+- 海康 `.pyd` 已能 import 并通过字段往返：`native/tests/test_runtime_roundtrip.py` 报 72.9 MB / 3825 导出 / 26 回调
 
 ---
 
@@ -389,7 +414,10 @@ DLL 加载：随 wheel 打包，import 时由包自己 `os.add_dll_directory` �
 ---
 
 ## 5. 那个大华模拟器有空了fork一下，后面还要实现录像下载。
-然后记得还有海康模拟器，上网搜一搜有没有现成的。
+海康模拟器调研结论（2026-10-04 上网检索）：**不存在现成的 HCNetSDK 协议级模拟器**——
+检索到的都是 ONVIF/GB28181 模拟器（协议不对口，海康私有二进制协议无公开文档），
+详见 `docs/testing-plan.md` 第四节。对齐测试能力的选项：真机 / 自研（抓包逆向，大工程）/
+无设备 smoke 保底（已有）。
 
 ## 6. ~~`dh_netsdk.cpp` 的定位与清理~~ ✅ 已完成（2026-10-05）
 

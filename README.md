@@ -21,7 +21,7 @@
 > `docs/binding-tech-debt.md` 的覆盖边界表。
 
 两家各自独立模块：大华 `unify_dh_gen`、海康 `unify_hk_gen`（命名空间天然隔离，同名结构体不冲突）。
-两个 pyd 都通过了 `native/tests/verify_runtime.py`：import、字段读写往返、不依赖设备的安全函数
+两个 pyd 都通过了 `native/tests/test_runtime_roundtrip.py`：import、字段读写往返、不依赖设备的安全函数
 （`CLIENT_GetSDKVersion()` 返回 36192074 = 3.6.1.92074 的 build 号）。
 
 **GIL 语义与 `ctypes.CDLL` 等比**：两家**所有函数绑定**统一带
@@ -84,18 +84,19 @@ UnifyNetSDK/
 │   │   │   ├── dh_bind_funcsNNN.cpp
 │   │   │   └── unify_dh_gen.pyi   #   IDE 补全存根（emit_stub.py，build 目录另有副本）
 │   │   └── gen_hk/            # 海康生成产物（结构与 gen_dh 同构）
-│   └── tests/                 # ★ 测第 1 层：.pyd 绑定层
+│   └── tests/                 # ★ 测第 1 层：.pyd 绑定层（只测绑定，不做 e2e）
 │       ├── conftest.py            #   fixture：SDK DLL 加载 / pyd 导入（缺厂商自动 skip）
-│       ├── _paths.py              #   脚本阶段的路径 helper，转 pytest 后并入 conftest
+│       │                          #   （原 _paths.py 内容，2026-10-05 并入）
 │       ├── test_callbacks.py      #   289 个 bind_/set_ 分类 / 退订 / 异常隔离
-│       ├── verify_runtime.py      #   两厂商 .pyd 读写往返【Phase 2 落地后退役】
-│       └── e2e/                   #   需项目外的模拟器，默认不跑（-m e2e）
-│           ├── simulator/server.py    #     模拟器胶水（原为内嵌字符串，已拆出）
-│           └── test_login_callback.py #     真实 SDK 工作线程 -> thunk -> GIL 回调
+│       ├── test_runtime_roundtrip.py # 两厂商 .pyd 读写往返【test_structs.py 落地后退役】
+│       └── test_coverage_regression.py # 头文件 -> pyd 覆盖边界断言
 ├── python/                   # 上层：三个待打包的 wheel（目前只有骨架，内容待填）
 │   ├── dhbind/              # → wheel dhbind：加载 unify_dh_gen + 大华错误码 + Client
 │   │   ├── _binding/         #   构建时填充 .pyd + 厂商 DLL（不入库）
-│   │   └── tests/            #   测第 2 层：Client 流程 / 错误码转换 / outptr 读回
+│   │   └── tests/            #   测第 2 层：Client 流程 / 错误码转换 / e2e（连模拟器）
+│   │       ├── simulator/server.py         # 模拟器胶水（2026-10-05 从 native 搬来）
+│   │       ├── test_client_e2e.py          # e2e：登录/登出（-m e2e）
+│   │       └── test_disconnect_callback_e2e.py # e2e：真实 SDK 线程 -> thunk -> GIL 回调
 │   ├── hkbind/              # → wheel hkbind：同构，指向海康
 │   │   ├── _binding/
 │   │   └── tests/
@@ -232,23 +233,25 @@ unify_dh_gen.unbind_fRealDataCallBack()          # 退订
 ## 测试
 
 ```powershell
-# 运行时验证：两个 pyd 的 import / 规模 / 字段读写往返 / 安全函数
-.venv\Scripts\python.exe native\tests\verify_runtime.py
+# 全量：四层各自 tests/，e2e 默认排除
+.venv\Scripts\python.exe -m pytest -q
 
-# 端到端：生成版登录模拟器 + 验证回调在真实 SDK 线程上触发（需大华模拟器）
-.venv\Scripts\python.exe native\tests\e2e\test_login_callback.py
+# 只跑绑定层（第 1 层 native）
+.venv\Scripts\python.exe -m pytest native/tests -q
 
-# 绑定层参数分类（bytes / obj / array / 指针别名 / 退订 / 异常隔离）
-.venv\Scripts\python.exe native\tests\test_callbacks.py
+# 端到端：连项目外的模拟器（需 ..\Dahua_NVR_Simulator）
+.venv\Scripts\python.exe -m pytest -m e2e -q
 ```
 
-`verify_runtime.py` 是判断"绑定是否真的可用"的最小成本手段 —— 编译通过只证明类型和
-语法正确，字段偏移错乱、数组维度算错这类问题只有跑起来才暴露。
+`test_runtime_roundtrip.py`（原 `verify_runtime.py`）是判断"绑定是否真的可用"的最小
+成本手段 —— 编译通过只证明类型和语法正确，字段偏移错乱、数组维度算错这类问题只有
+跑起来才暴露。
 
 `_selftest_fXxx(payload)` 钩子默认随绑定一起生成，从裸 `std::thread` 调真实
 thunk，因此**没有设备时也能验证回调处理逻辑**：`g._selftest_fRealDataCallBack(b"")`。
 `payload` 为空只做线程往返、非空才走完整 thunk —— 这个二分开关在排查卡死/崩溃时
 很好用（先确认是线程机制还是 thunk 内部的问题）。
 
-`native\tests\e2e\test_login_callback.py` 需要模拟器在 `..\Dahua_NVR_Simulator`（脚本会自己
-拉起 server，路径从脚本位置推导，无需改配置）。
+e2e 归 python 层（`python/dhbind/tests/`：`test_client_e2e.py` / `test_disconnect_callback_e2e.py`），
+native（pyd）不做 e2e。它需要模拟器在 `..\Dahua_NVR_Simulator`；`sim_server` fixture 会
+拉起包内的 `tests/simulator/server.py`，路径按"项目根的兄弟目录"推导，无需改配置。

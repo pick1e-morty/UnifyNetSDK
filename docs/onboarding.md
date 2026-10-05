@@ -31,12 +31,13 @@
 
 - 大华 10557 结构体 / 63353 字段（99.51%）/ 1873 枚举 / 2515 函数 / **289 回调**全部绑定
 - 海康 2670 结构体 / 18821 字段（99.94%）/ 264 枚举 / 785 函数 / **26 回调**绑定完成
-  （`verify_runtime.py` 通过；回调走保守退化，待接设备后照实际行为补规则）
+  （`native/tests/test_runtime_roundtrip.py` 通过；回调走保守退化，待接设备后照实际行为补规则）
 - 未知类型已归零（大华 0 / 海康 0，2026-10-04）
 - `.pyi` stub 随生成产出（`common/emit_stub.py`，IR 的第二个消费者；
   pyd 同目录自动生效，`--no-stub` 可关）
 - 端到端跑通：生成版登录 `Dahua_NVR_Simulator`（Gen2 两阶段认证），断线回调被
-  **真实 SDK 工作线程**触发、参数全对
+  **真实 SDK 工作线程**触发、参数全对（e2e 归 python 层：
+  `python/dhbind/tests/test_disconnect_callback_e2e.py`）
 - 回调参数分类覆盖 289 个 typedef：结构体数组 → `list`、字节缓冲 → `bytes`、
   借用视图 NULL 安全、异常隔离、退订
 
@@ -79,9 +80,10 @@ Select-String -Path native\src\gen_dh\dh_bind_part*.cpp -Pattern '"新字段名"
 # 3. 编译
 cd native; powershell -ExecutionPolicy Bypass -File .\build.ps1 -SkipTest -Jobs 8
 
-# 4. 验证
-cd ..; .venv\Scripts\python.exe native\tests\e2e\test_login_callback.py   # 端到端（需模拟器）
-.venv\Scripts\python.exe native\tests\test_callbacks.py          # 绑定层 268 个钩子
+# 4. 验证（回到项目根）
+cd ..
+.venv\Scripts\python.exe -m pytest native\tests -q                            # 绑定层全量
+.venv\Scripts\python.exe -m pytest -m e2e -q                                  # 端到端（需模拟器）
 .venv\Scripts\python.exe native/codegen\check_coverage.py --sdk dahua|haikang             # 覆盖边界统计
 ```
 

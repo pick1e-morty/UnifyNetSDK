@@ -71,7 +71,7 @@ bytes 19 / array 7`。判定必须**靠参数名**而非位置 —— 289 个回
 `(NET_X *pInfo, LDWORD dwUser)`，那个整数是用户数据不是数量；且数量/长度关键词要 `$`
 锚定在名字末尾：`nFileNum` 的第 4~6 字符忽略大小写正好凑出 `leN` 命中 `len`。
 
-验证：端到端 `native/tests/e2e/test_login_callback.py`（真实 SDK 线程触发，参数全对）；
+验证：端到端 `python/dhbind/tests/test_disconnect_callback_e2e.py`（真实 SDK 线程触发，参数全对）；
 绑定层 `native/tests/test_callbacks.py`（依赖 `_selftest_fXxx` 钩子从裸
 `std::thread` 调 thunk，268 个钩子全通）。钩子**默认生成**（`--no-selftest` 可关），
 因为关掉后绑定层测试就完全跑不了；附带好处是上游无设备时也能用钩子验证自己的回调。

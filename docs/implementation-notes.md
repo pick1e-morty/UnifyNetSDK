@@ -275,8 +275,8 @@ fNotifyCarPassInfo(..., NET_CAR_PASS_INFO *pstuCarPassInfos, int nInfoNum, ...) 
 
 这也是 selftest 钩子（`_selftest_fXxx`）存在的唯一理由：从裸 `std::thread` 调 thunk。
 钩子现在**默认生成**（`--no-selftest` 可关，省 1.5 MB 产物），因为绑定层
-`test_callbacks.py` 依赖它；端到端 `test_login_callback.py` 覆盖的是另一条路径 ——
-真实 SDK 工作线程进 thunk。
+`test_callbacks.py` 依赖它；端到端 `python/dhbind/tests/test_disconnect_callback_e2e.py`
+覆盖的是另一条路径 —— 真实 SDK 工作线程进 thunk。
 
 ---
 
@@ -321,7 +321,7 @@ std::thread t([&]{ thunk(); });
 ```
 
 **它不是登录失败的原因。** Gen2 登录实测正常（`nError == 0`，见
-`native/tests/e2e/test_login_callback.py`）。
+`python/dhbind/tests/test_disconnect_callback_e2e.py`）。
 
 事实与来源要分清：
 
