@@ -556,6 +556,17 @@ def generate(cfg, args):
                             enum_names, union_names, ptr_aliases, stub_funcs,
                             [c[0] for c in bindable_cbs], selftest_names)
 
+    # ---- IR 清单：给 native/tests 读（gen_manifest.json）----
+    # 与 _gen_manifest.json（分片 hash，只服务编译期 diff）不是一回事：这份是
+    # **语义清单**，让 Phase 2/3 的逐项冒烟不必再解析一遍头文件。--limit 模式下
+    # 产物只有一部分，清单会撒谎，跳过。
+    if args.limit:
+        print('  清单      : --limit 模式跳过（产物不完整，清单会撒谎）')
+    else:
+        changed = write_manifest(out_dir, cfg, structs, bindable_funcs,
+                                 bindable_cbs, fp_types, stats, func_stat)
+        print('  清单      : %s（%s）' % (MANIFEST_IR, '已更新' if changed else '未变化'))
+
     # ---- 清理过期分片（片数变少 / 改名后残留的旧文件）----
     removed = 0
     for fn in os.listdir(out_dir):
@@ -599,6 +610,37 @@ SEC_PER_TU = {
 SEC_PER_TU_DEFAULT = 2.0   # 未识别的分片类型的保守值
 
 MANIFEST = '_gen_manifest.json'
+
+
+#: IR 语义清单（结构体/字段/函数/回调 + 跳过计数）。**不是编译输入**，与上面
+#: 那份 `_gen_manifest.json`（分片 hash）分开：这份给测试读。
+MANIFEST_IR = 'gen_manifest.json'
+
+
+def write_manifest(out_dir, cfg, structs, bindable_funcs, bindable_cbs,
+                   fp_types, stats, func_stat):
+    """把 IR 清单写成 ``gen_manifest.json``，返回是否发生变化。
+
+    结构体只记「名字 -> 字段名列表」，**刻意不记类型**：Phase 2 的字段冒烟是
+    「读 v -> 写回 v -> 再读 == v」，这条对 str / bytes / 指针 / 内嵌结构体 / 枚举
+    全都成立，测试不必按类型分支。带不带 `dwSize` 看字段列表里有没有它即可。
+
+    写 ASCII：与其它生成物同一规矩（生成物由 MSVC 读，非 ASCII 触发 C4819）。
+    """
+    import json
+
+    data = {
+        'sdk': cfg['name'],
+        'module': cfg['module'],
+        'structs': {name: [f[1] for f in fields] for name, fields in structs},
+        'functions': [fname for fname, _flines in bindable_funcs],
+        'callbacks': [c[0] for c in bindable_cbs],
+        'funcptr_types': len(fp_types),
+        'parse_stats': dict(sorted(stats.items())),
+        'func_stats': dict(sorted(func_stat.items())),
+    }
+    return write_if_changed(os.path.join(out_dir, MANIFEST_IR),
+                            json.dumps(data, indent=0, sort_keys=True))
 
 
 def _shard_kind(fname, prefix):
